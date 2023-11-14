@@ -1,0 +1,23 @@
+{
+  "recordings": [
+    {
+      "name": "Anon2_9.5.23",
+      "tags": [ "stuff", "other stuff" ]
+    },
+    {
+      "name": "Released_Anon1_8.17.23",
+      "tags": [ "other stuff", "more stuff" ]
+    },
+    {
+      "name": "Released_Anon3_9.5.23",
+      "tags": [ "stuff" ]
+    },
+    {
+      "name": "Released_Anon4_9.24.23"
+    },
+    {
+      "name": "Released_Anon5_9.24.23",
+      "tags": []
+    }
+  ]
+}
