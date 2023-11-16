@@ -1,61 +1,38 @@
-import React, { useState, useEffect, StrictMode } from 'react';
+import React, { useState, useEffect, useRef, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-function Narrative({name, tags}) {
-  const [transcription, setTranscription] = useState('');
-
-  useEffect(() => {
-    let ignore = false;
-
-    async function fetchTranscription() {
-      const t = await fetch(`narratives/${name}.txt`)
-        .then(async res => res.text());
-
-      if (!ignore) {
-        setTranscription(t);
-      }
-    }
-
-    fetchTranscription();
-
-    return () => {
-      ignore = false;
-    };
-
-  }, []);
-
-  return (
-    <div className={'narrative'}>
-      <div className={'transcription'}>
-        {transcription}
-      </div>
-      <div>
-        <audio controls>
-          <source src={`narratives/${name}.mp3`} type={'audio/mpeg'} />
-          {'Your browser does not support the audio element'}
-        </audio>
-      </div>
-    </div>
-  );
-}
+import Recording from './Recording.js';
+import SearchControls from './SearchControls.js';
 
 function App() {
-  const [recordingsData, setRecordingsData] = useState([]);
+  const [recordingsList, setRecordingsList] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
+  let allTags = useRef([]);
   
   useEffect(() => {
     let ignore = false;
 
-    async function fetchRecordingsData() {
-      const recordings = await fetch('recordings-data.json')
+    async function fetchRecordingsList() {
+      let recordings = await fetch('recordings-data.json')
         .then(res => res.json())
         .then(async (json) => json.recordings);
 
       if (!ignore) {
-        setRecordingsData(recordings);
+        recordings = recordings.map(recording => ({ 
+          ...recording, 
+          ...(recording.tags === undefined ? { tags: [] } : {})
+        }));
+
+        setRecordingsList(recordings);
+
+        allTags.current = recordings.reduce((all, r) => [...all, ...r.tags.filter(tag => !all.includes(tag))], []);
+        
+        setSelectedTags(allTags.current);
+
       }
     }
 
-    fetchRecordingsData();
+    fetchRecordingsList();
 
     return () => {
       ignore = true;
@@ -63,12 +40,33 @@ function App() {
 
   }, []);
 
+  function toggleTag(tagName) {
+    if (selectedTags.includes(tagName))
+      setSelectedTags(selectedTags.filter(tag => tag !== tagName));
+    else
+      setSelectedTags(selectedTags.concat([tagName]));
+   }
+
+  const allTagsSelected = allTags.current.length === selectedTags.length;
+
   return (
     <>
-      <img className={'logo'} src={'jsn-logo-transparent.png'} />
-      {recordingsData.map(datum => 
-        <Narrative key={datum.name} name={datum.name} tags={datum.tags} />
-      )}
+      <SearchControls allTags={allTags} selectedTags={selectedTags} toggleTag={toggleTag} />
+      <div>
+        {
+          (allTagsSelected ? recordingsList : 
+            recordingsList.filter(recording => recording.tags.reduce(
+              (oneTagSelected, tag) => oneTagSelected || selectedTags.includes(tag), false
+            ))
+          ).map(recording =>
+              <Recording 
+                key={recording.name} 
+                name={recording.name} 
+                tags={recording.tags} 
+              />
+          )
+        }
+      </div>
     </>
   );
 }
