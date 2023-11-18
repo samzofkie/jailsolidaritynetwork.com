@@ -24,14 +24,34 @@ export default function Recording({name, tags}) {
 
   }, []);
 
+  function convertTimestampToSeconds(ts) {
+    return Number(ts.slice(0,2)) * 60 + Number(ts.slice(3));
+  }
+  
   return (
     <div className={'recording'}>
       
       <div className={'transcription'} 
         style={transcriptionExpanded ? 
           {'WebkitTextFillColor': 'black'} : 
-          {'maxHeight': '100px'}}>
-            {transcription}
+          {'maxHeight': '30vh'}}>
+            {
+              transcription
+                .split('\n')
+                .filter(s => s.length > 0)
+                .reduce((acc, curr, currIndex, arr) => {
+                  if (currIndex % 2 === 0)
+                    acc.push(
+                      {
+                        'seconds': convertTimestampToSeconds(arr[currIndex]),
+                        'text': arr[currIndex + 1]
+                      }
+                    );
+                  return acc;
+                }, []).map((para, i) =>
+                  <p key={i} seconds={para.seconds}>{para.text}</p>
+                )
+            }
       </div>
       
       <div className={'expand-and-tags-row'}>
