@@ -1,5 +1,40 @@
 import React, { useState, useEffect } from 'react';
 
+function getWindowDimensions() {
+  const { innerWidth: width, innerHeight: height } = window;
+  return {
+    width,
+    height
+  };
+}
+
+function useWindowDimensions() {
+  const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
+
+  useEffect(() => {
+    function handleResize() {
+      setWindowDimensions(getWindowDimensions());
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return windowDimensions;
+}
+
+function Audio({ name }) {
+  const {height, width} = useWindowDimensions();
+  return (
+    <div className={'audio-container'}>
+      <audio controls style={{height: Math.max(width / 45, 25)}}>
+        <source src={`narratives/${name}.mp3`} type={'audio/mpeg'} />
+        {'Your browser does not support the audio element'}
+      </audio>
+    </div>
+  );
+}
+
 export default function Recording({name, tags}) {
   const [transcription, setTranscription] = useState('');
   const [transcriptionExpanded, setTranscriptionExpanded] = useState(false);
@@ -63,12 +98,7 @@ export default function Recording({name, tags}) {
         {tags.map((tag, i) => <span key={i} className={'tag'}>{tag}</span>)}
       </div>
       
-      <div className={'audio-container'}>
-        <audio controls>
-          <source src={`narratives/${name}.mp3`} type={'audio/mpeg'} />
-          {'Your browser does not support the audio element'}
-        </audio>
-      </div>
+      <Audio name={name} />
     
     </div>
   );
