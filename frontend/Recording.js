@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import ReactAudioPlayer from 'react-audio-player';
 
 function getWindowDimensions() {
   const { innerWidth: width, innerHeight: height } = window;
@@ -23,14 +24,30 @@ function useWindowDimensions() {
   return windowDimensions;
 }
 
-function Audio({ name }) {
+function Audio({ name, setPlaybackTime }) {
   const {height, width} = useWindowDimensions();
+  const ref = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  
+  useEffect(() => {
+    let interval = null;
+    if (isPlaying) {
+      setInterval(() => setPlaybackTime(ref.current.audioEl.current?.currentTime), 100);
+    }
+    return () => clearInterval(interval);
+  });
+  
+
   return (
     <div className={'audio-container'}>
-      <audio controls style={{height: Math.max(width / 45, 25)}}>
-        <source src={`narratives/${name}.mp3`} type={'audio/mpeg'} />
-        {'Your browser does not support the audio element'}
-      </audio>
+      <ReactAudioPlayer 
+        src={`narratives/${name}.mp3`} 
+        controls 
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        ref={ref}
+      />
     </div>
   );
 }
@@ -38,6 +55,7 @@ function Audio({ name }) {
 export default function Recording({name, tags}) {
   const [transcription, setTranscription] = useState('');
   const [transcriptionExpanded, setTranscriptionExpanded] = useState(false);
+  const [playbackTime, setPlaybackTime] = useState(0);
 
   useEffect(() => {
     let ignore = false;
@@ -75,16 +93,26 @@ export default function Recording({name, tags}) {
                 .split('\n')
                 .filter(s => s.length > 0)
                 .reduce((acc, curr, currIndex, arr) => {
-                  if (currIndex % 2 === 0)
+                  if (currIndex % 2 === 0) {
                     acc.push(
                       {
-                        'seconds': convertTimestampToSeconds(arr[currIndex]),
+                        'start': convertTimestampToSeconds(arr[currIndex]),
+                        'end': currIndex + 2 === arr.length ? 
+                          Infinity : convertTimestampToSeconds(arr[currIndex + 2]),
                         'text': arr[currIndex + 1]
                       }
                     );
+                  }
                   return acc;
                 }, []).map((para, i) =>
-                  <p key={i} seconds={para.seconds}>{para.text}</p>
+                  <p key={i}>
+                    <span
+                      style={
+                        playbackTime > para.start && playbackTime < para.end ? 
+                        {backgroundColor: '#404e87', '-webkit-text-fill-color': 'white'} : null }>
+                      {para.text}
+                    </span>
+                  </p>
                 )
             }
       </div>
@@ -98,7 +126,7 @@ export default function Recording({name, tags}) {
         {tags.map((tag, i) => <span key={i} className={'tag'}>{tag}</span>)}
       </div>
       
-      <Audio name={name} />
+      <Audio name={name} setPlaybackTime={setPlaybackTime} />
     
     </div>
   );
