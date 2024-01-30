@@ -1,3 +1,1 @@
-node_modules/*
-dist/narratives/*
-dist/*.js
+node_modules

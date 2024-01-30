@@ -1,79 +1,48 @@
-import React, { useState, useEffect, useRef, StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-
-import Recording from './Recording.js';
-import SearchControls from './SearchControls.js';
-
-function App() {
-  const [recordingsList, setRecordingsList] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
-  let allTags = useRef([]);
-  
-  useEffect(() => {
-    let ignore = false;
-
-    async function fetchRecordingsList() {
-      let recordings = await fetch('recordings-data.json')
-        .then(res => res.json())
-        .then(async (json) => json.recordings);
-
-      if (!ignore) {
-        recordings = recordings.map(recording => ({ 
-          ...recording, 
-          ...(recording.tags === undefined ? { tags: [] } : {})
-        }));
-
-        setRecordingsList(recordings);
-
-        allTags.current = recordings.reduce((all, r) => [...all, ...r.tags.filter(tag => !all.includes(tag))], []);
-        
-        setSelectedTags(allTags.current);
-
-      }
-    }
-
-    fetchRecordingsList();
-
-    return () => {
-      ignore = true;
-    };
-
-  }, []);
-
-  function toggleTag(tagName) {
-    if (selectedTags.includes(tagName))
-      setSelectedTags(selectedTags.filter(tag => tag !== tagName));
-    else
-      setSelectedTags(selectedTags.concat([tagName]));
-   }
-
-  const allTagsSelected = allTags.current.length === selectedTags.length;
-
-  return (
-    <>
-      <SearchControls allTags={allTags} selectedTags={selectedTags} toggleTag={toggleTag} />
-      <div>
-        {
-          (allTagsSelected ? recordingsList : 
-            recordingsList.filter(recording => recording.tags.reduce(
-              (oneTagSelected, tag) => oneTagSelected || selectedTags.includes(tag), false
-            ))
-          ).map(recording =>
-              <Recording 
-                key={recording.name} 
-                name={recording.name} 
-                tags={recording.tags} 
-              />
-          )
-        }
-      </div>
-    </>
-  );
+async function fetchTestimoniesManifest() {
+  const response = await fetch('/manifest.json');
+  const manifest = await response.json();
+	return manifest.testimonies;
 }
 
-const root = createRoot(document.getElementById('root'));
-root.render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+async function renderTestimonyCards(testimonies) {
+	for (let testimony of testimonies) {
+		let card = document.createElement('div');
+		card.style.padding = '5px';
+		card.style.margin = '5px';
+		card.style.border = '2px solid black';
+		card.style.borderRadius = '30px';
+	  card.style.width = '400px';
+		card.style.backgroundColor = '#dddddd';
+
+		let title = document.createElement('p');
+		title.append(testimony.name);
+		card.appendChild(title);
+		if (testimony.type === 'audio') {
+			let audio = document.createElement('audio');
+			audio.controls = true;
+			audio.style.width = '100%';
+			audio.style.borderRadius = '30px';
+			let audioSource = document.createElement('source');
+			audioSource.src = `testimonies/${testimony.name}.mp3`;
+			audioSource.type = 'audio/mpeg';
+			audio.appendChild(audioSource);
+			card.appendChild(audio);
+		}
+
+	  const response = await fetch(`/testimonies/${testimony.name}.txt`);
+		const transcription = await response.text();
+
+		console.log(transcription);
+
+		
+
+		document.body.appendChild(card); 
+	}
+}
+
+async function main() {
+	const testimonies = await fetchTestimoniesManifest();
+	renderTestimonyCards(testimonies);
+}
+
+main();
