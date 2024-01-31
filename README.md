@@ -4,7 +4,7 @@ The `manifest.json` file is the first thing `fetch`ed by the frontend-- it's mai
 |-|-|
 |name| Essentially a unique identifier. |
 |type| (Currently) `"audio"` or `"document"`. |
-|date| A month and year value (e.g. `"9/23"`.) |
+|date| A month and year value, in the format `"YYYY-MM"` (e.g. `"2023-09"`.) |
 
 ### Plan
 1) Cards to display each testimony
@@ -21,3 +21,4 @@ The `manifest.json` file is the first thing `fetch`ed by the frontend-- it's mai
 3) User input
    1) A server
    2) Where to put the `<textarea>`
+
