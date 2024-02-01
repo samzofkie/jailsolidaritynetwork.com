@@ -1,10 +1,10 @@
 import Spinner from './Spinner.js';
+import Transcription from './Transcription.js';
 
 export default class TestimonyCard {
 	constructor(testimonyEntry) {
 		this.name = testimonyEntry.name;
 		this.type = testimonyEntry.type;
-		// !!! ALWAYS USE .toUTC methods for this.date !!!
 		this.date = new Date(testimonyEntry.date);
 		this.spinner = new Spinner(25);
 		
@@ -18,11 +18,12 @@ export default class TestimonyCard {
 
 	async fetchAndAppendTestimonyTranscription() {
   	const response = await fetch(`/testimonies/${this.name}.txt`);
-		this.transcription = await response.text();
-		this.transcription = this.transcription.split('\n\n');
+		let transcription = await response.text();
+		transcription = transcription.split('\n\n');
+		
+		this.transcription = new Transcription(transcription);
 		this.removeSpinner();
-	  this.createTranscriptionDiv();
-		this.appendTranscriptionDiv();
+		this.cardDiv.appendChild(this.transcription.div);
 	}
 
 	createDiv() {
@@ -34,7 +35,7 @@ export default class TestimonyCard {
 		card.style.backgroundColor = '#dddddd';
 
 		let title = document.createElement('p');
-		title.append(this.name);
+		title.append(`Recorded ${this.date.toLocaleString('default', {month: 'long'})}, ${this.date.getUTCFullYear()}`);
 		card.appendChild(title);
 
 		this.cardDiv = card;
@@ -46,21 +47,5 @@ export default class TestimonyCard {
 
 	removeSpinner() {
 		this.spinner.div.remove();
-	}
-
-	createTranscriptionDiv() {
-		this.transcriptionDiv = document.createElement('div');
-		for (let line of this.transcription) {
-			let [timestamp, text] = line.split('\n');
-			let p = document.createElement('p');
-			p.id = timestamp;
-			p.append(text);
-			p.style.margin = '0px';
-			this.transcriptionDiv.append(p);
-		}
-	}
-
-	appendTranscriptionDiv() {
-		this.cardDiv.appendChild(this.transcriptionDiv);
 	}
 }
