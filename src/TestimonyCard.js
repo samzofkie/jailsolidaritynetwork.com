@@ -23,7 +23,7 @@ export default class TestimonyCard {
 		
 		this.transcription = new Transcription(transcription);
 		this.removeSpinner();
-		this.cardDiv.appendChild(this.transcription.div);
+		this.cardDiv.appendChild(this.transcription.mainDiv);
 	}
 
 	createDiv() {
@@ -35,6 +35,7 @@ export default class TestimonyCard {
 		card.style.backgroundColor = '#dddddd';
 
 		let title = document.createElement('p');
+		title.style.fontWeight = 'bold';
 		title.append(`Recorded ${this.date.toLocaleString('default', {month: 'long'})}, ${this.date.getUTCFullYear()}`);
 		card.appendChild(title);
 

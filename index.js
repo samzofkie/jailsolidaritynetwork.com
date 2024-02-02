@@ -27,6 +27,10 @@ function createTestimonyCards(testimonyManifest) {
 }
 
 async function main() {
+	document.documentElement.style.scrollBehavior = 'smooth';
+	document.body.style.backgroundColor = '#b0b0ab';
+	document.body.style.fontFamily = 'Arial, Helvetica, sans-serif';
+	document.body.style.boxSizing = 'border-box';
 	const testimonyManifest = await fetchTestimonyManifest();
 	let testimonyCards = createTestimonyCards(testimonyManifest);
 }

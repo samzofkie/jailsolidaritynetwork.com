@@ -22,10 +22,9 @@ The `manifest.json` file is the first thing `fetch`ed by the frontend-- it's mai
    1) A server
    2) Where to put the `<textarea>`
 
-### #TODO
-1) `TestimonyCard.transcriptionDiv` collapse
-1) Remove `index.css`
+### TODO
 2) Tests
 3) `AudioTestimonyCard`, `DocumentTestionyCard` subclasses
 4) `TestimonyDeck`
+5) Separate pages for each testimony
 
