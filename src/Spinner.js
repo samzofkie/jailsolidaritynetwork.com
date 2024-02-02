@@ -1,5 +1,5 @@
 export default class Spinner {
-	constructor(width, borderWidth = 3, primaryColor = "#000000", secondaryColor = "#ffffff", speed = 1) {
+	constructor(width = 25, borderWidth = 3, primaryColor = "#000000", secondaryColor = "#ffffff", speed = 1) {
 		this.div = document.createElement('div');
 		this.div.className = 'spinner';
 		let style = this.div.style;

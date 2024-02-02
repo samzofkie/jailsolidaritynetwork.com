@@ -1,47 +1,52 @@
-import Spinner from './Spinner.js';
-import ExpandableTranscription from './ExpandableTranscription.js';
+import TestimonyTranscription from './TestimonyTranscription.js';
 
-export default class TestimonyCard {
-	constructor(testimonyEntry) {
-		this.name = testimonyEntry.name;
-		this.type = testimonyEntry.type;
-		this.date = new Date(testimonyEntry.date);
-		this.spinner = new Spinner(25);
-		
-		this.createDiv();
-		this.createAudioPlayer();
-		this.appendSpinner();
-		
-		this.fetchAndAppendTestimonyTranscription();
-
-		document.body.appendChild(this.cardDiv);
-		this.cardDiv.appendChild(this.audio);
+/* TestimonyCard's parameter is an object, (currently) with the following 
+	 properties:
+	 	 - name: a unique identifier,
+	 	 - type: either "audio" or "document",
+	 	 - date: a month and year combo of the format "YYYY-MM".
+	 It's main functionality is managing the creation and rendering of a
+	   - root div, a
+	 	 - title (and relevant meta-data), and a
+	 	 - TestimonyTranscription. */
+class TestimonyCard {
+	constructor(testimony) {
+		this.name = testimony.name;
+		this.type = testimony.type;
+		this.date = new Date(testimony.date);
+			
+		this.createRootDiv();
+		this.createTitle();
+		this.createTranscription();
 	}
 
-	async fetchAndAppendTestimonyTranscription() {
-  	const response = await fetch(`/testimonies/${this.name}.txt`);
-		let transcription = await response.text();
-		transcription = transcription.split('\n\n');
-		
-		this.transcription = new ExpandableTranscription(transcription);
-		this.removeSpinner();
-		this.cardDiv.insertBefore(this.transcription.mainDiv, this.audio);
+	createRootDiv() {
+		this.rootDiv = document.createElement('div');
+		this.rootDiv.style.padding = '5px';
+		this.rootDiv.style.margin = '5px';
+		this.rootDiv.style.border = '2px solid black';
+  	this.rootDiv.style.width = '400px';
+		this.rootDiv.style.backgroundColor = '#dddddd';
+		document.body.append(this.rootDiv);
 	}
 
-	createDiv() {
-		let card = document.createElement('div');
-		card.style.padding = '5px';
-		card.style.margin = '5px';
-		card.style.border = '2px solid black';
-  	card.style.width = '400px';
-		card.style.backgroundColor = '#dddddd';
+	createTitle() {
+		this.title = document.createElement('p');
+		this.title.style.fontWeight = 'bold';
+		this.title.append(`Recorded ${this.date.toLocaleString('default', {month: 'long'})}, ${this.date.getUTCFullYear()}`);
+		this.rootDiv.append(this.title);
+	}
 
-		let title = document.createElement('p');
-		title.style.fontWeight = 'bold';
-		title.append(`Recorded ${this.date.toLocaleString('default', {month: 'long'})}, ${this.date.getUTCFullYear()}`);
-		card.appendChild(title);
+	createTranscription() {
+		this.transcription = new TestimonyTranscription(this.name);
+		this.rootDiv.append(this.transcription.mainDiv);
+	}
+}
 
-		this.cardDiv = card;
+export class AudioTestimonyCard extends TestimonyCard {
+	constructor(testimony) {
+		super(testimony);
+	  this.createAudioPlayer();
 	}
 
 	createAudioPlayer() {
@@ -53,13 +58,7 @@ export default class TestimonyCard {
 		audioSource.src = `testimonies/${this.name}.mp3`;
 		audioSource.type = 'audio/mpeg';
 		this.audio.appendChild(audioSource);
-	}
 
-	appendSpinner() {
-		this.cardDiv.appendChild(this.spinner.div);
-	}
-
-	removeSpinner() {
-		this.spinner.div.remove();
+		this.rootDiv.append(this.audio);
 	}
 }

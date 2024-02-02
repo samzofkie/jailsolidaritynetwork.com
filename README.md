@@ -23,9 +23,9 @@ The `manifest.json` file is the first thing `fetch`ed by the frontend-- it's mai
    2) Where to put the `<textarea>`
 
 ### TODO
-- Reevaluate TestimonyCard separation of concerns (between it and ExpandableTranscription) 
+- Prettier and ESLint
 - Tests
-- `AudioTestimonyCard`, `DocumentTestionyCard` subclasses
+- `DocumentTestionyCard`
 - `TestimonyDeck`
-- Separate pages for each testimony
+- Separate pages for testimonies
 
