@@ -16,7 +16,7 @@ function createAudioPlayer(testimonyName) {
 	audioSource.type = 'audio/mpeg';
 	audio.appendChild(audioSource);
 
-	return audio
+	return audio;
 }
 
 function createTestimonyCards(testimonyManifest) {

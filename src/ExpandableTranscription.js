@@ -7,8 +7,10 @@ export default class ExpandableTranscription {
 		this.mainDiv = document.createElement('div');
 		this.textDiv = document.createElement('div');
 		this.mainDiv.appendChild(this.textDiv);
+
 		this.textDiv.style.marginBottom = '5px';
 		this.textDiv.style.transition = 'max-height 0.2s';
+		this.textDiv.style.scrollBehavior = 'smooth';
 
 		for (let line of this.transcription) {
 			let [timestamp, text] = line.split('\n');
@@ -40,6 +42,7 @@ export default class ExpandableTranscription {
 		this.expanded = false;
 		this.textDiv.style.maxHeight = `${this.height}px`;
 		this.textDiv.style.overflow = 'hidden';
+		this.textDiv.scroll(0, 0);
 		this.moreButton.innerText = 'Show more text';
 	}
 
