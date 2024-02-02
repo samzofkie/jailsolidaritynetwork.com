@@ -1,5 +1,5 @@
 import Spinner from './Spinner.js';
-import Transcription from './Transcription.js';
+import ExpandableTranscription from './ExpandableTranscription.js';
 
 export default class TestimonyCard {
 	constructor(testimonyEntry) {
@@ -21,7 +21,7 @@ export default class TestimonyCard {
 		let transcription = await response.text();
 		transcription = transcription.split('\n\n');
 		
-		this.transcription = new Transcription(transcription);
+		this.transcription = new ExpandableTranscription(transcription);
 		this.removeSpinner();
 		this.cardDiv.appendChild(this.transcription.mainDiv);
 	}

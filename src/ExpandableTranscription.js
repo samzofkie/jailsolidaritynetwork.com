@@ -1,4 +1,4 @@
-export default class Transcription {
+export default class ExpandableTranscription {
 	constructor(transcription) {
 		this.transcription = transcription;
 		this.expanded = false;
