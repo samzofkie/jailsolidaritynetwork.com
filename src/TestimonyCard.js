@@ -9,11 +9,13 @@ export default class TestimonyCard {
 		this.spinner = new Spinner(25);
 		
 		this.createDiv();
+		this.createAudioPlayer();
 		this.appendSpinner();
 		
 		this.fetchAndAppendTestimonyTranscription();
 
 		document.body.appendChild(this.cardDiv);
+		this.cardDiv.appendChild(this.audio);
 	}
 
 	async fetchAndAppendTestimonyTranscription() {
@@ -23,7 +25,7 @@ export default class TestimonyCard {
 		
 		this.transcription = new ExpandableTranscription(transcription);
 		this.removeSpinner();
-		this.cardDiv.appendChild(this.transcription.mainDiv);
+		this.cardDiv.insertBefore(this.transcription.mainDiv, this.audio);
 	}
 
 	createDiv() {
@@ -40,6 +42,17 @@ export default class TestimonyCard {
 		card.appendChild(title);
 
 		this.cardDiv = card;
+	}
+
+	createAudioPlayer() {
+		this.audio = document.createElement('audio');
+		this.audio.controls = true;
+		this.audio.style.width = '100%';
+
+		let audioSource = document.createElement('source');
+		audioSource.src = `testimonies/${this.name}.mp3`;
+		audioSource.type = 'audio/mpeg';
+		this.audio.appendChild(audioSource);
 	}
 
 	appendSpinner() {
