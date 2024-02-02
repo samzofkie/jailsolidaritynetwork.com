@@ -9,7 +9,7 @@ export default class ExpandableTranscription {
 		this.mainDiv.appendChild(this.textDiv);
 
 		this.textDiv.style.marginBottom = '5px';
-		this.textDiv.style.transition = 'max-height 0.2s';
+		this.textDiv.style.transition = 'max-height 0.1s';
 		this.textDiv.style.scrollBehavior = 'smooth';
 
 		for (let line of this.transcription) {
@@ -35,7 +35,10 @@ export default class ExpandableTranscription {
 		this.textDiv.style.maxHeight = `${window.innerHeight - 200}px`;
 		this.textDiv.style.overflow = 'scroll';
 		this.moreButton.innerText = 'Show less text';
-		window.scroll(0, this.mainDiv.offsetTop - 100);
+		/* We use set timeout here to avoid scrolling to an incorrect position
+		   caused by the textDiv.style.transition for it's max-height property which
+			 is set a few lines above. */
+		setTimeout(() => window.scroll(0, this.mainDiv.offsetTop - 100), 150);
 	}
 
 	collapse() {
