@@ -10,55 +10,57 @@ import TestimonyTranscription from './TestimonyTranscription.js';
 	 	 - title (and relevant meta-data), and a
 	 	 - TestimonyTranscription. */
 class TestimonyCard {
-	constructor(testimony) {
-		this.name = testimony.name;
-		this.type = testimony.type;
-		this.date = new Date(testimony.date);
-			
-		this.createRootDiv();
-		this.createTitle();
-		this.createTranscription();
-	}
+  constructor(testimony) {
+    this.name = testimony.name;
+    this.type = testimony.type;
+    this.date = new Date(testimony.date);
 
-	createRootDiv() {
-		this.rootDiv = document.createElement('div');
-		this.rootDiv.style.padding = '5px';
-		this.rootDiv.style.margin = '5px';
-		this.rootDiv.style.border = '2px solid black';
-  	this.rootDiv.style.width = '400px';
-		this.rootDiv.style.backgroundColor = '#dddddd';
-		document.body.append(this.rootDiv);
-	}
+    this.createRootDiv();
+    this.createTitle();
+    this.createTranscription();
+  }
 
-	createTitle() {
-		this.title = document.createElement('p');
-		this.title.style.fontWeight = 'bold';
-		this.title.append(`Recorded ${this.date.toLocaleString('default', {month: 'long'})}, ${this.date.getUTCFullYear()}`);
-		this.rootDiv.append(this.title);
-	}
+  createRootDiv() {
+    this.rootDiv = document.createElement('div');
+    this.rootDiv.style.padding = '5px';
+    this.rootDiv.style.margin = '5px';
+    this.rootDiv.style.border = '2px solid black';
+    this.rootDiv.style.width = '400px';
+    this.rootDiv.style.backgroundColor = '#dddddd';
+    document.body.append(this.rootDiv);
+  }
 
-	createTranscription() {
-		this.transcription = new TestimonyTranscription(this.name);
-		this.rootDiv.append(this.transcription.mainDiv);
-	}
+  createTitle() {
+    this.title = document.createElement('p');
+    this.title.style.fontWeight = 'bold';
+    this.title.append(
+      `Recorded ${this.date.toLocaleString('default', { month: 'long' })}, ${this.date.getUTCFullYear()}`,
+    );
+    this.rootDiv.append(this.title);
+  }
+
+  createTranscription() {
+    this.transcription = new TestimonyTranscription(this.name);
+    this.rootDiv.append(this.transcription.mainDiv);
+  }
 }
 
 export class AudioTestimonyCard extends TestimonyCard {
-	constructor(testimony) {
-		super(testimony);
-	  this.createAudioPlayer();
-	}
+  constructor(testimony) {
+    super(testimony);
+    this.createAudioPlayer();
+  }
 
-	createAudioPlayer() {
-		this.audio = document.createElement('audio');
-		this.audio.controls = true;
-		this.audio.style.width = '100%';
+  createAudioPlayer() {
+    this.audio = document.createElement('audio');
+    this.audio.controls = true;
+    this.audio.style.width = '100%';
 
-		let audioSource = document.createElement('source');
-		audioSource.src = `testimonies/${this.name}.mp3`;
-		audioSource.type = 'audio/mpeg';
-		this.audio.appendChild(audioSource);
+    let audioSource = document.createElement('source');
+    audioSource.src = `testimonies/${this.name}.mp3`;
+    audioSource.type = 'audio/mpeg';
+    this.audio.appendChild(audioSource);
 
-		this.rootDiv.append(this.audio);
-	}
+    this.rootDiv.append(this.audio);
+  }
 }

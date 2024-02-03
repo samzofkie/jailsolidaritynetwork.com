@@ -1,17 +1,17 @@
-import { AudioTestimonyCard } from "./src/TestimonyCard.js";
+import { AudioTestimonyCard } from './src/TestimonyCard.js';
 
 async function fetchTestimonyManifest() {
   const response = await fetch('/manifest.json');
   const manifest = await response.json();
-	return manifest.testimonies;
+  return manifest.testimonies;
 }
 
 function createTestimonyCards(testimonyManifest) {
-	let testimonyCards = [];
-	for (let testimony of testimonyManifest) {
-		if (testimony.type === 'audio')
-			testimonyCards.push(new AudioTestimonyCard(testimony));	
-	}
+  let testimonyCards = [];
+  for (let testimony of testimonyManifest) {
+    if (testimony.type === 'audio')
+      testimonyCards.push(new AudioTestimonyCard(testimony));
+  }
 }
 
 document.documentElement.style.scrollBehavior = 'smooth';
