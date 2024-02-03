@@ -26,7 +26,6 @@ The `manifest.json` file is the first thing `fetch`ed by the frontend-- it's mai
 
 ### TODO
 
-- ESLint
 - Tests
 - `DocumentTestionyCard`
 - `TestimonyDeck`
