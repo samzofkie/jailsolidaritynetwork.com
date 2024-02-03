@@ -7,9 +7,18 @@ import Spinner from './Spinner.js';
 	 Then, when the network request finishes, it
 	 	 - initializes the transcription member,
 		 - removes the spinner,
-		 - creates a div to contain the transcription's text, and
-		 - creates and enables a button to expand and collapse the text. */
-export default class TestimonyTranscription {
+		 - creates a div to contain the transcription's text,
+		 - calls organizeTranscriptionInTextDiv() to arrange the transcription in
+		 	 the textDiv, and
+		 - creates and enables a button to expand and collapse the text.
+	 Whoever wants a TestimonyTranscription is responsible for inserting mainDiv
+	 wherever they want it in the DOM.
+	 ATM, TestimonyTranscription will organizeTranscriptionInTextDiv by just
+	 appending this.transcription.toString() to this.textDiv. This method is
+	 convenient to override in a subclass to implement a subclass-specific
+	 algorithm to layout text elements inside the textDiv.
+*/
+export class TestimonyTranscription {
   constructor(name) {
     this.name = name;
     this.expanded = false;
@@ -22,6 +31,7 @@ export default class TestimonyTranscription {
       this.transcription = t;
       this.removeSpinner();
       this.createTextDiv();
+      this.organizeTranscriptionInTextDiv();
       this.createMoreButton();
     });
   }
@@ -51,16 +61,10 @@ export default class TestimonyTranscription {
     this.textDiv.style.transition = 'max-height 0.05s';
     this.textDiv.style.scrollBehavior = 'smooth';
     this.mainDiv.append(this.textDiv);
+  }
 
-    for (let line of this.transcription) {
-      let [timestamp, text] = line.split('\n');
-      let p = document.createElement('p');
-      p.id = timestamp;
-      p.append(text);
-      p.style.margin = '0px';
-      p.style.textIndent = '25px';
-      this.textDiv.append(p);
-    }
+  organizeTranscriptionInTextDiv() {
+    this.textDiv.append(this.transcription.toString());
   }
 
   expandTranscription() {
@@ -92,5 +96,44 @@ export default class TestimonyTranscription {
     this.moreButton.onclick = () => this.toggleTranscription();
     this.mainDiv.appendChild(this.moreButton);
     this.collapseTranscription();
+  }
+}
+
+/* AudioTestimonyTranscription overrides organizeTranscriptionInTextDiv to
+   append <p>s to textDiv, setting the id property of each paragraph to a
+	 string timestamp corresponding to the schema of audio transcription text
+	 (see README for more info). */
+export class AudioTestimonyTranscription extends TestimonyTranscription {
+  constructor(name) {
+    super(name);
+  }
+
+  organizeTranscriptionInTextDiv() {
+    for (let line of this.transcription) {
+      let [timestamp, text] = line.split('\n');
+      let p = document.createElement('p');
+      p.id = timestamp;
+      p.append(text);
+      p.style.margin = '0px';
+      p.style.textIndent = '25px';
+      this.textDiv.append(p);
+    }
+  }
+}
+
+export class DocumentTestimonyTranscription extends TestimonyTranscription {
+  constructor(name) {
+    super(name);
+  }
+
+  organizeTranscriptionInTextDiv() {
+    for (let line of this.transcription) {
+      if (line.length === 0) continue;
+      let p = document.createElement('p');
+      p.append(line);
+      p.style.margin = '0px';
+      p.style.textIndent = '25px';
+      this.textDiv.append(p);
+    }
   }
 }

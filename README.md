@@ -3,9 +3,31 @@
 The `manifest.json` file is the first thing `fetch`ed by the frontend-- it's main property is called `testimonies`, and it's value is an array of objects, each containing the metadata for an audio or scanned, handwritten testimony. The testimony objects' (required) fields are
 |property|value|
 |-|-|
-|name| Essentially a unique identifier. |
-|type| (Currently) `"audio"` or `"document"`. |
-|date| A month and year value, in the format `"YYYY-MM"` (e.g. `"2023-09"`.) |
+|`name`| Essentially a unique identifier. |
+|`type`| (Currently) `"audio"` or `"document"`. |
+|`date`| A month and year value, in the format `"YYYY-MM"` (e.g. `"2023-09"`.) |
+
+Code `fetch`es different resources (audio, images, ect.) from the server based on the `type` property. All testimonies have a `.txt` file that is a text transcription of the audio recording, or scanned written document. Currently, audio recordings follow the format:
+
+```
+00:00
+A transcribed sentence from the recording.
+
+00:01
+More text
+...
+```
+
+and so on, where the timestamps correspond to the beginning of that sentence in the audio recording.
+
+Testimonies with `type` `"document"` follow the format:
+
+```
+Sentence sentence sentence
+
+More text
+...
+```
 
 ### Plan
 
@@ -27,6 +49,6 @@ The `manifest.json` file is the first thing `fetch`ed by the frontend-- it's mai
 ### TODO
 
 - Tests
-- `DocumentTestionyCard`
+- `DocumentTestimonyCard`
 - `TestimonyDeck`
 - Separate pages for testimonies

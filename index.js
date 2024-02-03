@@ -1,4 +1,7 @@
-import { AudioTestimonyCard } from './src/TestimonyCard.js';
+import {
+  AudioTestimonyCard,
+  DocumentTestimonyCard,
+} from './src/TestimonyCard.js';
 
 async function fetchTestimonyManifest() {
   const response = await fetch('/manifest.json');
@@ -9,8 +12,11 @@ async function fetchTestimonyManifest() {
 function createTestimonyCards(testimonyManifest) {
   let testimonyCards = [];
   for (let testimony of testimonyManifest) {
-    if (testimony.type === 'audio')
+    if (testimony.type === 'audio') {
       testimonyCards.push(new AudioTestimonyCard(testimony));
+    } else if (testimony.type === 'document') {
+      testimonyCards.push(new DocumentTestimonyCard(testimony));
+    }
   }
 }
 

@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "jest",
-		"lint": "eslint index.js src/*"
+    "lint": "eslint index.js src/*"
   },
   "devDependencies": {
     "eslint": "^8.56.0",
