@@ -58,7 +58,7 @@ export class TestimonyTranscription {
   createTextDiv() {
     this.textDiv = document.createElement('div');
     this.textDiv.style.marginBottom = '5px';
-    this.textDiv.style.transition = 'max-height 0.05s';
+    this.textDiv.style.transition = 'max-height 0.02s';
     this.textDiv.style.scrollBehavior = 'smooth';
     this.mainDiv.append(this.textDiv);
   }
@@ -75,7 +75,7 @@ export class TestimonyTranscription {
     // We use set timeout here to avoid scrolling to an incorrect position
     // caused by the textDiv.style.transition for it's max-height property which
     // is set a few lines above.
-    setTimeout(() => window.scroll(0, this.mainDiv.offsetTop - 100), 60);
+    setTimeout(() => window.scroll(0, this.mainDiv.offsetTop - 100), 40);
   }
 
   collapseTranscription() {

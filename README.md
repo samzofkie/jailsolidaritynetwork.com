@@ -49,6 +49,6 @@ More text
 ### TODO
 
 - Tests
-- `DocumentTestimonyCard`
 - `TestimonyDeck`
 - Separate pages for testimonies
+- Link `DocumentTestimonyCard` previewImages to full PNG or PDFs
