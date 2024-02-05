@@ -10,6 +10,15 @@ async function fetchTestimonyManifest() {
 }
 
 function createTestimonyCards(testimonyManifest) {
+  // https://stackoverflow.com/a/12646864
+  for (let i = testimonyManifest.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [testimonyManifest[i], testimonyManifest[j]] = [
+      testimonyManifest[j],
+      testimonyManifest[i],
+    ];
+  }
+
   let testimonyCards = [];
   for (let testimony of testimonyManifest) {
     if (testimony.type === 'audio') {
