@@ -48,6 +48,7 @@ More text
 
 ### TODO
 
+- UI design doc
 - Tests
 - `TestimonyDeck`
 - Separate pages for testimonies
