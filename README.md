@@ -50,6 +50,8 @@ More text
 
 - UI design doc
 - Tests
-- `TestimonyDeck`
 - Separate pages for testimonies
-- Link `DocumentTestimonyCard` previewImages to full PNG or PDFs
+- `AudioTestimonyTranscription` text highlighting
+- Handling window resizing?
+- What are the documents in response to?
+- Where were the recordings taken?

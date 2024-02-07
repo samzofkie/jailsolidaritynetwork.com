@@ -8,6 +8,8 @@ export default class Header {
     this.createLinksDiv();
     this.createSearchLink();
     this.createHr();
+
+		this.createSubtitle();
   }
 
   createRootDiv() {
@@ -27,7 +29,6 @@ export default class Header {
     logo.width = this.cardWidth;
     this.logoDiv.append(logo);
     this.rootDiv.append(this.logoDiv);
-    console.log(this.logoDiv);
   }
 
   createLinksDiv() {
@@ -48,28 +49,28 @@ export default class Header {
   }
 
   createSearchLink() {
-    let searchDiv = document.createElement('div');
-    searchDiv.style.display = 'flex';
-    searchDiv.style.alignItems = 'center';
+		let link = document.createElement('a');
+		link.href = '/search.html';
+		link.style.fontSize = '20px';
 
     let icon = document.createElement('i');
     icon.className = 'fa fa-search';
-    icon.style.fontSize = '35px';
     icon.style.marginRight = '10px';
-    searchDiv.append(icon);
+		link.append(icon);
 
-    let label = document.createElement('p');
-    label.append('Search jail testimonies by topic');
-    label.style.fontSize = '20px';
-    label.style.fontWeight = 'bold';
-    label.style.margin = '0px';
-    searchDiv.append(label);
+		link.append('Search jail testimonies by topic');
 
-    this.linksDiv.append(searchDiv);
+		this.linksDiv.append(link);
   }
 
   createHr() {
     this.hr = document.createElement('hr');
     document.body.append(this.hr);
   }
+
+	createSubtitle() {
+		let subtitle = document.createElement('h3');
+		subtitle.append('These interviews and letters are accounts of lives impacted by the Cook County Jail in Chicago, IL.');
+		document.body.append(subtitle);
+	}
 }
