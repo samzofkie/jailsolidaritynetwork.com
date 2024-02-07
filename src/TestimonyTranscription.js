@@ -21,6 +21,7 @@ import Spinner from './Spinner.js';
 export class TestimonyTranscription {
   constructor(name) {
     this.name = name;
+
     this.expanded = false;
     this.height = 200;
 
@@ -32,7 +33,9 @@ export class TestimonyTranscription {
       this.removeSpinner();
       this.createTextDiv();
       this.organizeTranscriptionInTextDiv();
+      this.createToolBar();
       this.createMoreButton();
+      this.createLink();
     });
   }
 
@@ -67,7 +70,14 @@ export class TestimonyTranscription {
     this.textDiv.append(this.transcription.toString());
   }
 
-  expandTranscription() {
+  createToolBar() {
+    this.toolBar = document.createElement('div');
+    this.toolBar.style.display = 'flex';
+    this.toolBar.style.justifyContent = 'space-between';
+    this.mainDiv.append(this.toolBar);
+  }
+
+  expandText() {
     this.expanded = true;
     this.textDiv.style.maxHeight = `${window.innerHeight - 200}px`;
     this.textDiv.style.overflow = 'scroll';
@@ -78,7 +88,7 @@ export class TestimonyTranscription {
     setTimeout(() => window.scroll(0, this.mainDiv.offsetTop - 100), 40);
   }
 
-  collapseTranscription() {
+  collapseText() {
     this.expanded = false;
     this.textDiv.style.maxHeight = `${this.height}px`;
     this.textDiv.style.overflow = 'hidden';
@@ -86,16 +96,23 @@ export class TestimonyTranscription {
     this.moreButton.innerText = 'Show more text';
   }
 
-  toggleTranscription() {
-    this.expanded ? this.collapseTranscription() : this.expandTranscription();
+  toggleText() {
+    this.expanded ? this.collapseText() : this.expandText();
   }
 
   createMoreButton() {
     this.moreButton = document.createElement('button');
     this.moreButton.style.marginBottom = '5px';
-    this.moreButton.onclick = () => this.toggleTranscription();
-    this.mainDiv.appendChild(this.moreButton);
-    this.collapseTranscription();
+    this.moreButton.onclick = () => this.toggleText();
+    this.toolBar.appendChild(this.moreButton);
+    this.collapseText();
+  }
+
+  createLink() {
+    let link = document.createElement('a');
+    link.href = `/audio.html?id=${this.name}`;
+    link.append(`Open account in a new page`);
+    this.toolBar.append(link);
   }
 }
 

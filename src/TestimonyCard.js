@@ -59,7 +59,7 @@ class TestimonyCard {
   }
 
   createTranscription() {
-    this.transcription = new this.transcriptionType(this.name);
+    this.transcription = new this.transcriptionType(this.name, this.toolBar);
     this.rootDiv.append(this.transcription.mainDiv);
   }
 }

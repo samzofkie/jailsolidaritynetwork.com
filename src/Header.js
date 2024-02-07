@@ -9,7 +9,7 @@ export default class Header {
     this.createSearchLink();
     this.createHr();
 
-		this.createSubtitle();
+    this.createSubtitle();
   }
 
   createRootDiv() {
@@ -49,18 +49,18 @@ export default class Header {
   }
 
   createSearchLink() {
-		let link = document.createElement('a');
-		link.href = '/search.html';
-		link.style.fontSize = '20px';
+    let link = document.createElement('a');
+    link.href = '/search.html';
+    link.style.fontSize = '20px';
 
     let icon = document.createElement('i');
     icon.className = 'fa fa-search';
     icon.style.marginRight = '10px';
-		link.append(icon);
+    link.append(icon);
 
-		link.append('Search jail testimonies by topic');
+    link.append('Search jail testimonies by topic');
 
-		this.linksDiv.append(link);
+    this.linksDiv.append(link);
   }
 
   createHr() {
@@ -68,9 +68,11 @@ export default class Header {
     document.body.append(this.hr);
   }
 
-	createSubtitle() {
-		let subtitle = document.createElement('h3');
-		subtitle.append('These interviews and letters are accounts of lives impacted by the Cook County Jail in Chicago, IL.');
-		document.body.append(subtitle);
-	}
+  createSubtitle() {
+    let subtitle = document.createElement('h3');
+    subtitle.append(
+      'These interviews and letters are accounts of the lives impacted by the Cook County Jail in Chicago, IL.',
+    );
+    document.body.append(subtitle);
+  }
 }
