@@ -23,10 +23,9 @@ export class TestimonyTranscription {
     this.name = name;
 
     this.expanded = false;
-    this.height = 200;
 
     this.fetchTranscription();
-    this.createMainDiv();
+    this.createRootDiv();
     this.createAndRenderSpinner();
     this.transcription.then((t) => {
       this.transcription = t;
@@ -40,7 +39,7 @@ export class TestimonyTranscription {
   }
 
   createMainDiv() {
-    this.mainDiv = document.createElement('div');
+    this.rootDiv = document.createElement('div');
   }
 
   fetchTranscription() {
@@ -51,7 +50,7 @@ export class TestimonyTranscription {
 
   createAndRenderSpinner() {
     this.spinner = new Spinner();
-    this.mainDiv.append(this.spinner.div);
+    this.rootDiv.append(this.spinner.div);
   }
 
   removeSpinner() {
@@ -63,7 +62,7 @@ export class TestimonyTranscription {
     this.textDiv.style.marginBottom = '5px';
     this.textDiv.style.transition = 'max-height 0.02s';
     this.textDiv.style.scrollBehavior = 'smooth';
-    this.mainDiv.append(this.textDiv);
+    this.rootDiv.append(this.textDiv);
   }
 
   organizeTranscriptionInTextDiv() {
@@ -74,7 +73,7 @@ export class TestimonyTranscription {
     this.toolBar = document.createElement('div');
     this.toolBar.style.display = 'flex';
     this.toolBar.style.justifyContent = 'space-between';
-    this.mainDiv.append(this.toolBar);
+    this.rootDiv.append(this.toolBar);
   }
 
   expandText() {
@@ -85,12 +84,12 @@ export class TestimonyTranscription {
     // We use set timeout here to avoid scrolling to an incorrect position
     // caused by the textDiv.style.transition for it's max-height property which
     // is set a few lines above.
-    setTimeout(() => window.scroll(0, this.mainDiv.offsetTop - 100), 40);
+    setTimeout(() => window.scroll(0, this.rootDiv.offsetTop - 100), 40);
   }
 
   collapseText() {
     this.expanded = false;
-    this.textDiv.style.maxHeight = `${this.height}px`;
+    this.textDiv.style.maxHeight = `200px`;
     this.textDiv.style.overflow = 'hidden';
     this.textDiv.scroll(0, 0);
     this.moreButton.innerText = 'Show more text';
