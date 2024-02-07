@@ -1,3 +1,4 @@
+import Header from './src/Header.js';
 import TestimonyDeck from './src/TestimonyDeck.js';
 
 document.documentElement.style.scrollBehavior = 'smooth';
@@ -5,10 +6,10 @@ document.body.style.backgroundColor = '#b0b0ab';
 document.body.style.fontFamily = 'Arial, Helvetica, sans-serif';
 document.body.style.boxSizing = 'border-box';
 
-let logoImage = document.createElement('img');
-logoImage.src = 'jsn-logo-transparent.png';
-logoImage.alt = 'Jail Solidarity Network logo';
-logoImage.width = '500';
-document.body.appendChild(logoImage);
+// These values are calculated here and passed down to header and deck to
+// achieve a more consistent layout grid across the page.
+const cardWidth = window.innerWidth <= 1000 ? window.innerWidth : 500;
+const numColumns = Math.floor(window.innerWidth / cardWidth);
 
-let deck = new TestimonyDeck();
+let header = new Header(cardWidth, numColumns);
+let deck = new TestimonyDeck(cardWidth, numColumns);

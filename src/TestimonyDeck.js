@@ -1,12 +1,11 @@
 import { AudioTestimonyCard, DocumentTestimonyCard } from './TestimonyCard.js';
 
 export default class TestimonyDeck {
-  constructor() {
+  constructor(cardWidth, numColumns) {
+    this.cardWidth = cardWidth;
+    this.numColumns = numColumns;
     this.fetchTestimoniesManifest().then((testimonies) => {
       this.testimonies = testimonies;
-      this.cardWidth =
-        window.innerWidth <= 1000 ? window.innerWidth * 0.95 : 500;
-
       this.createRootDiv();
       this.shuffleTestimonies();
       this.createTestimonyCards();
@@ -55,8 +54,6 @@ export default class TestimonyDeck {
   }
 
   createColumnDivs() {
-    this.numColumns = Math.floor(this.rootDiv.offsetWidth / this.cardWidth);
-
     this.rootDiv.style.display = 'grid';
     this.rootDiv.style.gridTemplateColumns = `repeat(${this.numColumns}, ${100 / this.numColumns}%)`;
 
