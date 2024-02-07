@@ -20,15 +20,22 @@ import {
 class TestimonyCard {
   constructor(
     testimony,
+    width,
     titleText = testimony.name,
     transcriptionType = TestimonyTranscription,
   ) {
     this.name = testimony.name;
     this.type = testimony.type;
     this.date = new Date(testimony.date);
+    this.width = width;
     this.titleText = titleText;
     this.transcriptionType = transcriptionType;
-    this.width = 400;
+
+    // The padding doesn't matter because document.body has box-sizng =
+    // border-box;
+    this.margin = 5;
+    this.borderWidth = 2;
+    this.adjustedWidth = this.width - (this.margin + this.borderWidth) * 2;
 
     this.createRootDiv();
     this.createTitle();
@@ -38,11 +45,10 @@ class TestimonyCard {
   createRootDiv() {
     this.rootDiv = document.createElement('div');
     this.rootDiv.style.padding = '5px';
-    this.rootDiv.style.margin = '5px';
-    this.rootDiv.style.border = '2px solid black';
-    this.rootDiv.style.width = `${this.width}px`;
+    this.rootDiv.style.margin = `${this.margin}px`;
+    this.rootDiv.style.border = `${this.borderWidth}px solid black`;
+    this.rootDiv.style.width = `${this.adjustedWidth}px`;
     this.rootDiv.style.backgroundColor = '#dddddd';
-    document.body.append(this.rootDiv);
   }
 
   createTitle() {
@@ -59,10 +65,11 @@ class TestimonyCard {
 }
 
 export class AudioTestimonyCard extends TestimonyCard {
-  constructor(testimony) {
+  constructor(testimony, width = 400) {
     const date = new Date(testimony.date);
     super(
       testimony,
+      width,
       `Recorded ${date.toLocaleString('default', { month: 'long' })}, ${date.getUTCFullYear()}`,
       AudioTestimonyTranscription,
     );
@@ -84,10 +91,11 @@ export class AudioTestimonyCard extends TestimonyCard {
 }
 
 export class DocumentTestimonyCard extends TestimonyCard {
-  constructor(testimony) {
+  constructor(testimony, width = 400) {
     const date = new Date(testimony.date);
     super(
       testimony,
+      width,
       `Received ${date.toLocaleString('default', { month: 'long' })}, ${date.getUTCFullYear()}`,
       DocumentTestimonyTranscription,
     );
@@ -97,7 +105,7 @@ export class DocumentTestimonyCard extends TestimonyCard {
   insertPreviewImage() {
     this.previewImage = document.createElement('img');
     this.previewImage.src = `/testimonies/${this.name}.png`;
-    this.previewImage.style.width = `${this.width}px`;
+    this.previewImage.style.width = `${this.adjustedWidth}px`;
     this.title.after(this.previewImage);
   }
 }
