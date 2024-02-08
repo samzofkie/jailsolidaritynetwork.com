@@ -8,7 +8,7 @@ document.body.style.boxSizing = 'border-box';
 
 // These values are calculated here and passed down to header and deck to
 // achieve a more consistent layout grid across the page.
-const cardWidth = window.innerWidth <= 1000 ? window.innerWidth : 500;
+const cardWidth = window.innerWidth <= 1000 ? window.innerWidth - 40 : 500;
 const numColumns = Math.floor(window.innerWidth / cardWidth);
 
 let header = new Header(cardWidth, numColumns);

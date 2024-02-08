@@ -128,15 +128,23 @@ class TestimonyTranscriptionPreview extends TestimonyTranscription {
   }
 }
 
+export class TestimonyTranscriptionPage extends TestimonyTranscription {
+  createRootDiv() {
+    this.rootDiv = document.createElement('div');
+    this.rootDiv.style.margin = 'auto';
+    let divWidth =
+      window.innerWidth > 1000
+        ? window.innerWidth * 0.5
+        : window.innerWidth * 0.9;
+    this.rootDiv.style.width = `${divWidth}px`;
+  }
+}
+
 /* AudioTestimonyTranscription overrides organizeTranscriptionInTextDiv to
    append <p>s to textDiv, setting the id property of each paragraph to a
 	 string timestamp corresponding to the schema of audio transcription text
 	 (see README for more info). */
 export class AudioTestimonyTranscription extends TestimonyTranscriptionPreview {
-  constructor(id) {
-    super(id);
-  }
-
   organizeTranscriptionInTextDiv() {
     for (let line of this.transcription) {
       let [timestamp, text] = line.split('\n');
@@ -151,10 +159,6 @@ export class AudioTestimonyTranscription extends TestimonyTranscriptionPreview {
 }
 
 export class DocumentTestimonyTranscription extends TestimonyTranscriptionPreview {
-  constructor(id) {
-    super(id);
-  }
-
   organizeTranscriptionInTextDiv() {
     for (let line of this.transcription) {
       if (line.length === 0) continue;
