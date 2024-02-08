@@ -49,11 +49,11 @@ More text
 ### TODO
 
 - Separate pages for testimonies
-  - Title (nice URLSearchParams stuff)
-  - Document
+  - Document page
 - `TestimonyTranscription` proper async, fetchTranscription() method return Promise
-- Loadable class (multiple inheritance?)
+- `Loadable`, `Title` classes, 
 - Only make variable member if actually needed
+- `.root` member
 - Comments
 
 - UI design doc
