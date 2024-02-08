@@ -49,6 +49,9 @@ More text
 ### TODO
 
 - Separate pages for testimonies
+  - Title (nice URLSearchParams stuff)
+  - Audio player
+  - Document handling
 - `TestimonyTranscription` proper async, fetchTranscription() method return Promise
 - Loadable class (multiple inheritance?)
 - Only make variable member if actually needed
@@ -60,3 +63,13 @@ More text
 - Handling window resizing?
 - What are the documents in response to (text)?
 - Where were the recordings taken?
+- Server side rendering
+
+### Coding Style
+
+This project has been a fun experiment about the best way to structure a frontend with a decent amount of complexity using only vanilla JS. The guiding principles I've been exploring have been:
+
+- Doing everything programatically (i.e. creating all HTML elements and doing all CSS styling with JavaScript)
+- Using an OOP-like, React-like separation of concerns
+
+Almost every class handles the creation and population of a `<div>` called `.rootDiv`, which is then injected into the proper place in the DOM by the creator of the object. This forms a React-like hierarchy of objects (components).
