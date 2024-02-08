@@ -19,14 +19,13 @@ import {
 */
 class TestimonyCard {
   constructor(
-    testimony,
+    testimonyMetadata,
     width,
-    titleText = testimony.id,
+    titleText = testimonyMetadata.id,
     transcriptionType = TestimonyTranscription,
   ) {
-    this.id = testimony.id;
-    this.type = testimony.type;
-    this.date = new Date(testimony.date);
+    this.testimonyMetadata = testimonyMetadata;
+    this.date = new Date(testimonyMetadata.date);
     this.width = width;
     this.titleText = titleText;
     this.transcriptionType = transcriptionType;
@@ -59,16 +58,19 @@ class TestimonyCard {
   }
 
   createTranscription() {
-    this.transcription = new this.transcriptionType(this.id, this.toolBar);
+    this.transcription = new this.transcriptionType(
+      this.testimonyMetadata,
+      this.toolBar,
+    );
     this.rootDiv.append(this.transcription.rootDiv);
   }
 }
 
 export class AudioTestimonyCard extends TestimonyCard {
-  constructor(testimony, width = 400) {
-    const date = new Date(testimony.date);
+  constructor(testimonyMetadata, width = 400) {
+    const date = new Date(testimonyMetadata.date);
     super(
-      testimony,
+      testimonyMetadata,
       width,
       `Recorded ${date.toLocaleString('default', { month: 'long' })}, ${date.getUTCFullYear()}`,
       AudioTestimonyTranscriptionPreview,
@@ -77,16 +79,16 @@ export class AudioTestimonyCard extends TestimonyCard {
   }
 
   createAudioPlayer() {
-		this.audioPlayer = new AudioPlayer(this.id);
+    this.audioPlayer = new AudioPlayer(this.testimonyMetadata.id);
     this.rootDiv.append(this.audioPlayer.audio);
   }
 }
 
 export class DocumentTestimonyCard extends TestimonyCard {
-  constructor(testimony, width = 400) {
-    const date = new Date(testimony.date);
+  constructor(testimonyMetadata, width = 400) {
+    const date = new Date(testimonyMetadata.date);
     super(
-      testimony,
+      testimonyMetadata,
       width,
       `Received ${date.toLocaleString('default', { month: 'long' })}, ${date.getUTCFullYear()}`,
       DocumentTestimonyTranscriptionPreview,
@@ -96,7 +98,7 @@ export class DocumentTestimonyCard extends TestimonyCard {
 
   insertPreviewImage() {
     this.previewImage = document.createElement('img');
-    this.previewImage.src = `/testimonies/${this.id}.png`;
+    this.previewImage.src = `/testimonies/${this.testimonyMetadata.id}.png`;
     this.previewImage.style.width = `${this.adjustedWidth}px`;
     this.title.after(this.previewImage);
   }

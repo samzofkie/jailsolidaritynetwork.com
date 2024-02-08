@@ -50,8 +50,7 @@ More text
 
 - Separate pages for testimonies
   - Title (nice URLSearchParams stuff)
-  - Audio player
-  - Document handling
+  - Document
 - `TestimonyTranscription` proper async, fetchTranscription() method return Promise
 - Loadable class (multiple inheritance?)
 - Only make variable member if actually needed

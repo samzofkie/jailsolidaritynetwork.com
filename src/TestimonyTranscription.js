@@ -19,8 +19,11 @@ import Spinner from './Spinner.js';
 	 algorithm to layout text elements inside the textDiv.
 */
 export class TestimonyTranscription {
-  constructor(id) {
-    this.id = id;
+  constructor(testimonyMetadata) {
+    this.testimonyMetadata = testimonyMetadata;
+    /*this.id = id;
+		this.type = type;
+		this.date = date;*/
 
     this.fetchTranscription();
     this.createRootDiv();
@@ -40,7 +43,7 @@ export class TestimonyTranscription {
   // This method assigns the fetch Promise to this.transcription so that
   // subclasses can correctly await it.
   fetchTranscription() {
-    this.transcription = fetch(`/testimonies/${this.id}.txt`)
+    this.transcription = fetch(`/testimonies/${this.testimonyMetadata.id}.txt`)
       .then((res) => res.text())
       .then((text) => text.split('\n\n'));
   }
@@ -70,8 +73,8 @@ export class TestimonyTranscription {
 /* PreviewTranscription is a Transcription plus a toolbar with an
 	 expand-collapse button and a link to a full page. */
 class TestimonyTranscriptionPreview extends TestimonyTranscription {
-  constructor(id) {
-    super(id);
+  constructor(testimonyMetadata) {
+    super(testimonyMetadata);
 
     this.expanded = false;
     this.transcription.then((t) => {
@@ -121,8 +124,9 @@ class TestimonyTranscriptionPreview extends TestimonyTranscription {
   }
 
   createLink() {
+    let queryParams = new URLSearchParams(this.testimonyMetadata);
     let link = document.createElement('a');
-    link.href = `/audio.html?id=${this.id}`;
+    link.href = `/${this.testimonyMetadata.type}.html?${queryParams.toString()}`;
     link.append(`Open account in a new page`);
     this.toolBar.append(link);
   }
