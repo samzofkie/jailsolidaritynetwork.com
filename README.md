@@ -49,9 +49,10 @@ More text
 ### TODO
 
 - Separate pages for testimonies
+  - Mobile page margin top
   - Document page
 - `TestimonyTranscription` proper async, fetchTranscription() method return Promise
-- `Loadable`, `Title` classes, 
+- `Loadable`, `Title`, `Component` classes
 - Only make variable member if actually needed
 - `.root` member
 - Comments

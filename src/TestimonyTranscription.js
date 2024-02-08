@@ -133,25 +133,24 @@ class TestimonyTranscriptionPreview extends TestimonyTranscription {
 }
 
 export function calculateCenteredElementCSSWidth() {
-	return window.innerWidth > 1000
-        ? window.innerWidth * 0.5
-        : window.innerWidth * 0.9;
+  return window.innerWidth > 1000
+    ? window.innerWidth * 0.5
+    : window.innerWidth * 0.9;
 }
 
 export class TestimonyTranscriptionPage extends TestimonyTranscription {
   createRootDiv() {
-		super.createRootDiv();
-    this.rootDiv.style.margin = 'auto';
+    super.createRootDiv();
+    /*this.rootDiv.style.margin = 'auto';
     let divWidth = calculateCenteredElementCSSWidth();
-    this.rootDiv.style.width = `${divWidth}px`;
+    this.rootDiv.style.width = `${divWidth}px`;*/
   }
 
   createTextDiv() {
-		super.createTextDiv();
-		this.textDiv.style.fontSize = '20px';
+    super.createTextDiv();
+    this.textDiv.style.fontSize = '20px';
   }
 }
-
 
 class AudioTranscriptionFormatter {
   constructor(transcription, textDiv) {
