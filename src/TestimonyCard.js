@@ -1,6 +1,6 @@
 import {
-  AudioTestimonyTranscription,
-  DocumentTestimonyTranscription,
+  AudioTestimonyTranscriptionPreview,
+  DocumentTestimonyTranscriptionPreview,
 } from './TestimonyTranscription.js';
 
 /* TestimonyCard's parameter is an object, (currently) with the following
@@ -70,7 +70,7 @@ export class AudioTestimonyCard extends TestimonyCard {
       testimony,
       width,
       `Recorded ${date.toLocaleString('default', { month: 'long' })}, ${date.getUTCFullYear()}`,
-      AudioTestimonyTranscription,
+      AudioTestimonyTranscriptionPreview,
     );
     this.createAudioPlayer();
   }
@@ -96,7 +96,7 @@ export class DocumentTestimonyCard extends TestimonyCard {
       testimony,
       width,
       `Received ${date.toLocaleString('default', { month: 'long' })}, ${date.getUTCFullYear()}`,
-      DocumentTestimonyTranscription,
+      DocumentTestimonyTranscriptionPreview,
     );
     this.insertPreviewImage();
   }

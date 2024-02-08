@@ -140,12 +140,10 @@ export class TestimonyTranscriptionPage extends TestimonyTranscription {
   }
 }
 
-/* AudioTestimonyTranscription overrides organizeTranscriptionInTextDiv to
-   append <p>s to textDiv, setting the id property of each paragraph to a
-	 string timestamp corresponding to the schema of audio transcription text
-	 (see README for more info). */
-export class AudioTestimonyTranscription extends TestimonyTranscriptionPreview {
-  organizeTranscriptionInTextDiv() {
+class AudioTranscriptionFormatter {
+  constructor(transcription, textDiv) {
+    this.transcription = transcription;
+    this.textDiv = textDiv;
     for (let line of this.transcription) {
       let [timestamp, text] = line.split('\n');
       let p = document.createElement('p');
@@ -158,8 +156,23 @@ export class AudioTestimonyTranscription extends TestimonyTranscriptionPreview {
   }
 }
 
-export class DocumentTestimonyTranscription extends TestimonyTranscriptionPreview {
+/* AudioTestimonyTranscription overrides organizeTranscriptionInTextDiv to
+   append <p>s to textDiv, setting the id property of each paragraph to a
+	 string timestamp corresponding to the schema of audio transcription text
+	 (see README for more info). */
+export class AudioTestimonyTranscriptionPreview extends TestimonyTranscriptionPreview {
   organizeTranscriptionInTextDiv() {
+    this.formatter = new AudioTranscriptionFormatter(
+      this.transcription,
+      this.textDiv,
+    );
+  }
+}
+
+class DocumentTranscriptionFormatter {
+  constructor(transcription, textDiv) {
+    this.transcription = transcription;
+    this.textDiv = textDiv;
     for (let line of this.transcription) {
       if (line.length === 0) continue;
       let p = document.createElement('p');
@@ -168,5 +181,14 @@ export class DocumentTestimonyTranscription extends TestimonyTranscriptionPrevie
       p.style.textIndent = '25px';
       this.textDiv.append(p);
     }
+  }
+}
+
+export class DocumentTestimonyTranscriptionPreview extends TestimonyTranscriptionPreview {
+  organizeTranscriptionInTextDiv() {
+    this.formatter = new DocumentTranscriptionFormatter(
+      this.transcription,
+      this.textDiv,
+    );
   }
 }
