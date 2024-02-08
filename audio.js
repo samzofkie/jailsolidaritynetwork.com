@@ -1,5 +1,5 @@
 import Logo from './src/Logo.js';
-import { TestimonyTranscriptionPage } from './src/TestimonyTranscription.js';
+import { AudioTestimonyTranscriptionPage } from './src/TestimonyTranscription.js';
 
 document.body.style.backgroundColor = '#b0b0ab';
 document.body.style.fontFamily = 'Arial, Helvetica, sans-serif';
@@ -11,5 +11,5 @@ document.body.append(logo.img);
 const urlParams = new URLSearchParams(window.location.search);
 const id = urlParams.get('id');
 
-let transcription = new TestimonyTranscriptionPage(id);
+let transcription = new AudioTestimonyTranscriptionPage(id);
 document.body.append(transcription.rootDiv);

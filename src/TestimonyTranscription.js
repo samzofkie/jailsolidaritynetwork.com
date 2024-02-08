@@ -156,11 +156,16 @@ class AudioTranscriptionFormatter {
   }
 }
 
-/* AudioTestimonyTranscription overrides organizeTranscriptionInTextDiv to
-   append <p>s to textDiv, setting the id property of each paragraph to a
-	 string timestamp corresponding to the schema of audio transcription text
-	 (see README for more info). */
 export class AudioTestimonyTranscriptionPreview extends TestimonyTranscriptionPreview {
+  organizeTranscriptionInTextDiv() {
+    this.formatter = new AudioTranscriptionFormatter(
+      this.transcription,
+      this.textDiv,
+    );
+  }
+}
+
+export class AudioTestimonyTranscriptionPage extends TestimonyTranscriptionPage {
   organizeTranscriptionInTextDiv() {
     this.formatter = new AudioTranscriptionFormatter(
       this.transcription,
@@ -185,6 +190,15 @@ class DocumentTranscriptionFormatter {
 }
 
 export class DocumentTestimonyTranscriptionPreview extends TestimonyTranscriptionPreview {
+  organizeTranscriptionInTextDiv() {
+    this.formatter = new DocumentTranscriptionFormatter(
+      this.transcription,
+      this.textDiv,
+    );
+  }
+}
+
+export class DocumentTestimonyTranscriptionPage extends TestimonyTranscriptionPage {
   organizeTranscriptionInTextDiv() {
     this.formatter = new DocumentTranscriptionFormatter(
       this.transcription,
