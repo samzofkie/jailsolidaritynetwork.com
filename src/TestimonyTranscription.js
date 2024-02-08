@@ -22,8 +22,6 @@ export class TestimonyTranscription {
   constructor(name) {
     this.name = name;
 
-    this.expanded = false;
-
     this.fetchTranscription();
     this.createRootDiv();
     this.createAndRenderSpinner();
@@ -32,16 +30,15 @@ export class TestimonyTranscription {
       this.removeSpinner();
       this.createTextDiv();
       this.organizeTranscriptionInTextDiv();
-      this.createToolBar();
-      this.createMoreButton();
-      this.createLink();
     });
   }
 
-  createMainDiv() {
+  createRootDiv() {
     this.rootDiv = document.createElement('div');
   }
 
+  // This method assigns the fetch Promise to this.transcription so that
+  // subclasses can correctly await it.
   fetchTranscription() {
     this.transcription = fetch(`/testimonies/${this.name}.txt`)
       .then((res) => res.text())
@@ -67,6 +64,22 @@ export class TestimonyTranscription {
 
   organizeTranscriptionInTextDiv() {
     this.textDiv.append(this.transcription.toString());
+  }
+}
+
+/* PreviewTranscription is a Transcription plus a toolbar with an
+	 expand-collapse button and a link to a full page. */
+class TestimonyTranscriptionPreview extends TestimonyTranscription {
+  constructor(name) {
+    super(name);
+
+    this.expanded = false;
+    this.transcription.then((t) => {
+      this.transcription = t;
+      this.createToolBar();
+      this.createMoreButton();
+      this.createLink();
+    });
   }
 
   createToolBar() {
@@ -119,7 +132,7 @@ export class TestimonyTranscription {
    append <p>s to textDiv, setting the id property of each paragraph to a
 	 string timestamp corresponding to the schema of audio transcription text
 	 (see README for more info). */
-export class AudioTestimonyTranscription extends TestimonyTranscription {
+export class AudioTestimonyTranscription extends TestimonyTranscriptionPreview {
   constructor(name) {
     super(name);
   }
@@ -137,7 +150,7 @@ export class AudioTestimonyTranscription extends TestimonyTranscription {
   }
 }
 
-export class DocumentTestimonyTranscription extends TestimonyTranscription {
+export class DocumentTestimonyTranscription extends TestimonyTranscriptionPreview {
   constructor(name) {
     super(name);
   }

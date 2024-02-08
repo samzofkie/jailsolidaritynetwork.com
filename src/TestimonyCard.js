@@ -1,5 +1,4 @@
 import {
-  TestimonyTranscription,
   AudioTestimonyTranscription,
   DocumentTestimonyTranscription,
 } from './TestimonyTranscription.js';
@@ -60,7 +59,7 @@ class TestimonyCard {
 
   createTranscription() {
     this.transcription = new this.transcriptionType(this.name, this.toolBar);
-    this.rootDiv.append(this.transcription.mainDiv);
+    this.rootDiv.append(this.transcription.rootDiv);
   }
 }
 
