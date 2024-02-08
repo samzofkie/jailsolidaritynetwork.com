@@ -8,6 +8,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         audio: resolve(__dirname, 'audio.html'),
+        search: resolve(__dirname, 'search.html'),
       },
     },
   },

@@ -41,6 +41,7 @@ export default class Header {
     this.linksDiv.style.gridRowStart = '2';
     this.linksDiv.style.display = 'flex';
     this.linksDiv.style.flexDirection = 'column';
+		this.linksDiv.style.justifyContent = 'flex-end';
     this.linksDiv.style.maxHeight = this.logoDiv.offsetHeight / 2;
     colDiv.append(this.linksDiv);
 
@@ -51,6 +52,7 @@ export default class Header {
     let link = document.createElement('a');
     link.href = '/search.html';
     link.style.fontSize = '20px';
+		link.style.margin = '5px';
 
     let icon = document.createElement('i');
     icon.className = 'fa fa-search';
