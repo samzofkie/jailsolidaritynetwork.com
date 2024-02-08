@@ -8,12 +8,12 @@ export default class Spinner {
   ) {
     this.div = document.createElement('div');
     this.div.className = 'spinner';
-    let style = this.div.style;
-    style.border = `${borderWidth}px solid ${secondaryColor}`;
-    style.borderRadius = '50%';
-    style.borderTop = `${borderWidth}px solid ${primaryColor}`;
-    style.height = `${width}px`;
-    style.width = `${width}px`;
-    style.animation = `spin ${speed}s linear infinite`;
+    this.div.style.border = `${borderWidth}px solid ${secondaryColor}`;
+    this.div.style.borderRadius = '50%';
+    this.div.style.borderTop = `${borderWidth}px solid ${primaryColor}`;
+    this.div.style.height = `${width}px`;
+    this.div.style.width = `${width}px`;
+    this.div.style.animation = `spin ${speed}s linear infinite`;
+		this.div.style.margin = 'auto';
   }
 }

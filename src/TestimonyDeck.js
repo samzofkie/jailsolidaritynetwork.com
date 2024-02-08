@@ -1,30 +1,44 @@
 import { AudioTestimonyCard, DocumentTestimonyCard } from './TestimonyCard.js';
+import Spinner from './Spinner.js';
 
 export default class TestimonyDeck {
   constructor(cardWidth, numColumns) {
     this.cardWidth = cardWidth;
     this.numColumns = numColumns;
+
+    this.createRootDiv();
+		this.createSpinner();
+
     this.fetchTestimoniesManifest().then((testimonies) => {
       this.testimonies = testimonies;
-      this.createRootDiv();
       this.shuffleTestimonies();
       this.createTestimonyCards();
-      this.createColumnDivs();
       this.awaitImagesLoaded().then((_) => {
+				this.removeSpinner();
+      	this.createColumnDivs();
         this.divvyCardsIntoColumns();
       });
     });
+  }
+
+	createRootDiv() {
+    this.rootDiv = document.createElement('div');
+    document.body.append(this.rootDiv);
+  }
+
+  createSpinner() {
+    this.spinner = new Spinner(150, 15);
+    this.rootDiv.append(this.spinner.div);
+  }
+
+	removeSpinner() {
+    this.spinner.div.remove();
   }
 
   fetchTestimoniesManifest() {
     return fetch('manifest.json')
       .then((res) => res.json())
       .then((manifest) => manifest.testimonies);
-  }
-
-  createRootDiv() {
-    this.rootDiv = document.createElement('div');
-    document.body.append(this.rootDiv);
   }
 
   shuffleTestimonies() {

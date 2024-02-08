@@ -48,10 +48,11 @@ More text
 
 ### TODO
 
+- `TestimonyTranscription` proper async, fetchTranscription() method return Promise
+- Loadable class (multiple inheritance?)
 - Rename name `id`
 - Only make variable member if actually needed
 - Comments
-- `TestimonyDeck` spinner
 - UI design doc
 - Tests
 - Separate pages for testimonies
