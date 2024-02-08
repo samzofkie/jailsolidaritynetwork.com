@@ -48,6 +48,10 @@ More text
 
 ### TODO
 
+- Rename name `id`
+- Only make variable member if actually needed
+- Comments
+- `TestimonyDeck` spinner
 - UI design doc
 - Tests
 - Separate pages for testimonies

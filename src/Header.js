@@ -1,3 +1,5 @@
+import Logo from './Logo.js';
+
 export default class Header {
   constructor(cardWidth, numColumns) {
     this.cardWidth = cardWidth;
@@ -23,11 +25,8 @@ export default class Header {
 
   createLogoDiv() {
     this.logoDiv = document.createElement('div');
-    let logo = document.createElement('img');
-    logo.src = 'jsn-logo-transparent.png';
-    logo.alt = 'Jail Solidarity Network logo';
-    logo.width = this.cardWidth;
-    this.logoDiv.append(logo);
+		let logo = new Logo(this.cardWidth);
+    this.logoDiv.append(logo.img);
     this.rootDiv.append(this.logoDiv);
   }
 
