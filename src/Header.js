@@ -25,7 +25,7 @@ export default class Header {
 
   createLogoDiv() {
     this.logoDiv = document.createElement('div');
-		let logo = new Logo(this.cardWidth);
+    let logo = new Logo(this.cardWidth);
     this.logoDiv.append(logo.img);
     this.rootDiv.append(this.logoDiv);
   }

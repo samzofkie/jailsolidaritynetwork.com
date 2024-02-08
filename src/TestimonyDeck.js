@@ -7,21 +7,21 @@ export default class TestimonyDeck {
     this.numColumns = numColumns;
 
     this.createRootDiv();
-		this.createSpinner();
+    this.createSpinner();
 
     this.fetchTestimoniesManifest().then((testimonies) => {
       this.testimonies = testimonies;
       this.shuffleTestimonies();
       this.createTestimonyCards();
       this.awaitImagesLoaded().then((_) => {
-				this.removeSpinner();
-      	this.createColumnDivs();
+        this.removeSpinner();
+        this.createColumnDivs();
         this.divvyCardsIntoColumns();
       });
     });
   }
 
-	createRootDiv() {
+  createRootDiv() {
     this.rootDiv = document.createElement('div');
     document.body.append(this.rootDiv);
   }
@@ -31,7 +31,7 @@ export default class TestimonyDeck {
     this.rootDiv.append(this.spinner.div);
   }
 
-	removeSpinner() {
+  removeSpinner() {
     this.spinner.div.remove();
   }
 

@@ -19,8 +19,8 @@ import Spinner from './Spinner.js';
 	 algorithm to layout text elements inside the textDiv.
 */
 export class TestimonyTranscription {
-  constructor(name) {
-    this.name = name;
+  constructor(id) {
+    this.id = id;
 
     this.fetchTranscription();
     this.createRootDiv();
@@ -40,7 +40,7 @@ export class TestimonyTranscription {
   // This method assigns the fetch Promise to this.transcription so that
   // subclasses can correctly await it.
   fetchTranscription() {
-    this.transcription = fetch(`/testimonies/${this.name}.txt`)
+    this.transcription = fetch(`/testimonies/${this.id}.txt`)
       .then((res) => res.text())
       .then((text) => text.split('\n\n'));
   }
@@ -70,8 +70,8 @@ export class TestimonyTranscription {
 /* PreviewTranscription is a Transcription plus a toolbar with an
 	 expand-collapse button and a link to a full page. */
 class TestimonyTranscriptionPreview extends TestimonyTranscription {
-  constructor(name) {
-    super(name);
+  constructor(id) {
+    super(id);
 
     this.expanded = false;
     this.transcription.then((t) => {
@@ -122,7 +122,7 @@ class TestimonyTranscriptionPreview extends TestimonyTranscription {
 
   createLink() {
     let link = document.createElement('a');
-    link.href = `/audio.html?id=${this.name}`;
+    link.href = `/audio.html?id=${this.id}`;
     link.append(`Open account in a new page`);
     this.toolBar.append(link);
   }
@@ -133,8 +133,8 @@ class TestimonyTranscriptionPreview extends TestimonyTranscription {
 	 string timestamp corresponding to the schema of audio transcription text
 	 (see README for more info). */
 export class AudioTestimonyTranscription extends TestimonyTranscriptionPreview {
-  constructor(name) {
-    super(name);
+  constructor(id) {
+    super(id);
   }
 
   organizeTranscriptionInTextDiv() {
@@ -151,8 +151,8 @@ export class AudioTestimonyTranscription extends TestimonyTranscriptionPreview {
 }
 
 export class DocumentTestimonyTranscription extends TestimonyTranscriptionPreview {
-  constructor(name) {
-    super(name);
+  constructor(id) {
+    super(id);
   }
 
   organizeTranscriptionInTextDiv() {

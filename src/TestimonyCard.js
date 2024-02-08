@@ -5,7 +5,7 @@ import {
 
 /* TestimonyCard's parameter is an object, (currently) with the following
 	 properties:
-		 - name: a unique identifier,
+		 - id: a unique identifier,
 		 - type: either "audio" or "document",
 		 - date: a month and year combo of the format "YYYY-MM".
 	 It's main functionality is managing the creation and rendering of a
@@ -20,10 +20,10 @@ class TestimonyCard {
   constructor(
     testimony,
     width,
-    titleText = testimony.name,
+    titleText = testimony.id,
     transcriptionType = TestimonyTranscription,
   ) {
-    this.name = testimony.name;
+    this.id = testimony.id;
     this.type = testimony.type;
     this.date = new Date(testimony.date);
     this.width = width;
@@ -58,7 +58,7 @@ class TestimonyCard {
   }
 
   createTranscription() {
-    this.transcription = new this.transcriptionType(this.name, this.toolBar);
+    this.transcription = new this.transcriptionType(this.id, this.toolBar);
     this.rootDiv.append(this.transcription.rootDiv);
   }
 }
@@ -81,7 +81,7 @@ export class AudioTestimonyCard extends TestimonyCard {
     this.audio.style.width = '100%';
 
     let audioSource = document.createElement('source');
-    audioSource.src = `testimonies/${this.name}.mp3`;
+    audioSource.src = `testimonies/${this.id}.mp3`;
     audioSource.type = 'audio/mpeg';
     this.audio.appendChild(audioSource);
 
@@ -103,7 +103,7 @@ export class DocumentTestimonyCard extends TestimonyCard {
 
   insertPreviewImage() {
     this.previewImage = document.createElement('img');
-    this.previewImage.src = `/testimonies/${this.name}.png`;
+    this.previewImage.src = `/testimonies/${this.id}.png`;
     this.previewImage.style.width = `${this.adjustedWidth}px`;
     this.title.after(this.previewImage);
   }

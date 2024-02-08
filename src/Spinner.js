@@ -14,6 +14,6 @@ export default class Spinner {
     this.div.style.height = `${width}px`;
     this.div.style.width = `${width}px`;
     this.div.style.animation = `spin ${speed}s linear infinite`;
-		this.div.style.margin = 'auto';
+    this.div.style.margin = 'auto';
   }
 }

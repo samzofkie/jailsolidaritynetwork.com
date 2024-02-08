@@ -3,7 +3,7 @@
 The `manifest.json` file is the first thing `fetch`ed by the frontend-- it's main property is called `testimonies`, and it's value is an array of objects, each containing the metadata for an audio or scanned, handwritten testimony. The testimony objects' (required) fields are
 |property|value|
 |-|-|
-|`name`| Essentially a unique identifier. |
+|`id`| A unique `nanoid`. |
 |`type`| (Currently) `"audio"` or `"document"`. |
 |`date`| A month and year value, in the format `"YYYY-MM"` (e.g. `"2023-09"`.) |
 
@@ -48,15 +48,15 @@ More text
 
 ### TODO
 
+- Separate pages for testimonies
 - `TestimonyTranscription` proper async, fetchTranscription() method return Promise
 - Loadable class (multiple inheritance?)
-- Rename name `id`
 - Only make variable member if actually needed
 - Comments
+
 - UI design doc
 - Tests
-- Separate pages for testimonies
 - `AudioTestimonyTranscription` text highlighting
 - Handling window resizing?
-- What are the documents in response to?
+- What are the documents in response to (text)?
 - Where were the recordings taken?
