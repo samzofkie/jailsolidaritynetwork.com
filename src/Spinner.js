@@ -1,4 +1,6 @@
-export default class Spinner {
+import { Div } from './Div.js';
+
+export class Spinner extends Div {
   constructor(
     width = 25,
     borderWidth = 3,
@@ -6,14 +8,16 @@ export default class Spinner {
     secondaryColor = '#ffffff',
     speed = 1,
   ) {
-    this.div = document.createElement('div');
-    this.div.className = 'spinner';
-    this.div.style.border = `${borderWidth}px solid ${secondaryColor}`;
-    this.div.style.borderRadius = '50%';
-    this.div.style.borderTop = `${borderWidth}px solid ${primaryColor}`;
-    this.div.style.height = `${width}px`;
-    this.div.style.width = `${width}px`;
-    this.div.style.animation = `spin ${speed}s linear infinite`;
-    this.div.style.margin = 'auto';
-  }
+		super();
+    this.style({
+			border: `${borderWidth}px solid ${secondaryColor}`,
+    	borderRadius: '50%',
+    	borderTop: `${borderWidth}px solid ${primaryColor}`,
+    	height: `${width}px`,
+    	width: `${width}px`,
+    	animation: `spin ${speed}s linear infinite`,
+    	margin: 'auto',
+  	});
+	}
+
 }

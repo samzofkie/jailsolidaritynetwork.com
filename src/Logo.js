@@ -1,8 +1,10 @@
-export default class Logo {
-  constructor(width) {
-    this.img = document.createElement('img');
-    this.img.src = 'jsn-logo-transparent.png';
-    this.img.alt = 'Jail Solidarity Network logo';
-    this.img.style.width = width;
-  }
+export class Logo {
+	constructor(width = '200px') {
+		this.root = document.createElement('img');
+		Object.assign(this.root, {
+			src: 'jsn-logo-transparent.png',
+			alt: 'Jail Solidarity Network logo',
+		});
+		this.root.style.width = width;
+	}
 }

@@ -47,7 +47,7 @@ More text
    2. Where to put the `<textarea>`
 
 ### TODO
-
+- Error handling for 404
 - Separate pages for testimonies
   - Mobile page margin top
   - Document page
