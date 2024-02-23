@@ -1,4 +1,4 @@
-import { Div } from './Div.js';
+import { Div } from './Root.js';
 
 export class Spinner extends Div {
   constructor(

@@ -1,15 +1,14 @@
-import { Header, IndexPageHeader, TestimonyPageHeader, AudioTestimonyPageHeader } from './Header.js';
+import { Root } from './Root.js';
+import { IndexPageHeader } from './Header.js';
 import { TestimonyDeck } from './Testimony.js';
 
-export class Page {
+export class Page extends Root {
 	constructor() {
+		super();
 		this.root = document.body;
 		this.isMobile = window.innerWidth < 800;
-		this.stylePage();
-	}
 
-	stylePage() {
-		Object.assign(this.root.style, {
+		this.style({
 			backgroundColor: '#b0b0ab',
 			fontFamily: 'Arial, Helvetica, sans-serif',
 			boxSizing: 'border-box',
@@ -24,16 +23,12 @@ export class IndexPage extends Page {
 		this.cardWidth = window.innerWidth <= 1000? window.innerWidth - 40 : 500;
 		this.numColumns = Math.floor(window.innerWidth / this.cardWidth);
 		
-		this.header = new IndexPageHeader(this.cardWidth, this.numColumns);
-		this.root.append(this.header.root);
-
-		this.testimonyDeck = new TestimonyDeck(this.cardWidth, this.numColumns);
-		this.root.append(this.testimonyDeck.root);
-		
+		this.append(new IndexPageHeader(this.cardWidth, this.numColumns));
+		this.append(new TestimonyDeck(this.cardWidth, this.numColumns));	
 	}
 }
 
-export class TestimonyPage extends Page {
+/*export class TestimonyPage extends Page {
 	constructor() {
 		super();
 		this.urlParams = new URLSearchParams(window.location.search);
@@ -49,13 +44,12 @@ export class AudioTestimonyPage extends TestimonyPage {
 	}
 
 	createHeader() {
-		/*let date = new Date(this.testimonyMetadata.date);
-		this.header = new TestimonyPageHeader(
-			`Recorded ${date.toLocaleString('default', {month: 'long'})}, ${date.getUTCFullYear()}`,
-			this.isMobile,
-		);
-		this.root.append(this.header.root);*/
+		let date = new Date(this.testimonyMetadata.date);
+		//this.header = new TestimonyPageHeader(
+			//`Recorded ${date.toLocaleString('default', {month: 'long'})}, ${date.getUTCFullYear()}`,
+			//this.isMobile,
+		//);
+		//this.root.append(this.header.root);
 		this.header = new AudioTestimonyPageHeader(this.isMobile);
 	}
-	
-}
+}*/
