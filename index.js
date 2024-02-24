@@ -1,2 +1,2 @@
-import { IndexPage } from './src/Page.js';
+import { IndexPage } from './src/JSNPage.js';
 let page = new IndexPage;

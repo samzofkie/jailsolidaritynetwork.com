@@ -1,90 +1,78 @@
-import { Root, Div, Link } from './Root.js';
-import { Logo } from './Logo.js';
-	
-export class Header extends Div {
-	createHr() {
-		this.root.append(document.createElement('hr'));
+import { Component } from './Component.js';
+
+class Header extends Component {
+	constructor() { super('div'); }
+}
+
+class Logo extends Component {
+	constructor(width = '200px') {
+		super('img');
+		
+		this.root.src = 'jsn-logo-transparent.png';
+		this.root.alt = 'Jail Solidarity Network logo';
+		
+		this.style({width: width});
 	}
 }
 
-class SearchLink extends Link {
+class SearchIcon extends Component {
 	constructor() {
-		let icon = document.createElement('i');
-		icon.className = 'fa fa-search';
-    icon.style.marginRight = '10px';
-
-		super('/search.html', [icon, 'Search jail testimonies by topic']);
+		super('i');
+		
+		this.root.className = 'fa fa-search';
 		
 		this.style({
-			fontSize: '20px',
+			marginRigt: '10px',
+		});
+	}
+}
+
+class SearchLink extends Component {
+	constructor() {
+		super('a');
+		
+		this.root.href = '/search.html';
+		
+		this.style({
 			margin: '5px',
 			alignSelf: 'end',
 		});
+
+		this.append(
+			new SearchIcon,
+			'Search jail testimonies by topic'
+		);
+	}
+}
+
+class IndexPageHeaderColumns extends Component {
+	constructor(cardWidth, numColumns) {
+		super('div');
+		
+		if (numColumns > 1)
+			this.style({
+				display: 'grid',
+				gridTemplateColumns: `repeat(${this.numColumns}, ${100 / this.numColumns}%)`,
+			});
+		
+		this.append(
+			new Logo(`${cardWidth}px`),
+			new SearchLink,
+		);
 	}
 }
 
 export class IndexPageHeader extends Header {
 	constructor(cardWidth, numColumns) {
-		super();
-
-		this.cardWidth = cardWidth;
-		this.numColumns = numColumns;
-			
-		this.createLogoLinksColumns();
-		this.createHr();
-		this.createSubtitle();
-	}
-
-	createLogoLinksColumns() {
-		let columns = new Div;
-		if (this.numColumns > 1)
-			columns.style({
-				display: 'grid',
-				gridTemplateColumns: 	`repeat(${this.numColumns}, ${100 / this.numColumns}%)`,
-			});
-		columns.append(new Logo(`${this.cardWidth}px`));
-		columns.append(new SearchLink);
-		this.append(columns);
-	}
-	
-	createSubtitle() {
-		let subtitle = document.createElement('h3');
-		subtitle.append('These interviews and letters are accounts of the lives impacted by the Cook County Jail in Chicago, IL.');
-		this.root.append(subtitle);
-	}
-}
-
-/*export class TestimonyPageHeader extends Header {
-	constructor(isMobile) {
-		super();
-		this.isMobile = isMobile;
-		this.logo = new Logo(this.isMobile? '50%' : '100%');
-	}
-
-	makeRootColumns() {
-		Object.assign(this.root.style, {
-			width: '100%',
-			position: 'fixed',
-			top: '0px',
-			left: '0px',
-		});
-		if (!this.isMobile)
-			Object.assign(this.root.style, {
-				display: 'grid',
-				gridTemplateColumns: 'repeat(4, 25%)',
-			});
-	}
-
-	createLogo() {
-		this.root.append(this.logo.root);
-		this.logoLoaded = new Promise((res, rej) => {
-			this.logo.root.addEventListener('load', res);
-		});
-	}
-}
-
-export class AudioTestimonyPageHeader extends TestimonyPageHeader {
-	constructor() {
 		super();	
+		
+		let subtitleText = `There interview and letters are accounts of the lives 
+			impacted by the Cook County Jail in Chicago, IL.`;
+	
+		this.append(
+			new IndexPageHeaderColumns(cardWidth, numColumns),
+			new Component('hr'),
+			new Component('h3', subtitleText),
+		);
 	}
-}*/
+}
