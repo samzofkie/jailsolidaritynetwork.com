@@ -1,5 +1,6 @@
 import { Page } from './Component.js';
 import { IndexPageHeader } from './Header.js';
+import { TestimonyDeck } from './TestimonyDeck.js';
 
 class JSNPage extends Page {
 	constructor() {
@@ -24,7 +25,7 @@ export class IndexPage extends JSNPage {
 
 		this.append(
 			new IndexPageHeader(cardWidth, numColumns),
-
+			new TestimonyDeck(cardWidth, numColumns),
 		);
 	}
 }
