@@ -1,7 +1,6 @@
-import { Page } from './Component.js';
-import { IndexPageHeader } from './Header.js';
-import { TestimonyDeck } from './TestimonyDeck.js';
-
+import { Page, Component } from './Component.js';
+import { Header } from './Header.js';
+ 
 class JSNPage extends Page {
 	constructor() {
 		super();
@@ -9,23 +8,19 @@ class JSNPage extends Page {
 		this.isMobile = window.innerWidth < 800;
 
 		this.style({
-			backgroundColor: '#b0b0ab',
+			backgroundColor: '#fff3d4',
 			fontFamily: 'Arial, Helvetica, sans-serif',
 			boxSizing: 'border-box',
 		});
 	}
 }
 
-export class IndexPage extends JSNPage {
+export class LandingPage extends JSNPage {
 	constructor() {
 		super();
-		
-		let cardWidth = window.innerWidth <= 1000? window.innerWidth - 40 : 500;
-		let numColumns = Math.floor(window.innerWidth / this.cardWidth);
-
-		this.append(
-			new IndexPageHeader(cardWidth, numColumns),
-			new TestimonyDeck(cardWidth, numColumns),
-		);
+		this.append(new Header(this.isMobile));
+		for (let i=0; i<1000; i++)
+			this.append('landing page');
 	}
 }
+	

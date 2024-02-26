@@ -8,6 +8,24 @@ class Root {
 			typeof component === 'string'? component : component.root
 		));
 	}
+
+	remove() {
+		this.root.remove();
+	}
+
+	height() {
+		//if (this.root.offsetHeight !== 0)
+			//return this.root.offsetHeight;
+		//else {
+			// https://stackoverflow.com/a/27729544
+			this.root.style.visibility = 'hidden';
+			document.body.append(this.root);
+			let height = this.root.offsetHeight;
+			this.root.style.visibility = 'visible';
+			this.root.remove();
+			return height;
+		//}
+	}
 }
 
 export class Page extends Root {
