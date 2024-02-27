@@ -19,8 +19,27 @@ export class LandingPage extends JSNPage {
 	constructor() {
 		super();
 		this.append(new Header(this.isMobile));
-		for (let i=0; i<1000; i++)
-			this.append('landing page');
+		this.append('landing page');
 	}
 }
-	
+
+export class ArchivePage extends JSNPage {
+	constructor() {
+		super();
+		this.append(new Component('h1', 'archive'));
+	}
+}
+
+export class AboutPage extends JSNPage {
+	constructor() {
+		super();
+		this.append(new Component('h1', 'about the project'));
+	}
+}
+
+export class ActionPage extends JSNPage {
+	constructor() {
+		super();
+		this.append(new Component('h1', 'build with us'))
+	}
+}

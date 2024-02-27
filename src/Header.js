@@ -89,7 +89,6 @@ class SideMenu extends Component {
   }
 
   createBars() {
-    // TODO: center bars vertically relative to logo height (nice to have)
     this.bars = new Component('span');
     this.bars.root.className = 'material-symbols-outlined';
     this.bars.style({
@@ -131,82 +130,6 @@ class SideMenu extends Component {
     this.hideLinkButtons();
     setTimeout(() => this.logo.root.style.width = this.logo.width, 200);
   }
-
-    /*this.logo = logo;
-    
-    this.bodyMargin = parseInt(window.getComputedStyle(document.body).margin);
-    this.width = '80px';
-    this.height = '80px';
-    this.style({
-      //'backgroundColor': '#505050',
-      'borderRadius': '30px',
-      'fontSize': '30px',
-
-      'display': 'flex',
-      'flexDirection': 'column',
-      'alignItems': 'stretch',
-      //'alignContent': 'flex-end',
-      'gap': '3px',
-      //'padding': '10px',
-      'box-sizing': 'border-box',
-
-      //'position': 'absolute',
-      'cursor': 'pointer',
-      //'right': `${this.bodyMargin}px`,
-      'width': this.width,
-      'height': this.height,
-      'transition': 'width 0.2s, height 0.2s',
-    })
-    
-    // TODO: center bars vertically relative to logo height (nice to have)
-    this.bars = new Component('span');
-    this.bars.root.className = 'material-symbols-outlined';
-    this.bars.style({'fontSize': this.width, 'alignSelf': 'flex-end'});
-    this.bars.append('menu');
-    this.append(this.bars);
-    
-    this.expanded = false;
-    this.root.onclick = () => {
-      if (this.expanded)
-        this.collapse();
-      else
-        this.expand();
-    };
-
-    this.createLinkButtons(linkButtons);*/
-
-  /*createLinkButtons(linkButtons) {
-    this.linkButtons = Object.entries(linkButtons).map(tuple => new LinkButton(tuple[0], tuple[1]));
-    this.hideLinkButtons();
-    this.linkButtons.map(button => this.append(button));
-  }
-  hideLinkButtons() {this.linkButtons.map(button => button.style({'visibility': 'hidden'}))}
-  showLinkButtons() {this.linkButtons.map(button => button.style({'visibility': 'visible'}))}
-
-  expand() {
-    this.expanded = true;
-    this.logo.style({'flexShrink': '0'});
-    this.style({
-      'width': `${document.body.offsetWidth}px`,
-      'height': `${window.innerHeight - (this.bodyMargin * 2)}px`,
-      'padding': '20px',
-    });
-    this.bars.root.innerHTML = 'close';
-    this.showLinkButtons();
-  }
-
-  collapse() {
-    this.expanded = false;
-    this.logo.style({'flexShrink': '0'});
-    this.style({
-      'width': this.width,
-      'height': this.height,
-      'padding': null,
-    });
-    this.bars.root.innerHTML = 'menu';
-    this.hideLinkButtons();
-  }*/
-
 }
 
 export class Header extends Component {
@@ -221,11 +144,11 @@ export class Header extends Component {
     })
 
     this.linkButtons = {
-      'Archive': '/archive',
-      'Sheriff Dart vs. Reality': '/dart',
-      'Cook County Jail Timeline': '/timeline',
-      'About': '/about',
-      'Action': '/action',
+      'Archive': '/archive.html',
+      'Sheriff Dart vs. Reality': '/dart.html',
+      'Cook County Jail Timeline': '/timeline.html',
+      'About': '/about.html',
+      'Action': '/action.html',
     };
     
     this.logo = new Logo;
