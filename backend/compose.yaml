@@ -6,3 +6,10 @@ services:
     volumes:
       - ./nginx:/etc/nginx
       - ../frontend/dist:/data/www
+  
+  api:
+    image: node
+    volumes:
+      - ./api:/api
+    working_dir: /api
+    command: node api.js

@@ -10,6 +10,7 @@ export default defineConfig({
         archive: resolve(__dirname, 'archive.html'),
         about: resolve(__dirname, 'about.html'),
         action: resolve(__dirname, 'action.html'),
+				login: resolve(__dirname, 'login.html'),
       },
     },
   },
