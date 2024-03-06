@@ -13,6 +13,7 @@ export class Login extends Component {
     input.type = 'text';
     input.id = 'password';
     input.name = 'password';
+    input.required = 'true';
 
     let button = document.createElement('input');
     button.type = 'submit';
