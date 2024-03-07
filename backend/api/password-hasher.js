@@ -3,12 +3,11 @@ const crypto = require('crypto');
 const fs = require('fs');
 
 const password = process.argv.pop();
-const salt = crypto.randomBytes(20);
-const iterations = 10000;
-const digest = 'sha3-512';
-const hash = crypto.pbkdf2Sync(password, salt, iterations, 64, digest);
+const hash = {
+    'salt': crypto.randomBytes(20),
+    'iterations': 10000,
+    'digest': 'sha3-512',
+};
+hash.hash = crypto.pbkdf2Sync(password, hash.salt, hash.iterations, 64, hash.digest);
 
-fs.writeFileSync('./.adminPassword/salt', salt);
-fs.writeFileSync('./.adminPassword/iterations', iterations.toString());
-fs.writeFileSync('./.adminPassword/digest', digest);
-fs.writeFileSync('./.adminPassword/hash', hash);
+fs.writeFileSync('.adminPassword', JSON.stringify(hash));

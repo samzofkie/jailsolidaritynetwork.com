@@ -1,27 +1,28 @@
 const express = require('express');
-
 const crypto = require('crypto');
 const fs = require('fs');
 
 const app = express();
 const port = 8080;
 
-const adminSalt = fs.readFileSync('./.adminPassword/salt');
-const adminIterations = parseInt(fs.readFileSync('./.adminPassword/iterations').toString());
-const adminDigest = fs.readFileSync('./.adminPassword/digest').toString();
-const adminHash = fs.readFileSync('./.adminPassword/hash');
+const adminHash = JSON.parse(fs.readFileSync('./.adminPassword'));
+adminHash.salt = Buffer.from(adminHash.salt);
+adminHash.hash = Buffer.from(adminHash.hash);
 
 app.get('/upload', (req, res) => {
   if (!(req.query.hasOwnProperty('password'))) {
     res.sendStatus(401);
-  } else {
-    const challengerHash = crypto.pbkdf2Sync(req.query.password, adminSalt, adminIterations, adminHash.length, adminDigest);
-    if (challengerHash.equals(adminHash)) {
-      res.send('Success!');
-    } else {
-      res.sendStatus(403);
-    }
-  };
+    return;
+  }
+
+  const challengerHash = crypto.pbkdf2Sync(req.query.password, adminHash.salt, adminHash.iterations, adminHash.hash.length, adminHash.digest);
+    
+  if (!challengerHash.equals(adminHash.hash)) {
+    res.sendStatus(403);
+    return;
+  }
+
+  res.send('Success');
 });
 
 app.listen(port, () => {
