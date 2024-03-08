@@ -11,6 +11,7 @@ export default defineConfig({
         about: resolve(__dirname, 'about.html'),
         action: resolve(__dirname, 'action.html'),
 				login: resolve(__dirname, 'login.html'),
+        upload: resolve(__dirname, 'upload.html'),
       },
     },
   },

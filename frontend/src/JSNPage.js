@@ -1,6 +1,7 @@
 import { Page, Component } from './Component.js';
 import { Header } from './Header.js';
 import { Login } from './Login.js';
+import { Upload } from './Upload.js';
  
 class JSNPage extends Page {
 	constructor() {
@@ -49,5 +50,12 @@ export class LoginPage extends JSNPage {
 	constructor() {
 		super();
 		this.append(new Login);
+	}
+}
+
+export class UploadPage extends JSNPage {
+	constructor() {
+		super();
+		this.append(new Upload);
 	}
 }
