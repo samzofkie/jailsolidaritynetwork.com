@@ -6,7 +6,9 @@ services:
     volumes:
       - ./nginx:/etc/nginx
       - ../frontend/dist:/data/www
-  
+    depends_on:
+      - db
+        
   api:
     image: node
     volumes:

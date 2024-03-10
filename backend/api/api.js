@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const fs = require('fs');
+const mysql = require('mysql2/promise');
 
 const app = express();
 const port = 8080;
@@ -23,6 +24,24 @@ app.get('/upload', (req, res) => {
   }
 
   res.send('Success');
+});
+
+app.get('/categories', async (req, res) => {
+  const connection = await mysql.createConnection({
+    host: 'db',
+    user: 'root',
+    password: 'samzofkie',
+    database: 'jailsolidaritynetwork',
+  });
+
+  try {
+    const [results, fields] = await connection.query(
+      'SELECT * FROM categories;'
+    );
+    res.json(results.map(row => row.name));
+  } catch(err) {
+    console.error(err);
+  }
 });
 
 app.listen(port, () => {
