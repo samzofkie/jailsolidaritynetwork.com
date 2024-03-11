@@ -1,14 +1,15 @@
 services:
-  proxy:
-    image: nginx
-    ports:
-      - 127.0.0.1:80:80
-    volumes:
-      - ./nginx:/etc/nginx
-      - ../frontend/dist:/data/www
+  dev-server:
+    image: node
     depends_on:
-      - db
-        
+      - api
+    volumes:
+      - ../frontend:/frontend
+    working_dir: /frontend
+    command: npm run dev
+    ports:
+      - 5173:5173
+
   api:
     image: node
     volumes:

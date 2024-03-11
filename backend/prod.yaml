@@ -1,0 +1,24 @@
+services:
+  proxy:
+    image: nginx
+    ports:
+      - 127.0.0.1:80:80
+    volumes:
+      - ./nginx:/etc/nginx
+      - ../frontend/dist:/data/www
+    depends_on:
+      - db
+
+  api:
+    image: node
+    volumes:
+      - ./api:/api
+    working_dir: /api
+    command: node api.js
+  
+  db:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: samzofkie
+    volumes:
+      - ./tables.sql:/docker-entrypoint-initdb.d/tables.sql
