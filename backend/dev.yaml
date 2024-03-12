@@ -12,6 +12,9 @@ services:
 
   api:
     image: node
+    depends_on:
+      - db
+    restart: on-failure:10
     volumes:
       - ./api:/api
     working_dir: /api

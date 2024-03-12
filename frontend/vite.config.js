@@ -15,4 +15,9 @@ export default defineConfig({
       },
     },
   },
+  server: {
+    proxy: {
+      '/categories': 'http://api:8080'
+    }
+  },
 })

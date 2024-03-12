@@ -1,7 +1,7 @@
 import { Component } from './Component.js';
 
 export class Login extends Component {
-  constructor() {
+  constructor() { 
     super('form');
     this.root.action = 'upload';
     
