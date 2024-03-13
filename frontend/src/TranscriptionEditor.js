@@ -59,9 +59,9 @@ class TranscriptionHighlighter extends Component {
   constructor() {
     super('div');
 
-    this.sentences = [];
-    this.sentencesDiv = new Component('div');
-    this.sentencesDiv.style({textIndent: '35px'});
+    this.paragraphs = [];
+    this.paragraphsDiv = new Component('div');
+    this.paragraphsDiv.style({textIndent: '35px'});
 
     this.style({
       border: '3px solid gray',
@@ -78,7 +78,7 @@ class TranscriptionHighlighter extends Component {
         this.append(
           this.categorySelector,
           new Component('hr'),
-          this.sentencesDiv,
+          this.paragraphsDiv,
         );
       });
   }
@@ -88,26 +88,31 @@ class TranscriptionHighlighter extends Component {
       .then(res => res.json());
   }
 
-  clearOldSentences() {
-    this.sentences = [];
-    Array.from(this.sentencesDiv.root.children).map(element => element.remove());
+  clearParagraphs() {
+    this.paragraphs = [];
+    Array.from(this.paragraphsDiv.root.children).map(element => element.remove());
+  }
+
+  // TODO: unit test and input validation
+  splitIntoSentences(paragraph) {
+    let sentencesAndPunctuation = paragraph.split(/([.!?])/).filter(text => text !== '');
+    let sentences = [];
+    for (let i=0; i<sentencesAndPunctuation.length; i += 2) {
+      sentences.push(sentencesAndPunctuation[i] + sentencesAndPunctuation[i+1])
+    }
+    return sentences;
+  }
+
+  renderParagraphs() {
+    this.paragraphs.map(paragraph => this.paragraphsDiv.append(new Component('p', paragraph.join(''))));
   }
 
   setText(text) {
-    this.clearOldSentences();
-
-    // TODO: unit test this
-    let sentencesAndPunctuation = text.split(/([.!?])/).filter(text => text !== '');
-    for (let i=0; i<sentencesAndPunctuation.length; i += 2) {
-      this.sentences.push(sentencesAndPunctuation[i] + sentencesAndPunctuation[i+1])
-    }
-
-    this.renderSentences();
+    this.clearParagraphs();
+    this.paragraphs = text.split('\n\n').map(paragraph => this.splitIntoSentences(paragraph));
+    this.renderParagraphs();
   }
 
-  renderSentences() {
-    this.sentences.map(sentence => this.sentencesDiv.append(new Component('p', sentence)));
-  }
 }
 
 export class TranscriptionEditor extends Component {
