@@ -6,10 +6,14 @@ class TranscriptionInput extends LabeledInput {
     super('Testimony transcription', '', 'textarea');
     this.input.style({
       width: '98%',
-      height: '100px',
+      height: '200px',
       margin: 'auto',
       marginBottom: '10px',
     });
+  }
+
+  getTextareaValue() {
+    return this.input.root.value;
   }
 }
 
@@ -54,6 +58,11 @@ class CategorySelector extends Component {
 class TranscriptionHighlighter extends Component {
   constructor() {
     super('div');
+
+    this.sentences = [];
+    this.sentencesDiv = new Component('div');
+    this.sentencesDiv.style({textIndent: '35px'});
+
     this.style({
       border: '3px solid gray',
       borderRadius: '20px',
@@ -66,13 +75,38 @@ class TranscriptionHighlighter extends Component {
       .then(categories => {
         this.categories = categories;
         this.categorySelector = new CategorySelector(this.categories);
-        this.append(this.categorySelector);
+        this.append(
+          this.categorySelector,
+          new Component('hr'),
+          this.sentencesDiv,
+        );
       });
   }
 
   fetchCategories() {
     return fetch('/categories')
       .then(res => res.json());
+  }
+
+  clearOldSentences() {
+    this.sentences = [];
+    Array.from(this.sentencesDiv.root.children).map(element => element.remove());
+  }
+
+  setText(text) {
+    this.clearOldSentences();
+
+    // TODO: unit test this
+    let sentencesAndPunctuation = text.split(/([.!?])/).filter(text => text !== '');
+    for (let i=0; i<sentencesAndPunctuation.length; i += 2) {
+      this.sentences.push(sentencesAndPunctuation[i] + sentencesAndPunctuation[i+1])
+    }
+
+    this.renderSentences();
+  }
+
+  renderSentences() {
+    this.sentences.map(sentence => this.sentencesDiv.append(new Component('p', sentence)));
   }
 }
 
@@ -98,16 +132,19 @@ export class TranscriptionEditor extends Component {
       this.highlighter,
       this.annotateButton,
     );
+
+    // TODO: remove
+    this.input.input.root.value = 'The Internet is a dangerous place! With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\n The purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.';
   }
 
   toggleMode() {
     if (this.isInHighlightMode) {
-      console.log(this.input);
       this.input.style({display: 'block'});
       this.highlighter.style({display: 'none'});
     } else {
       this.input.style({display: 'none'});
       this.highlighter.style({display: 'block'});
+      this.highlighter.setText(this.input.getTextareaValue());
     }
     this.isInHighlightMode = !this.isInHighlightMode;
   }
