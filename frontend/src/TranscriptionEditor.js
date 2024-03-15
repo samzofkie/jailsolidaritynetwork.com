@@ -31,7 +31,7 @@ class CategorySelector extends Component {
     event.preventDefault();
     const categoryString = event.target.tagName === 'INPUT'? event.target.id : event.target.innerText;
     this.currentCategory = this.inputs.find(pair => pair.label.root.innerText === categoryString);
-    this.currentCategory.input.root.checked = true;
+    setTimeout(() => this.currentCategory.input.root.checked = true, 0);
   }
 
   createCategoryRadioButtons() {
@@ -64,7 +64,6 @@ class CategorySelector extends Component {
 /* The TranscriptionHighlighter's responsibilities include creating a CategorySelector,
   a "tag" button for the user to click to tag some text, and a div containing all the
   text that can be highlighted and tagged.
-
 */
 class TranscriptionHighlighter extends Component {
   constructor(categories) {
@@ -73,7 +72,7 @@ class TranscriptionHighlighter extends Component {
     this.categorySelector = new CategorySelector(categories);
 
     this.tagButton = new Component('button', 'Tag');
-    this.tagButton.root.onclick = event => this.highlight.call(this, event);
+    this.tagButton.root.onclick = event => this.tag.call(this, event);
 
     this.paragraphsDiv = new Component('div');
     this.paragraphsDiv.style({textIndent: '35px'});
@@ -94,15 +93,27 @@ class TranscriptionHighlighter extends Component {
     )
   }
 
-  highlight(event) {
-    event.preventDefault();
-    console.log(this);
-    console.log(window.getSelection());
+  clearParagraphsDiv() {
+    Array.from(this.paragraphsDiv.root.children).map(element => element.remove());
   }
 
-  renderParagraphs(paragraphs) {
-    Array.from(this.paragraphsDiv.root.children).map(element => element.remove());
-    paragraphs.map(paragraph => this.paragraphsDiv.append(new Component('p', paragraph.join(''))));
+  appendParagraphs(paragraphNodes) {
+    paragraphNodes.map(node => this.paragraphsDiv.append(node));
+  }
+
+  refreshParagraphs(paragraphNodes) {
+    this.clearParagraphsDiv();
+    this.appendParagraphs(paragraphNodes);
+  }
+
+  setTaggedText(taggedText) {
+    this.taggedText = taggedText;
+  }
+
+  tag(event) {
+    event.preventDefault();
+    if (this.categorySelector.currentCategory)
+      this.taggedText.tag(this.categorySelector.currentCategory);
   }
 }
 
@@ -122,11 +133,12 @@ export class TranscriptionEditor extends Component {
         this.input = new TranscriptionInput;
         
         this.highlighter = new TranscriptionHighlighter(categories);
-        this.highlighter.style({display: 'none'});
+        this.hideHighlighter();
 
         this.createToggleButton();
 
-        this.taggedText = new TaggedText(categories);
+        this.taggedText = new TaggedText(categories, this.highlighter);
+        this.highlighter.setTaggedText(this.taggedText);
 
         this.append(
           this.input,
@@ -163,14 +175,15 @@ export class TranscriptionEditor extends Component {
       this.hideHighlighter();
       this.showInput();
       this.toggleButton.root.innerText = 'Add tags';
+
+      // this.taggedText.getText()
     } else {
       this.hideInput();
       this.showHighlighter();
       this.toggleButton.root.innerText = 'Edit text';
 
-      //this.highlighter.setText(this.input.getTextareaValue());
-      this.taggedText.setText(this.input.getTextareaValue());
-      this.highlighter.renderParagraphs(this.taggedText.paragraphs);
+      this.taggedText.readInPlainText(this.input.getTextareaValue());
+      this.highlighter.refreshParagraphs(this.taggedText.getHTMLNodes());
     }
     this.isInHighlightMode = !this.isInHighlightMode;
   }
