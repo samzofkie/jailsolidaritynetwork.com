@@ -23,6 +23,8 @@ class CategorySelector extends Component {
     this.categories = categories;
     this.currentCategory = null;
     this.createCategoryRadioButtons();
+    this.currentCategory = this.inputs[0].label.root.innerText;
+    this.inputs[0].input.root.checked = true;
 
     this.style({marginBottom: '10px'});
   }
@@ -41,14 +43,19 @@ class CategorySelector extends Component {
 
       let input = new Component('input');
       input.root.type = 'radio';
-      input.root.id = category;
+      input.root.id = category.name;
       input.root.name = 'category';
       input.root.onclick = handler;
+      input.style({marginBottom: '5px'});
 
       let label = new Component('label');
-      label.root.for = category;
-      label.append(category);
+      label.root.for = category.name;
+      label.append(category.name);
       label.root.onclick = handler;
+      label.style({
+        color: category.color,
+        backgroundColor: category.backgroundColor,
+      });
 
       this.inputs.push({'input': input, 'label': label});
 
@@ -130,14 +137,17 @@ export class TranscriptionEditor extends Component {
 
     this.fetchCategories()
       .then(categories => {
+        this.categories = categories;
+        this.assignColorsToCategories();
+
         this.input = new TranscriptionInput;
         
-        this.highlighter = new TranscriptionHighlighter(categories);
+        this.highlighter = new TranscriptionHighlighter(this.categories);
         this.hideHighlighter();
 
         this.createToggleButton();
 
-        this.taggedText = new TaggedText(categories, this.highlighter);
+        this.taggedText = new TaggedText(this.categories, this.highlighter);
         this.highlighter.setTaggedText(this.taggedText);
 
         this.append(
@@ -154,6 +164,29 @@ export class TranscriptionEditor extends Component {
   fetchCategories() {
     return fetch('/categories')
       .then(res => res.json());
+  }
+
+  assignColorsToCategories() {
+    this.colors = [
+      ['#800000', 'white'],
+      ['#e6194B', 'white'],
+      ['#f58231', 'white'],
+      ['#ffe119', 'black'],
+      ['#bfef45', 'black'],
+      ['#3cb44b', 'white'],
+      ['#42d4f4', 'black'],
+      ['#4363d8', 'white'],
+      ['#911eb4', 'white'],
+      ['#f032e6', 'white'],
+      ['#a9a9a9', 'white'],
+      ['#9A6324', 'white'],
+      ['#fabed4', 'black'],
+    ].map(pair => ({backgroundColor: pair[0], color: pair[1]}));
+    
+    this.categories = this.categories.map((category, i) => ({
+      ...category,
+      ...this.colors[i],
+    }));
   }
 
   createToggleButton() {
