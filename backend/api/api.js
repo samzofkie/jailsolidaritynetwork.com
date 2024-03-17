@@ -38,7 +38,10 @@ app.get('/categories', async (req, res) => {
     const [results, fields] = await connection.query(
       'SELECT * FROM categories;'
     );
-    res.json(results.map(row => row.name));
+    res.json(results.map(row => ({
+      'name': row.name, 
+      'shorthand': row.shorthand
+    })));
   } catch(err) {
     console.error(err);
   }
