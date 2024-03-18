@@ -1,4 +1,4 @@
-import { Component } from './Component.js';
+import { Component, Store } from './Component.js';
 import { LabeledInput } from './Inputs.js';
 import { TaggedText } from './TaggedText.js';
 
@@ -76,13 +76,16 @@ class TranscriptionHighlighter extends Component {
   constructor(categories) {
     super('div');
 
-    this.categorySelector = new CategorySelector(categories);
+    this.categories = categories;
+
+    this.categorySelector = new CategorySelector(this.categories);
 
     this.tagButton = new Component('button', 'Tag');
     this.tagButton.root.onclick = event => this.tag.call(this, event);
 
     this.paragraphsDiv = new Component('div');
     this.paragraphsDiv.style({textIndent: '35px'});
+    this.paragraphsDiv.root.className = 'ParagraphsDiv';
 
     this.style({
       border: '3px solid gray',
@@ -119,8 +122,10 @@ class TranscriptionHighlighter extends Component {
 
   tag(event) {
     event.preventDefault();
-    if (this.categorySelector.currentCategory)
-      this.taggedText.tag(this.categorySelector.currentCategory);
+    if (this.categorySelector.currentCategory) {
+      let categoryObject = this.categories.find(category => category.name === this.categorySelector.currentCategory);
+      this.taggedText.tag(categoryObject, this.ssManager);
+    }
   }
 }
 
@@ -155,7 +160,7 @@ export class TranscriptionEditor extends Component {
           this.highlighter,
           this.toggleButton,
         );
-
+        
         // TODO: remove
         this.input.input.root.value = 'The Internet is a dangerous place! With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\n The purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.';
       });
