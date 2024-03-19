@@ -1,43 +1,13 @@
-import { Component, Store } from './Component';
+import { Component } from './Component';
 import { nanoid } from 'nanoid';
 
-/* TaggedText exists to translate between two representations of the input text:
-     - plain text, input into the TranscriptionInput textarea and passed into the Tagged
-       text via the setText method, and
-     - an array of HTML <p> nodes, perfect for being sent to TranscriptionHighlighter's 
-       appendParagraphs method.
-   When TranscriptionHighlighter's tag() event handler method gets called, it reads the
-   currentCategory from it's category selector, and passes that by string to TaggedText's
-   tag() method. 
-   
-   Using window.getSelection(), how do we find the corresponding <p> node, and then the
-   corresponding location in the plain text?
-
-   The Intermediate Representation TaggedText uses is an array of paragraphs, where each
-   paragraph is an object with 
-     - an `id` field and
-     - a sentences field, which is an array of sentences objects,
-   where a sentence object contains a
-     - an `id` field, and 
-     - a text field, containing the plain text of the sentence.
-*/
-
-class HighlighterCSSManager {
-  constructor() {
-    this.ss = new CSSStyleSheet;
-    document.adoptedStyleSheets = [this.ss];
-  }
-}
-
 export class TaggedText {
-  constructor(categories) {
+  constructor() {
     this.ir = [];
-    this.HTMLNodes = [];
-    this.ssManager = new HighlighterCSSManager;
   }
 
   // TODO: unit test and input validation
-  splitIntoSentences(paragraph, highlighter) {
+  splitIntoSentences(paragraph) {
     let sentencesAndPunctuation = paragraph.split(/([.!?])/).filter(text => text !== '');
     let sentences = [];
     for (let i=0; i < sentencesAndPunctuation.length; i += 2) {
@@ -57,11 +27,10 @@ export class TaggedText {
       id: nanoid(),
       sentences: this.splitIntoSentences(paragraph),
     }});
-    this.createHTMLNodes();
   }
 
-  createHTMLNodes() {
-    this.HTMLNodes = this.ir.map(paragraph => {
+  getHTMLNodes() {
+    return this.ir.map(paragraph => {
       let paragraphNode = new Component('p');
       paragraphNode.root.id = paragraph.id;
       paragraph.sentences.map(sentence => {
@@ -75,10 +44,6 @@ export class TaggedText {
     });
   }
 
-  getHTMLNodes() {
-    return this.HTMLNodes;
-  }
-
   selectionIsInParagraphsDiv(selection) {
     return !selection.isCollapsed &&
            selection.anchorNode &&
@@ -90,30 +55,34 @@ export class TaggedText {
   tag(category) {
     const selection = getSelection();
 
-    if (this.selectionIsInParagraphsDiv(selection)) {
-      const anchorNode = selection.anchorNode;
-      const focusNode = selection.focusNode;
-
-      const startSentenceId = anchorNode.nodeName === '#text' ? 
-        anchorNode.parentNode.id :
-        anchorNode.firstChild.id;
-      const endSentenceId = focusNode.nodeName === '#text' ?
-        focusNode.parentNode.id :
-        anchorNode.lastChild.id;
-
-      const allSentences = this.ir.map(paragraph => paragraph.sentences).flat();
-      const allIds = allSentences.map(sentence => sentence.id);
-      const startIndex = allIds.indexOf(startSentenceId);
-      const endIndex = allIds.indexOf(endSentenceId);
-      
-      // Add category shorthand string to .startTags of the first sentence, and .endTags of the last sentence.
-      allSentences[startIndex].startTags.push(category.shorthand);
-      allSentences[endIndex].endTags.push(category.shorthand);
-      
-      // Add category name string to the .tags of all the selected sentences.
-      for (let i = startIndex; i <= endIndex; i++) {
-        allSentences[i].tags.push(category.name);
-      }
+    if (!this.selectionIsInParagraphsDiv(selection)) {
+      return;
     }
+
+    const anchorNode = selection.anchorNode;
+    const focusNode = selection.focusNode;
+    const startSentenceId = anchorNode.nodeName === '#text' ? 
+      anchorNode.parentNode.id :
+      anchorNode.firstChild.id;
+    const endSentenceId = focusNode.nodeName === '#text' ?
+      focusNode.parentNode.id :
+      anchorNode.lastChild.id;
+
+    const allSentences = this.ir.map(paragraph => paragraph.sentences).flat();
+    const allIds = allSentences.map(sentence => sentence.id);
+    const startIndex = allIds.indexOf(startSentenceId);
+    const endIndex = allIds.indexOf(endSentenceId);
+      
+    // Add category shorthand string to .startTags of the first sentence, and .endTags of the last sentence.
+    allSentences[startIndex].startTags.push(category.shorthand);
+    allSentences[endIndex].endTags.push(category.shorthand);
+      
+    // Add category name string to the .tags of all the selected sentences.
+    for (let i = startIndex; i <= endIndex; i++) {
+      allSentences[i].tags.push(category.name);
+    }
+
+    console.log(this.ir);
+    // TODO: tweak CSS
   }
 }

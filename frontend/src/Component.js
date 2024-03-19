@@ -47,3 +47,5 @@ export class Component extends Root {
 		this.append(...children);
 	}
 }
+
+export let Store = {};

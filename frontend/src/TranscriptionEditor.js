@@ -10,6 +10,9 @@ class TranscriptionInput extends LabeledInput {
       height: '200px',
       margin: 'auto',
     });
+
+    // TODO: remove this
+    this.input.root.value = 'The Internet is a dangerous place! With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\n The purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.';
   }
 
   getTextareaValue() {
@@ -18,27 +21,31 @@ class TranscriptionInput extends LabeledInput {
 }
 
 class CategorySelector extends Component {
-  constructor(categories) {
+  constructor() {
     super('form');
-    this.categories = categories;
-    this.currentCategory = null;
-    this.createCategoryRadioButtons();
-    this.currentCategory = this.inputs[0].label.root.innerText;
-    this.inputs[0].input.root.checked = true;
-
     this.style({marginBottom: '10px'});
+
+    this.radioButtons = this.createRadioButtons();
+    this.currentCategory = this.getCategoryByName(this.radioButtons[0].label.root.innerText);
+    this.radioButtons[0].input.root.checked = true;
+  }
+
+  getCategoryByName(name) {
+    return Store.categories.find(category => category.name === name);
   }
 
   selectCategory(event) {
     event.preventDefault();
     const categoryString = event.target.tagName === 'INPUT'? event.target.id : event.target.innerText;
-    this.currentCategory = this.inputs.find(pair => pair.label.root.innerText === categoryString);
-    setTimeout(() => this.currentCategory.input.root.checked = true, 0);
+    this.currentCategory = this.getCategoryByName(categoryString);
+    
+    let currentInput = this.radioButtons.find(pair => pair.label.root.innerText === categoryString).input;
+    setTimeout(() => currentInput.root.checked = true, 0);
   }
 
-  createCategoryRadioButtons() {
-    this.inputs = [];
-    for (let category of this.categories) {
+  createRadioButtons() {
+    let radioButtons = [];
+    for (let category of Store.categories) {
       const handler = event => this.selectCategory.call(this, event);
 
       let input = new Component('input');
@@ -57,7 +64,7 @@ class CategorySelector extends Component {
         backgroundColor: category.backgroundColor,
       });
 
-      this.inputs.push({'input': input, 'label': label});
+      radioButtons.push({'input': input, 'label': label});
 
       this.append(
         input, 
@@ -65,28 +72,13 @@ class CategorySelector extends Component {
         new Component('br')
       );
     }
+    return radioButtons;
   }
 }
 
-/* The TranscriptionHighlighter's responsibilities include creating a CategorySelector,
-  a "tag" button for the user to click to tag some text, and a div containing all the
-  text that can be highlighted and tagged.
-*/
 class TranscriptionHighlighter extends Component {
-  constructor(categories) {
+  constructor() {
     super('div');
-
-    this.categories = categories;
-
-    this.categorySelector = new CategorySelector(this.categories);
-
-    this.tagButton = new Component('button', 'Tag');
-    this.tagButton.root.onclick = event => this.tag.call(this, event);
-
-    this.paragraphsDiv = new Component('div');
-    this.paragraphsDiv.style({textIndent: '35px'});
-    this.paragraphsDiv.root.className = 'ParagraphsDiv';
-
     this.style({
       border: '3px solid gray',
       borderRadius: '20px',
@@ -95,75 +87,67 @@ class TranscriptionHighlighter extends Component {
       marginBottom: '10px',
     });
 
+    this.selector = new CategorySelector;
+    this.button = this.createTagButton();
+    this.display = this.createTextDisplay();
+
     this.append(
-      this.categorySelector,
-      this.tagButton,
+      this.selector,
+      this.button,
       new Component('hr'),
-      this.paragraphsDiv,
+      this.display,
     )
-  }
-
-  clearParagraphsDiv() {
-    Array.from(this.paragraphsDiv.root.children).map(element => element.remove());
-  }
-
-  appendParagraphs(paragraphNodes) {
-    paragraphNodes.map(node => this.paragraphsDiv.append(node));
-  }
-
-  refreshParagraphs(paragraphNodes) {
-    this.clearParagraphsDiv();
-    this.appendParagraphs(paragraphNodes);
-  }
-
-  setTaggedText(taggedText) {
-    this.taggedText = taggedText;
   }
 
   tag(event) {
     event.preventDefault();
-    if (this.categorySelector.currentCategory) {
-      let categoryObject = this.categories.find(category => category.name === this.categorySelector.currentCategory);
-      this.taggedText.tag(categoryObject, this.ssManager);
-    }
+    Store.taggedText.tag(this.selector.currentCategory);
+  }
+
+  createTagButton() {
+    let button = new Component('button', 'Tag');
+    button.root.onclick = event => this.tag.call(this, event);
+    return button;
+  }
+
+  createTextDisplay() {
+    let display = new Component('div');
+    display.style({textIndent: '35px'});
+    display.root.className = 'ParagraphsDiv';
+    return display;
+  }
+
+  clearTextDisplay() {
+    Array.from(this.display.root.children).map(element => element.remove());
+  }
+
+  renderTextDisplay() {
+    this.clearTextDisplay();
+    Store.taggedText.getHTMLNodes().map(node => this.display.append(node))
   }
 }
 
-/* The TranscriptionEditor's main responsibilities are fetching the list of categories from the server,
-   implementing the annotate toggle button to switch between the highlighter and the input, and holding
-   the TaggedText object that serves as an Intermediate Representation between the text and it's 
-   annotations.
-*/
 export class TranscriptionEditor extends Component {
   constructor() {
     super('div');
+    
+    Store.isInHighlightMode = false;
 
-    this.isInHighlightMode = false;
+    this.fetchCategories().then(categories => {
+      Store.categories = this.assignColorsToCategories(categories);
+      Store.taggedText = new TaggedText;
 
-    this.fetchCategories()
-      .then(categories => {
-        this.categories = categories;
-        this.assignColorsToCategories();
+      this.input = new TranscriptionInput;
+      this.highlighter = new TranscriptionHighlighter;
+      this.hideHighlighter();
+      this.toggleButton = this.createToggleButton();
 
-        this.input = new TranscriptionInput;
-        
-        this.highlighter = new TranscriptionHighlighter(this.categories);
-        this.hideHighlighter();
-
-        this.createToggleButton();
-
-        this.taggedText = new TaggedText(this.categories, this.highlighter);
-        this.highlighter.setTaggedText(this.taggedText);
-
-        this.append(
-          this.input,
-          this.highlighter,
-          this.toggleButton,
-        );
-        
-        // TODO: remove
-        this.input.input.root.value = 'The Internet is a dangerous place! With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\n The purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.';
-      });
+      this.append(
+        this.input,
+        this.highlighter,
+        this.toggleButton,
+      );
+    });
   }
 
   fetchCategories() {
@@ -171,8 +155,8 @@ export class TranscriptionEditor extends Component {
       .then(res => res.json());
   }
 
-  assignColorsToCategories() {
-    this.colors = [
+  assignColorsToCategories(categories) {
+    let colors = [
       ['#800000', 'white'],
       ['#e6194B', 'white'],
       ['#f58231', 'white'],
@@ -188,19 +172,10 @@ export class TranscriptionEditor extends Component {
       ['#fabed4', 'black'],
     ].map(pair => ({backgroundColor: pair[0], color: pair[1]}));
     
-    this.categories = this.categories.map((category, i) => ({
+    return categories.map((category, i) => ({
       ...category,
-      ...this.colors[i],
+      ...colors[i],
     }));
-  }
-
-  createToggleButton() {
-    this.toggleButton = new Component('button', 'Add tags');
-    this.toggleButton.style({marginBottom: '10px',});
-    this.toggleButton.root.onclick = e => {
-      e.preventDefault();
-      this.toggleMode();
-    };
   }
 
   hideHighlighter() { this.highlighter.style({display: 'none'});}
@@ -208,8 +183,18 @@ export class TranscriptionEditor extends Component {
   hideInput() { this.input.style({display: 'none'});}
   showInput() { this.input.style({display: 'block'});}
 
+  createToggleButton() {
+    let toggleButton = new Component('button', 'Add tags');
+    toggleButton.style({marginBottom: '10px',});
+    toggleButton.root.onclick = e => {
+      e.preventDefault();
+      this.toggleMode();
+    };
+    return toggleButton;
+  }
+
   toggleMode() {
-    if (this.isInHighlightMode) {
+    if (Store.isInHighlightMode) {
       this.hideHighlighter();
       this.showInput();
       this.toggleButton.root.innerText = 'Add tags';
@@ -220,9 +205,9 @@ export class TranscriptionEditor extends Component {
       this.showHighlighter();
       this.toggleButton.root.innerText = 'Edit text';
 
-      this.taggedText.readInPlainText(this.input.getTextareaValue());
-      this.highlighter.refreshParagraphs(this.taggedText.getHTMLNodes());
+      Store.taggedText.readInPlainText(this.input.getTextareaValue());
+      this.highlighter.renderTextDisplay();
     }
-    this.isInHighlightMode = !this.isInHighlightMode;
+    Store.isInHighlightMode = !Store.isInHighlightMode;
   }
 }
