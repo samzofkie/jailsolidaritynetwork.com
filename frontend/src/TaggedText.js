@@ -1,5 +1,28 @@
-import { Component } from './Component';
+import { Component, Store } from './Component';
 import { nanoid } from 'nanoid';
+
+export class CSSHighlighter {
+  constructor() {
+    this.sheet = new CSSStyleSheet;
+    document.adoptedStyleSheets = [this.sheet];
+  }
+
+  clearRules() {
+    for (let i=0; i < this.sheet.cssRules.length; i++) {
+      this.sheet.deleteRule(0);
+    }
+  }
+
+  highlight() {
+    this.clearRules();
+    const taggedSentences = Store.taggedText.allSentences()
+      .filter(sentence => sentence.tags.includes(Store.currentCategory.name));
+    if (!taggedSentences.length) return;
+    const selector = taggedSentences.map(sentence => '#' + sentence.id).join(', ');
+    const rule = `${selector} { background-color: ${Store.currentCategory.backgroundColor}; color: ${Store.currentCategory.color}; }`;
+    this.sheet.insertRule(rule);
+  }
+}
 
 export class TaggedText {
   constructor() {
@@ -52,7 +75,11 @@ export class TaggedText {
             selection.anchorNode.parentNode.className === 'ParagraphsDiv');
   }
 
-  tag(category) {
+  allSentences() {
+    return this.ir.map(paragraph => paragraph.sentences).flat();
+  }
+
+  tag() {
     const selection = getSelection();
 
     if (!this.selectionIsInParagraphsDiv(selection)) {
@@ -68,20 +95,20 @@ export class TaggedText {
       focusNode.parentNode.id :
       anchorNode.lastChild.id;
 
-    const allSentences = this.ir.map(paragraph => paragraph.sentences).flat();
-    const allIds = allSentences.map(sentence => sentence.id);
+    const allIds = this.allSentences().map(sentence => sentence.id);
     const startIndex = allIds.indexOf(startSentenceId);
     const endIndex = allIds.indexOf(endSentenceId);
       
     // Add category shorthand string to .startTags of the first sentence, and .endTags of the last sentence.
-    allSentences[startIndex].startTags.push(category.shorthand);
-    allSentences[endIndex].endTags.push(category.shorthand);
+    this.allSentences()[startIndex].startTags.push(Store.currentCategory.shorthand);
+    this.allSentences()[endIndex].endTags.push(Store.currentCategory.shorthand);
       
     // Add category name string to the .tags of all the selected sentences.
     for (let i = startIndex; i <= endIndex; i++) {
-      allSentences[i].tags.push(category.name);
+      this.allSentences()[i].tags.push(Store.currentCategory.name);
     }
 
+    Store.cssHighlighter.highlight();
     console.log(this.ir);
     // TODO: tweak CSS
   }

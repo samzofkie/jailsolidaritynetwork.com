@@ -1,6 +1,6 @@
 import { Component, Store } from './Component.js';
 import { LabeledInput } from './Inputs.js';
-import { TaggedText } from './TaggedText.js';
+import { TaggedText, CSSHighlighter } from './TaggedText.js';
 
 class TranscriptionInput extends LabeledInput {
   constructor() {
@@ -26,7 +26,7 @@ class CategorySelector extends Component {
     this.style({marginBottom: '10px'});
 
     this.radioButtons = this.createRadioButtons();
-    this.currentCategory = this.getCategoryByName(this.radioButtons[0].label.root.innerText);
+    Store.currentCategory = this.getCategoryByName(this.radioButtons[0].label.root.innerText);
     this.radioButtons[0].input.root.checked = true;
   }
 
@@ -37,10 +37,12 @@ class CategorySelector extends Component {
   selectCategory(event) {
     event.preventDefault();
     const categoryString = event.target.tagName === 'INPUT'? event.target.id : event.target.innerText;
-    this.currentCategory = this.getCategoryByName(categoryString);
+    Store.currentCategory = this.getCategoryByName(categoryString);
     
     let currentInput = this.radioButtons.find(pair => pair.label.root.innerText === categoryString).input;
     setTimeout(() => currentInput.root.checked = true, 0);
+
+    Store.cssHighlighter.highlight();
   }
 
   createRadioButtons() {
@@ -101,7 +103,7 @@ class TranscriptionHighlighter extends Component {
 
   tag(event) {
     event.preventDefault();
-    Store.taggedText.tag(this.selector.currentCategory);
+    Store.taggedText.tag();
   }
 
   createTagButton() {
@@ -136,6 +138,7 @@ export class TranscriptionEditor extends Component {
     this.fetchCategories().then(categories => {
       Store.categories = this.assignColorsToCategories(categories);
       Store.taggedText = new TaggedText;
+      Store.cssHighlighter = new CSSHighlighter;
 
       this.input = new TranscriptionInput;
       this.highlighter = new TranscriptionHighlighter;
@@ -199,7 +202,7 @@ export class TranscriptionEditor extends Component {
       this.showInput();
       this.toggleButton.root.innerText = 'Add tags';
 
-      // this.taggedText.getText()
+      // TODO: this.taggedText.getText()
     } else {
       this.hideInput();
       this.showHighlighter();
