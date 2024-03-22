@@ -1,5 +1,7 @@
 import { Component, Store } from './Component';
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
+// To be valid CSS selectors!
+const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVBWXYZabcdefghijklmnopqrstuvwxyz', 30);
 
 export class CSSHighlighter {
   constructor() {
@@ -16,7 +18,7 @@ export class CSSHighlighter {
   highlight() {
     this.clearRules();
     const taggedSentences = Store.taggedText.allSentences()
-      .filter(sentence => sentence.tags.includes(Store.currentCategory.name));
+      .filter(sentence => sentence.tags.has(Store.currentCategory.name));
     if (!taggedSentences.length) return;
     const selector = taggedSentences.map(sentence => '#' + sentence.id).join(', ');
     const rule = `${selector} { background-color: ${Store.currentCategory.backgroundColor}; color: ${Store.currentCategory.color}; }`;
@@ -37,9 +39,9 @@ export class TaggedText {
       sentences.push({
         id: nanoid(),
         text: sentencesAndPunctuation[i] + sentencesAndPunctuation[i+1],
-        tags: [],
-        startTags: [],
-        endTags: [],
+        tags: new Set,
+        startTags: new Set,
+        endTags: new Set,
       });
     }
     return sentences;
@@ -100,16 +102,27 @@ export class TaggedText {
     const endIndex = allIds.indexOf(endSentenceId);
       
     // Add category shorthand string to .startTags of the first sentence, and .endTags of the last sentence.
-    this.allSentences()[startIndex].startTags.push(Store.currentCategory.shorthand);
-    this.allSentences()[endIndex].endTags.push(Store.currentCategory.shorthand);
+    this.allSentences()[startIndex].startTags.add(Store.currentCategory.shorthand);
+    this.allSentences()[endIndex].endTags.add(Store.currentCategory.shorthand);
       
     // Add category name string to the .tags of all the selected sentences.
     for (let i = startIndex; i <= endIndex; i++) {
-      this.allSentences()[i].tags.push(Store.currentCategory.name);
+      this.allSentences()[i].tags.add(Store.currentCategory.name);
     }
 
     Store.cssHighlighter.highlight();
+  }
+
+  getPlainText() {
     console.log(this.ir);
-    // TODO: tweak CSS
+    return this.ir.map(paragraph => {
+      return paragraph.sentences.map(sentence => {
+        let ret = '';
+        for (let tag of sentence.startTags) {
+          console.log(tag);
+        }
+        //console.log(sentence);
+      });
+    });
   }
 }
