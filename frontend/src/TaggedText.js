@@ -114,15 +114,12 @@ export class TaggedText {
   }
 
   getPlainText() {
-    console.log(this.ir);
-    return this.ir.map(paragraph => {
-      return paragraph.sentences.map(sentence => {
-        let ret = '';
-        for (let tag of sentence.startTags) {
-          console.log(tag);
-        }
-        //console.log(sentence);
-      });
-    });
+    return this.ir.map(paragraph =>
+      paragraph.sentences.map(sentence => 
+        [...sentence.startTags].map(tag => `<${tag}>`).join('') +
+        sentence.text +
+        [...sentence.endTags].map(tag => `</${tag}>`).join('')
+      ).join('')
+    ).join('\n\n');
   }
 }

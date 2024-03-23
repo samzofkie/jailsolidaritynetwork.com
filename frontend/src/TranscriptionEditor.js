@@ -18,6 +18,10 @@ class TranscriptionInput extends LabeledInput {
   getTextareaValue() {
     return this.input.root.value;
   }
+  
+  setTextareaValue(text) {
+    this.input.root.value = text;
+  }
 }
 
 class CategorySelector extends Component {
@@ -202,7 +206,7 @@ export class TranscriptionEditor extends Component {
       this.showInput();
       this.toggleButton.root.innerText = 'Add tags';
 
-      // TODO: this.taggedText.getText()
+      this.input.setTextareaValue(Store.taggedText.getPlainText());
     } else {
       this.hideInput();
       this.showHighlighter();
