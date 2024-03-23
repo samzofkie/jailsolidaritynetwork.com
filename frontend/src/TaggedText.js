@@ -18,7 +18,7 @@ export class CSSHighlighter {
   highlight() {
     this.clearRules();
     const taggedSentences = Store.taggedText.allSentences()
-      .filter(sentence => sentence.tags.has(Store.currentCategory.name));
+      .filter(sentence => sentence.tags.has(Store.currentCategory.shorthand));
     if (!taggedSentences.length) return;
     const selector = taggedSentences.map(sentence => '#' + sentence.id).join(', ');
     const rule = `${selector} { background-color: ${Store.currentCategory.backgroundColor}; color: ${Store.currentCategory.color}; }`;
@@ -32,26 +32,26 @@ export class TaggedText {
   }
 
   // TODO: unit test and input validation
-  splitIntoSentences(paragraph) {
-    let sentencesAndPunctuation = paragraph.split(/([.!?])/).filter(text => text !== '');
-    let sentences = [];
-    for (let i=0; i < sentencesAndPunctuation.length; i += 2) {
-      sentences.push({
+  parseSentences(paragraph) {
+    return paragraph.match(/[^.?!]*[.?!]\S*/g)
+      .map(sentence => sentence.trim())
+      .map(sentence => ({
         id: nanoid(),
-        text: sentencesAndPunctuation[i] + sentencesAndPunctuation[i+1],
-        tags: new Set,
-        startTags: new Set,
-        endTags: new Set,
-      });
-    }
-    return sentences;
+        text: sentence.match(/[^<]+/)[0],
+        tags: new Set(
+          sentence.match(/<[A-Z,]*>/)
+            ?.at(0)
+            .match(/[A-Z,]+/g)[0]
+            .split(',')
+        ),
+      }));
   }
 
   readInPlainText(text) {
-    this.ir = text.split('\n\n').map(paragraph => {return {
+    this.ir = text.split('\n\n').map(paragraph => ({
       id: nanoid(),
-      sentences: this.splitIntoSentences(paragraph),
-    }});
+      sentences: this.parseSentences(paragraph),
+    }));
   }
 
   getHTMLNodes() {
@@ -63,7 +63,7 @@ export class TaggedText {
         sentenceNode.root.id = sentence.id;
         sentenceNode.root.className = 'Sentence';          
         sentenceNode.append(sentence.text);
-        paragraphNode.append(sentenceNode);
+        paragraphNode.append(sentenceNode, ' ');
       });
       return paragraphNode;
     });
@@ -101,13 +101,8 @@ export class TaggedText {
     const startIndex = allIds.indexOf(startSentenceId);
     const endIndex = allIds.indexOf(endSentenceId);
       
-    // Add category shorthand string to .startTags of the first sentence, and .endTags of the last sentence.
-    this.allSentences()[startIndex].startTags.add(Store.currentCategory.shorthand);
-    this.allSentences()[endIndex].endTags.add(Store.currentCategory.shorthand);
-      
-    // Add category name string to the .tags of all the selected sentences.
     for (let i = startIndex; i <= endIndex; i++) {
-      this.allSentences()[i].tags.add(Store.currentCategory.name);
+      this.allSentences()[i].tags.add(Store.currentCategory.shorthand);
     }
 
     Store.cssHighlighter.highlight();
@@ -116,9 +111,9 @@ export class TaggedText {
   getPlainText() {
     return this.ir.map(paragraph =>
       paragraph.sentences.map(sentence => 
-        [...sentence.startTags].map(tag => `<${tag}>`).join('') +
-        sentence.text +
-        [...sentence.endTags].map(tag => `</${tag}>`).join('')
+        sentence.text + 
+        (sentence.tags.size? '<' + [...sentence.tags].join() + '>' : '') +
+        ' '
       ).join('')
     ).join('\n\n');
   }
