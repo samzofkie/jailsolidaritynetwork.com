@@ -17,12 +17,30 @@ export class CSSHighlighter {
 
   highlight() {
     this.clearRules();
-    const taggedSentences = Store.taggedText.allSentences()
-      .filter(sentence => sentence.tags.has(Store.currentCategory.shorthand));
-    if (!taggedSentences.length) return;
-    const selector = taggedSentences.map(sentence => '#' + sentence.id).join(', ');
-    const rule = `${selector} { background-color: ${Store.currentCategory.backgroundColor}; color: ${Store.currentCategory.color}; }`;
-    this.sheet.insertRule(rule);
+
+    Store.taggedText.allSentences().map(sentence => {
+      if (!sentence.tags.size) {
+        return;
+      }
+      const categories = [...sentence.tags].map(shorthand => 
+        Store.categories.find(category => category.shorthand === shorthand));
+      const backgroundColors  = categories.map(category => category.backgroundColor);
+      const textColors = categories.map(category => category.color);
+      const textColor = textColors.filter(color => color === 'black').length > textColors.filter(color => color === 'white') ? 'black' : 'white';
+
+      const percentageStep = Math.floor(100 / backgroundColors.length);
+      let colorStops = [];
+      for (let i = 0; i < backgroundColors.length; i++) {
+        colorStops.push(`${backgroundColors[i]} ${percentageStep * i}% ${percentageStep * (i + 1)}%`)
+      }
+
+      const colorRule = `color: ${textColor};`
+      const backgroundRule = `background: linear-gradient(180deg, ${
+        colorStops.join(', ')
+      });`
+      const rule = `#${sentence.id} { ${colorRule} ${backgroundRule} }`;
+      this.sheet.insertRule(rule);
+    });
   }
 }
 

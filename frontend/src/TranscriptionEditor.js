@@ -12,7 +12,7 @@ class TranscriptionInput extends LabeledInput {
     });
 
     // TODO: remove this
-    this.input.root.value = 'The Internet is a dangerous place! With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.';
+    this.input.root.value = 'The Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.';
   }
 
   getTextareaValue() {
@@ -45,8 +45,6 @@ class CategorySelector extends Component {
     
     let currentInput = this.radioButtons.find(pair => pair.label.root.innerText === categoryString).input;
     setTimeout(() => currentInput.root.checked = true, 0);
-
-    Store.cssHighlighter.highlight();
   }
 
   createRadioButtons() {
