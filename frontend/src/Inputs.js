@@ -45,3 +45,50 @@ export class FileInput extends LabeledInput {
     super(name, 'file');
   }
 }
+
+export class RadioButtons extends Component {
+  constructor(labelNames = []) {
+    super('form');
+    this.pairs = this.createInputLabelPairs(labelNames);
+    this.append(
+      ...this.pairs.map((pair, i) => [pair.input, pair.label, new Component('br')]).flat()
+    );
+  }
+
+  capitalizeFirstLetter(word) {
+    let firstChar = word.charAt(0).toUpperCase();
+    let remainder = word.slice(1);
+    return firstChar + remainder;
+  }
+
+  toCamelCase(str) {
+    return str.split(' ').map(word => this.capitalizeFirstLetter(word)).join('');
+  }
+
+  handler(event) {
+    event.preventDefault();
+  }
+
+  createInputLabelPairs(labelNames) {
+    return labelNames.map(labelName => {
+      const id = this.toCamelCase(labelName); 
+
+      let input = new Component('input');
+      input.root.type = 'radio';
+      input.root.id = id;
+      input.root.name = this.root.className = this.constructor.name;
+      input.root.onclick = event => this.handler.call(this, event);
+      
+      let label = new Component('label');
+      label.root.for = id;
+      label.root.id = id;
+      label.root.onclick = event => this.handler.call(this, event);
+      label.append(labelName);
+      
+      return {
+        input: input,
+        label: label,
+      };
+    });
+  }
+}

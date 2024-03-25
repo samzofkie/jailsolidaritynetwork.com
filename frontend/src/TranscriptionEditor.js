@@ -1,5 +1,5 @@
 import { Component, Store } from './Component.js';
-import { LabeledInput } from './Inputs.js';
+import { LabeledInput, RadioButtons } from './Inputs.js';
 import { TaggedText, CSSHighlighter } from './TaggedText.js';
 
 class TranscriptionInput extends LabeledInput {
@@ -80,6 +80,49 @@ class CategorySelector extends Component {
   }
 }
 
+class HighlighterModeSelector extends RadioButtons {
+  constructor() {
+    super(['Highlight all categories at once', 'Highlight only selected category']);
+  
+    this.highlightAllPair = this.pairs[0];
+    this.highlightSelectedPair = this.pairs[1];
+
+    Store.highlightAll = true;
+    this.highlightAllPair.input.root.checked = true;
+  }
+
+  handler(event) {
+    event.preventDefault();
+    if (event.target.id === 'HighlightAllCategoriesAtOnce' 
+        && Store.highlightAll === false) {
+      this.highlightAllPair.input.root.checked = true;
+      Store.highlightAll = true;
+    } else if (event.target.id === 'HighlightOnlySelectedCategory' 
+               && Store.highlightAll === true) {
+      this.highlightSelectedPair.input.root.checked = true;
+      Store.highlightAll = false;
+    }
+  }
+}
+
+class HighlighterControls extends Component {
+  constructor() {
+    super('div');
+    this.style({
+      display: 'grid',
+      gridTemplateColumns: '50% 50%',
+    });
+
+    this.append(
+      new CategorySelector,
+      new Component('div', 
+        new HighlighterModeSelector,
+        new Component('hr'),
+      ),
+    )
+  }
+}
+
 class TranscriptionHighlighter extends Component {
   constructor() {
     super('div');
@@ -91,12 +134,11 @@ class TranscriptionHighlighter extends Component {
       marginBottom: '10px',
     });
 
-    this.selector = new CategorySelector;
     this.button = this.createTagButton();
     this.display = this.createTextDisplay();
 
     this.append(
-      this.selector,
+      new HighlighterControls,
       this.button,
       new Component('hr'),
       this.display,
