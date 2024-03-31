@@ -45,6 +45,9 @@ class CategorySelector extends Component {
     
     let currentInput = this.radioButtons.find(pair => pair.label.root.innerText === categoryString).input;
     setTimeout(() => currentInput.root.checked = true, 0);
+
+    if (!Store.highlightAll)
+      Store.cssHighlighter.highlight();
   }
 
   createRadioButtons() {
@@ -97,10 +100,12 @@ class HighlighterModeSelector extends RadioButtons {
         && Store.highlightAll === false) {
       this.highlightAllPair.input.root.checked = true;
       Store.highlightAll = true;
+      Store.cssHighlighter.highlight();
     } else if (event.target.id === 'HighlightOnlySelectedCategory' 
                && Store.highlightAll === true) {
       this.highlightSelectedPair.input.root.checked = true;
       Store.highlightAll = false;
+      Store.cssHighlighter.highlight();
     }
   }
 }

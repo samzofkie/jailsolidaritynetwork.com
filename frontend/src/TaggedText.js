@@ -11,13 +11,11 @@ export class CSSHighlighter {
 
   clearRules() {
     for (let i=0; i < this.sheet.cssRules.length; i++) {
-      this.sheet.deleteRule(0);
+      setTimeout(this.sheet.deleteRule(0), 0);
     }
   }
 
-  highlight() {
-    this.clearRules();
-
+  highlightAll() {
     Store.taggedText.allSentences().map(sentence => {
       if (!sentence.tags.size) {
         return;
@@ -41,6 +39,25 @@ export class CSSHighlighter {
       const rule = `#${sentence.id} { ${colorRule} ${backgroundRule} }`;
       this.sheet.insertRule(rule);
     });
+  }
+
+  highlightSelected() {
+    const taggedSentences = Store.taggedText.allSentences()
+      .filter(sentence => sentence.tags.has(Store.currentCategory.shorthand));
+    if (!taggedSentences.length) return;
+    const selector = taggedSentences.map(sentence => '#' + sentence.id).join(', ');
+    const rule = `${selector} { background-color: ${Store.currentCategory.backgroundColor}; color: ${Store.currentCategory.color}; }`;
+    this.sheet.insertRule(rule);
+  }
+
+  highlight() {
+    this.clearRules();
+    console.log('cleared', this.sheet.cssRules);
+    if (Store.highlightAll) {
+      this.highlightAll();
+    } else {
+      this.highlightSelected();
+    }
   }
 }
 
