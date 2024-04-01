@@ -128,6 +128,28 @@ class HighlighterControls extends Component {
   }
 }
 
+class HighlighterTextDisplay extends Component {
+  constructor() {
+    super('div');
+    this.style({textIndent: '35px'});
+    this.root.className = 'HighlighterTextDisplay';
+    Store.textDisplay = this;
+  }
+  
+  clear() {
+    Array.from(this.root.children).map(element => element.remove());
+  }
+
+  render() {
+    this.clear();
+    Store.taggedText.getHTMLNodes().map(node => this.append(node))
+  }
+
+  getSentenceNodes() {
+    return [...this.root.children].map(paragraphNode => [...paragraphNode.children]).flat();
+  }
+}
+
 class TranscriptionHighlighter extends Component {
   constructor() {
     super('div');
@@ -139,14 +161,11 @@ class TranscriptionHighlighter extends Component {
       marginBottom: '10px',
     });
 
-    this.button = this.createTagButton();
-    this.display = this.createTextDisplay();
-
     this.append(
       new HighlighterControls,
-      this.button,
+      this.createTagButton(),
       new Component('hr'),
-      this.display,
+      new HighlighterTextDisplay,
     )
   }
 
@@ -159,22 +178,6 @@ class TranscriptionHighlighter extends Component {
     let button = new Component('button', 'Tag');
     button.root.onclick = event => this.tag.call(this, event);
     return button;
-  }
-
-  createTextDisplay() {
-    let display = new Component('div');
-    display.style({textIndent: '35px'});
-    display.root.className = 'ParagraphsDiv';
-    return display;
-  }
-
-  clearTextDisplay() {
-    Array.from(this.display.root.children).map(element => element.remove());
-  }
-
-  renderTextDisplay() {
-    this.clearTextDisplay();
-    Store.taggedText.getHTMLNodes().map(node => this.display.append(node))
   }
 }
 
@@ -258,7 +261,7 @@ export class TranscriptionEditor extends Component {
       this.toggleButton.root.innerText = 'Edit text';
 
       Store.taggedText.readInPlainText(this.input.getTextareaValue());
-      this.highlighter.renderTextDisplay();
+      Store.textDisplay.render();
       Store.cssHighlighter.highlight();
     }
     Store.isInHighlightMode = !Store.isInHighlightMode;

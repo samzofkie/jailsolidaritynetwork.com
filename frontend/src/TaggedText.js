@@ -10,9 +10,14 @@ export class CSSHighlighter {
   }
 
   clearRules() {
-    for (let i=0; i < this.sheet.cssRules.length; i++) {
-      setTimeout(this.sheet.deleteRule(0), 0);
-    }
+    /*console.log(
+      Store.textDisplay.getSentenceNodes().map(node => {
+        node.style.backgroundColor = null;
+        node.style.background = null;
+        node.style.color = null;
+        console.log(node.style);
+      })
+    );*/
   }
 
   highlightAll() {
@@ -52,7 +57,6 @@ export class CSSHighlighter {
 
   highlight() {
     this.clearRules();
-    console.log('cleared', this.sheet.cssRules);
     if (Store.highlightAll) {
       this.highlightAll();
     } else {
@@ -67,41 +71,41 @@ export class TaggedText {
   }
 
   // TODO: unit test and input validation
-  parseSentences(paragraph) {
-    return paragraph.match(/[^.?!]*[.?!]\S*/g)
-      .map(sentence => sentence.trim())
-      .map(sentence => ({
-        id: nanoid(),
-        text: sentence.match(/[^<]+/)[0],
-        tags: new Set(
-          sentence.match(/<[A-Z,]*>/)
+  parseSentences(paragraphText, paragraphNode) {
+    return paragraphText.match(/[^.?!]*[.?!]\S*/g)
+      .map(sentenceText => sentenceText.trim())
+      .map(sentenceText => {
+        let sentence = {};
+        sentence.id = nanoid();
+        sentence.text = sentenceText.match(/[^<]+/)[0];
+        sentence.tags = new Set(
+          sentenceText.match(/<[A-Z,]*>/)
             ?.at(0)
             .match(/[A-Z,]+/g)[0]
             .split(',')
-        ),
-      }));
+        );
+        sentence.node = new Component('span');
+        sentence.node.root.id = sentence.id;
+        sentence.node.root.className = 'Sentence';
+        sentence.node.append(sentence.text);
+        paragraphNode.append(sentence.node, ' ');
+        return sentence;
+      });
   }
 
   readInPlainText(text) {
-    this.ir = text.split('\n\n').map(paragraph => ({
-      id: nanoid(),
-      sentences: this.parseSentences(paragraph),
-    }));
+    this.ir = text.split('\n\n').map(paragraphText => {
+      let paragraph = {};
+      paragraph.id = nanoid();
+      paragraph.node = new Component('p');
+      paragraph.node.root.id = paragraph.id 
+      paragraph.sentences = this.parseSentences(paragraphText, paragraph.node);
+      return paragraph;
+    });
   }
 
   getHTMLNodes() {
-    return this.ir.map(paragraph => {
-      let paragraphNode = new Component('p');
-      paragraphNode.root.id = paragraph.id;
-      paragraph.sentences.map(sentence => {
-        let sentenceNode = new Component('span');
-        sentenceNode.root.id = sentence.id;
-        sentenceNode.root.className = 'Sentence';          
-        sentenceNode.append(sentence.text);
-        paragraphNode.append(sentenceNode, ' ');
-      });
-      return paragraphNode;
-    });
+    return this.ir.map(paragraph => paragraph.node);
   }
 
   selectionIsInParagraphsDiv(selection) {
@@ -109,7 +113,7 @@ export class TaggedText {
            selection.anchorNode &&
            selection.focusNode &&
            (selection.anchorNode.parentNode.className === 'Sentence' ||
-            selection.anchorNode.parentNode.className === 'ParagraphsDiv');
+            selection.anchorNode.parentNode.className === 'HighlighterTextDisplay');
   }
 
   allSentences() {
