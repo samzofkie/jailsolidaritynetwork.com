@@ -4,55 +4,44 @@ import { customAlphabet } from 'nanoid';
 const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVBWXYZabcdefghijklmnopqrstuvwxyz', 30);
 
 export class CSSHighlighter {
-  constructor() {
-    this.sheet = new CSSStyleSheet;
-    document.adoptedStyleSheets = [this.sheet];
+  clearRules() {
+    Store.taggedText.allSentences().map(sentence => sentence.node.style({
+      background: '',
+      backgroundColor: '',
+      color: '',
+    }));
   }
 
-  clearRules() {
-    /*console.log(
-      Store.textDisplay.getSentenceNodes().map(node => {
-        node.style.backgroundColor = null;
-        node.style.background = null;
-        node.style.color = null;
-        console.log(node.style);
-      })
-    );*/
+  decideTextColor(categories) {
+    const textColors = categories.map(category => category.color);
+    return textColors.filter(color => color === 'black').length > textColors.filter(color => color === 'white') ? 'black' : 'white';
   }
 
   highlightAll() {
-    Store.taggedText.allSentences().map(sentence => {
-      if (!sentence.tags.size) {
-        return;
-      }
-      const categories = [...sentence.tags].map(shorthand => 
-        Store.categories.find(category => category.shorthand === shorthand));
-      const backgroundColors  = categories.map(category => category.backgroundColor);
-      const textColors = categories.map(category => category.color);
-      const textColor = textColors.filter(color => color === 'black').length > textColors.filter(color => color === 'white') ? 'black' : 'white';
-
-      const percentageStep = Math.floor(100 / backgroundColors.length);
-      let colorStops = [];
-      for (let i = 0; i < backgroundColors.length; i++) {
-        colorStops.push(`${backgroundColors[i]} ${percentageStep * i}% ${percentageStep * (i + 1)}%`)
-      }
-
-      const colorRule = `color: ${textColor};`
-      const backgroundRule = `background: linear-gradient(180deg, ${
-        colorStops.join(', ')
-      });`
-      const rule = `#${sentence.id} { ${colorRule} ${backgroundRule} }`;
-      this.sheet.insertRule(rule);
-    });
+    Store.taggedText.allSentences()
+      .filter(sentence => sentence.tags.size)
+      .map(sentence => {
+        const categories = [...sentence.tags].map(shorthand =>
+          Store.categories.find(category => category.shorthand === shorthand));
+        const backgroundColors  = categories.map(category => category.backgroundColor);
+        const percentageStep = Math.floor(100 / backgroundColors.length);
+        sentence.node.style({
+          color: this.decideTextColor(categories),
+          background: `linear-gradient(180deg, ${categories.reduce(
+            (acc, curr, i) => [...acc, `${categories.map(category => category.backgroundColor)[i]} ${percentageStep * i}% ${percentageStep * (i+1)}%`],
+            []
+          ).join(', ')})`,
+        });
+      });
   }
 
   highlightSelected() {
     const taggedSentences = Store.taggedText.allSentences()
-      .filter(sentence => sentence.tags.has(Store.currentCategory.shorthand));
-    if (!taggedSentences.length) return;
-    const selector = taggedSentences.map(sentence => '#' + sentence.id).join(', ');
-    const rule = `${selector} { background-color: ${Store.currentCategory.backgroundColor}; color: ${Store.currentCategory.color}; }`;
-    this.sheet.insertRule(rule);
+      .filter(sentence => sentence.tags.has(Store.currentCategory.shorthand))
+      .map(sentence => sentence.node.style({
+        backgroundColor: Store.currentCategory.backgroundColor,
+        color: Store.currentCategory.color,
+      }));
   }
 
   highlight() {

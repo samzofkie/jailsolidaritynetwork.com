@@ -133,7 +133,6 @@ class HighlighterTextDisplay extends Component {
     super('div');
     this.style({textIndent: '35px'});
     this.root.className = 'HighlighterTextDisplay';
-    Store.textDisplay = this;
   }
   
   clear() {
@@ -161,11 +160,13 @@ class TranscriptionHighlighter extends Component {
       marginBottom: '10px',
     });
 
+    this.display = new HighlighterTextDisplay;
+
     this.append(
       new HighlighterControls,
       this.createTagButton(),
       new Component('hr'),
-      new HighlighterTextDisplay,
+      this.display,
     )
   }
 
@@ -261,7 +262,7 @@ export class TranscriptionEditor extends Component {
       this.toggleButton.root.innerText = 'Edit text';
 
       Store.taggedText.readInPlainText(this.input.getTextareaValue());
-      Store.textDisplay.render();
+      this.highlighter.display.render();
       Store.cssHighlighter.highlight();
     }
     Store.isInHighlightMode = !Store.isInHighlightMode;
