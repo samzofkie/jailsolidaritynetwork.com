@@ -109,7 +109,7 @@ export class TaggedText {
     return this.ir.map(paragraph => paragraph.sentences).flat();
   }
 
-  tag() {
+  iterateOverSelectedSentences(cb) {
     const selection = getSelection();
 
     if (!this.selectionIsInParagraphsDiv(selection)) {
@@ -130,10 +130,18 @@ export class TaggedText {
     const endIndex = allIds.indexOf(endSentenceId);
       
     for (let i = startIndex; i <= endIndex; i++) {
-      this.allSentences()[i].tags.add(Store.currentCategory.shorthand);
+      cb(this.allSentences()[i]);
     }
 
     Store.cssHighlighter.highlight();
+  }
+
+  addTag() {
+    this.iterateOverSelectedSentences(sentence => sentence.tags.add(Store.currentCategory.shorthand));
+  }
+
+  removeTag() {
+    this.iterateOverSelectedSentences(sentence => sentence.tags.delete(Store.currentCategory.shorthand));
   }
 
   getPlainText() {

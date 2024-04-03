@@ -165,6 +165,8 @@ class TranscriptionHighlighter extends Component {
     this.append(
       new HighlighterControls,
       this.createTagButton(),
+      new Component('span', ' '),
+      this.createRemoveButton(),
       new Component('hr'),
       this.display,
     )
@@ -172,14 +174,22 @@ class TranscriptionHighlighter extends Component {
 
   tag(event) {
     event.preventDefault();
-    Store.taggedText.tag();
+    Store.taggedText.addTag();
   }
 
-  createTagButton() {
-    let button = new Component('button', 'Tag');
-    button.root.onclick = event => this.tag.call(this, event);
+  removeTag(event) {
+    event.preventDefault();
+    Store.taggedText.removeTag();
+  }
+
+  createButton(text, callback) {
+    let button = new Component('button', text);
+    button.root.onclick = event => callback.call(this, event)
     return button;
   }
+
+  createTagButton() {return this.createButton('Tag', this.tag)}
+  createRemoveButton() {return this.createButton('Remove tag', this.removeTag)}
 }
 
 export class TranscriptionEditor extends Component {
