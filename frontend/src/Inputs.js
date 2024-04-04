@@ -46,10 +46,10 @@ export class FileInput extends LabeledInput {
   }
 }
 
-export class RadioButtons extends Component {
-  constructor(labelNames = []) {
+class ButtonList extends Component {
+  constructor(labelNames = [], type) {
     super('form');
-    this.pairs = this.createInputLabelPairs(labelNames);
+    this.pairs = this.createInputLabelPairs(labelNames, type);
     this.append(
       ...this.pairs.map((pair, i) => [pair.input, pair.label, new Component('br')]).flat()
     );
@@ -66,15 +66,15 @@ export class RadioButtons extends Component {
   }
 
   handler(event) {
-    event.preventDefault();
+    //event.preventDefault();
   }
 
-  createInputLabelPairs(labelNames) {
+  createInputLabelPairs(labelNames, type) {
     return labelNames.map(labelName => {
       const id = this.toCamelCase(labelName); 
 
       let input = new Component('input');
-      input.root.type = 'radio';
+      input.root.type = type;
       input.root.id = id;
       input.root.name = this.root.className = this.constructor.name;
       input.root.onclick = event => this.handler.call(this, event);
@@ -90,5 +90,17 @@ export class RadioButtons extends Component {
         label: label,
       };
     });
+  }
+}
+
+export class RadioButtons extends ButtonList {
+  constructor(labelNames = []) {
+    super(labelNames, 'radio');
+  }
+}
+
+export class Checkboxes extends ButtonList {
+  constructor(labelNames = []) {
+    super(labelNames, 'checkbox');
   }
 }

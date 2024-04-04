@@ -1,5 +1,5 @@
 import { Component } from './Component.js';
-import { DateInput, TextInput, FileInput } from './Inputs.js';
+import { DateInput, TextInput, FileInput, Checkboxes } from './Inputs.js';
 import { TranscriptionEditor } from './TranscriptionEditor.js';
 
 export class UploadForm extends Component {
@@ -28,7 +28,10 @@ export class UploadForm extends Component {
 
     this.form.append(
       new DateInput('Date (day will be ignored)'),
-      new TextInput('Location'),
+      new Component('label', 'Division: '),
+      new Checkboxes(['2', '3', '4', '6', '9', '10', '11', '14']),
+      new TextInput('Length of stay'),
+      new TextInput('Gender'),
       new TranscriptionEditor,
       new FileInput('Files'),
       new TextInput('Password'),
