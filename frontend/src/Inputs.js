@@ -1,106 +1,191 @@
 import { Component } from './Component.js';
+import { customAlphabet } from 'nanoid';
+const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVBWXYZabcdefghijklmnopqrstuvwxyz', 30);
 
-export class LabeledInput extends Component {
-  constructor(name, type, inputType = 'input') {
+
+function capitalizeFirstLetter(word) {
+  let firstChar = word.charAt(0).toUpperCase();
+  let remainder = word.slice(1);
+  return firstChar + remainder;
+}
+
+function lowerCaseFirstLetter(word) {
+  let firstChar = word.charAt(0).toLowerCase();
+  let remainder = word.slice(1);
+  return firstChar + remainder;
+}
+
+function toCamelCase(str) {
+  return str.split(' ')
+    .map((word, i) => i === 0? lowerCaseFirstLetter(word) : capitalizeFirstLetter(word))
+    .join('')
+}
+
+class Input extends Component {
+  constructor(type, name, id) {
+    super('input');
+    this.root.type = type;
+    this.root.name = name; // This is the query string parameter
+    this.root.id = id;
+    this.root.multiple = true;
+  }
+}
+
+export class Label extends Component {
+  constructor(text, id, captionText='') {
+    super('span');
+    if (captionText) {
+      this.style({
+        display: 'flex',
+        flexFlow: 'column wrap',
+      });
+    };
+
+    let label = new Component('label');
+    label.root.id = id;
+    label.root.innerText = text;
+    this.append(label);
+
+    if (captionText) {
+      let caption = new Component('span');
+      caption.style({fontSize: '12px'});
+      caption.root.innerText = captionText;
+      this.append(caption);
+    }
+  }
+}
+
+class LabelInputPair {
+  constructor(type, name, labelText, caption='') {
+    this.id = nanoid();
+    this.input = new Input(type, name, this.id);
+    this.label = new Label(labelText, this.id, caption);
+  }
+}
+
+class LabeledInput extends Component {
+  constructor(inputType, labelText, caption='') {
     super('div');
     this.style({
-      paddingBottom: '5px',
-    })
-    let camelCase = name.split(' ').map(word => this.capitalizeFirstLetter(word)).join('');
-    
-    this.label = new Component('label');
-    this.label.root.for = camelCase;
-    this.label.root.innerText = name + ': ';
-
-    this.input = new Component(inputType);
-    if (inputType === 'input')
-      this.input.root.type = type;
-    this.input.root.id = camelCase;
-    this.input.root.name = camelCase;
-
-    this.append(this.label, this.input);
-  }
-
-  capitalizeFirstLetter(word) {
-    let firstChar = word.charAt(0).toUpperCase();
-    let remainder = word.slice(1);
-    return firstChar + remainder;
+      display: 'flex',
+      gap: '10px',
+    });
+    this.pair = new LabelInputPair(inputType, toCamelCase(labelText), labelText, caption);
+    this.append(
+      this.pair.label,
+      this.pair.input,
+    );
   }
 }
 
 export class DateInput extends LabeledInput {
-  constructor(name) {
-    super(name, 'date');
+  constructor(labelText, caption='') {
+    super('date', labelText, caption);
   }
 }
 
 export class TextInput extends LabeledInput {
-  constructor(name) {
-    super(name, 'text');
+  constructor(labelText, caption='') {
+    super('text', labelText, caption);
   }
 }
 
 export class FileInput extends LabeledInput {
-  constructor(name) {
-    super(name, 'file');
+  constructor(labelText, caption='') {
+    super('file', labelText, caption);
   }
 }
 
-class ButtonList extends Component {
-  constructor(labelNames = [], type) {
-    super('form');
-    this.pairs = this.createInputLabelPairs(labelNames, type);
-    this.append(
-      ...this.pairs.map((pair, i) => [pair.input, pair.label, new Component('br')]).flat()
-    );
+class Boxes extends Component {
+  constructor(entries, options) {
+    super('div');
+    
+    this.style({
+      display: 'flex',
+      flexFlow: 'column wrap',
+      gap: '10px',
+    });
+
+    Object.entries({
+      'type': 'checkbox',
+      'label': '',
+      'lineBreaks': true,
+    }).map( ([property, defaultValue]) => {
+      if (!options.hasOwnProperty(property)) {
+        console.warn(`Boxes object initialized without option: ${property}. Defaulting to: ${defaultValue === ''? '<empty string>' : defaultValue}`);
+        options[property] = defaultValue;
+      }
+    });
+
+    if (options.type === 'radio' && 
+        !options.hasOwnProperty('name')) {
+      throw new Error('Boxes object initialized with \'radio\' type but without .name property!');
+    }
+
+    this.type = options.type;
+    this.label = options.label;
+    this.lineBreaks = options.lineBreaks;
+
+    this.pairs = entries.map(entry => {
+      let name = this.type === 'radio'? options.fieldName : toCamelCase(entry);
+      const pair = new LabelInputPair(this.type, name, entry);
+      pair.label.root.onclick = event => this.handleClick.call(this, event);
+      pair.input.root.onclick = event => this.handleClick.call(this, event); 
+      return pair;
+    });
+
+    if (this.label) {
+      this.append(
+        this.label,
+        new Component('br'),
+      )
+    } 
+
+    let container = new Component('div');
+    container.style({
+      display: 'flex',
+      flexDirection: this.lineBreaks? 'column' : 'row',
+      gap: '10px',
+    });
+    container.append(...this.pairs.map(({input, label}) => new Component('div', input, label)));
+    this.append(container);
   }
 
-  capitalizeFirstLetter(word) {
-    let firstChar = word.charAt(0).toUpperCase();
-    let remainder = word.slice(1);
-    return firstChar + remainder;
+  getInputNodeById(id) {
+    return this.pairs.find(pair => pair.input.root.id === id).input.root
   }
 
-  toCamelCase(str) {
-    return str.split(' ').map(word => this.capitalizeFirstLetter(word)).join('');
+  handleClick(event) {
+    event.preventDefault();
+    // We do it this way to that if the click event's target is the label,
+    // we still get the <input> node.
+    const relevantInput = this.getInputNodeById(event.target.id);
+    // Not completely sure why this can't be called directly...
+    setTimeout(() => relevantInput.checked = !relevantInput.checked, 0);
   }
 
-  handler(event) {
-    //event.preventDefault();
+  getPairsInDivs() {
+    return this.pairs.map(pair => new Component('div', pair.input, pair.label));
   }
+}
 
-  createInputLabelPairs(labelNames, type) {
-    return labelNames.map(labelName => {
-      const id = this.toCamelCase(labelName); 
-
-      let input = new Component('input');
-      input.root.type = type;
-      input.root.id = id;
-      input.root.name = this.root.className = this.constructor.name;
-      input.root.onclick = event => this.handler.call(this, event);
-      
-      let label = new Component('label');
-      label.root.for = id;
-      label.root.id = id;
-      label.root.onclick = event => this.handler.call(this, event);
-      label.append(labelName);
-      
-      return {
-        input: input,
-        label: label,
-      };
+export class RadioButtons extends Boxes {
+  constructor(entries, name, {label = '', lineBreaks = false} = {}) {
+    super(entries, {
+      type: 'radio',
+      label: label,
+      lineBreaks: lineBreaks,
+      name: name,
     });
   }
 }
 
-export class RadioButtons extends ButtonList {
-  constructor(labelNames = []) {
-    super(labelNames, 'radio');
-  }
-}
-
-export class Checkboxes extends ButtonList {
-  constructor(labelNames = []) {
-    super(labelNames, 'checkbox');
+export class Checkboxes extends Boxes {
+  constructor(entries, {label = '', lineBreaks = false} = {}) {
+    super(entries, {
+      type: 'checkbox',
+      label: label,
+      lineBreaks: lineBreaks,
+    });
   }
 }

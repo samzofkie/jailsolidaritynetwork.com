@@ -1,5 +1,5 @@
 import { Component } from './Component.js';
-import { DateInput, TextInput, FileInput, Checkboxes } from './Inputs.js';
+import { DateInput, TextInput, FileInput, Checkboxes, RadioButtons } from './Inputs.js';
 import { TranscriptionEditor } from './TranscriptionEditor.js';
 
 export class UploadForm extends Component {
@@ -14,7 +14,12 @@ export class UploadForm extends Component {
     });
 
     this.form = new Component('form');
-    this.form.root.action = 'upload';
+    this.form.root.action = 'testimony';
+    this.form.style({
+      display: 'flex',
+      flexFlow: 'column wrap',
+      gap: '10px',
+    })
 
     this.submitButton = new Component('input');
     this.submitButton.root.type = 'submit';
@@ -27,11 +32,10 @@ export class UploadForm extends Component {
     );
 
     this.form.append(
-      new DateInput('Date (day will be ignored)'),
-      new Component('label', 'Division: '),
-      new Checkboxes(['2', '3', '4', '6', '9', '10', '11', '14']),
-      new TextInput('Length of stay'),
-      new TextInput('Gender'),
+      new DateInput('Date', '(Day value will be ignored)'),
+      new Checkboxes(['2', '3', '4', '6', '9', '10', '11', '14'], {label: 'Division'}),
+      new TextInput('Length of stay', '(In months)'),
+      new Checkboxes(['Male', 'Female', 'Non-binary', 'Other'], {label: 'Gender'}),
       new TranscriptionEditor,
       new FileInput('Files'),
       new TextInput('Password'),
