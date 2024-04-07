@@ -10,7 +10,7 @@ const adminHash = JSON.parse(fs.readFileSync('./.adminPassword'));
 adminHash.salt = Buffer.from(adminHash.salt);
 adminHash.hash = Buffer.from(adminHash.hash);
 
-app.get('/upload', (req, res) => {
+app.get('/testimony', (req, res) => {
   if (!(req.query.hasOwnProperty('password'))) {
     res.sendStatus(401);
     return;
