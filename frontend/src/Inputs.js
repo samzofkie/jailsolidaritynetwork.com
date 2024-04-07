@@ -32,7 +32,7 @@ class Input extends Component {
 }
 
 export class Label extends Component {
-  constructor(text, id, captionText='') {
+  constructor(text, id, {captionText = '', bold = false} = {}) {
     super('span');
     if (captionText) {
       this.style({
@@ -44,6 +44,9 @@ export class Label extends Component {
     let label = new Component('label');
     label.root.id = id;
     label.root.innerText = text;
+    label.style({
+      fontWeight: bold? 'bold' : 'normal',
+    });
     this.append(label);
 
     if (captionText) {
@@ -56,21 +59,21 @@ export class Label extends Component {
 }
 
 class LabelInputPair {
-  constructor(type, name, labelText, caption='') {
+  constructor(type, name, labelText, {caption = '', bold = false} ={}) {
     this.id = nanoid();
     this.input = new Input(type, name, this.id);
-    this.label = new Label(labelText, this.id, caption);
+    this.label = new Label(labelText, this.id, {captionText: caption, bold: bold});
   }
 }
 
 class LabeledInput extends Component {
-  constructor(inputType, labelText, caption='') {
+  constructor(inputType, labelText, {caption='', bold=bold} = {}) {
     super('div');
     this.style({
       display: 'flex',
       gap: '10px',
     });
-    this.pair = new LabelInputPair(inputType, toCamelCase(labelText), labelText, caption);
+    this.pair = new LabelInputPair(inputType, toCamelCase(labelText), labelText, {caption: caption, bold: bold});
     this.append(
       this.pair.label,
       this.pair.input,
@@ -80,19 +83,19 @@ class LabeledInput extends Component {
 
 export class DateInput extends LabeledInput {
   constructor(labelText, caption='') {
-    super('date', labelText, caption);
+    super('date', labelText, {caption: caption, bold: true});
   }
 }
 
 export class TextInput extends LabeledInput {
   constructor(labelText, caption='') {
-    super('text', labelText, caption);
+    super('text', labelText, {caption: caption, bold: true});
   }
 }
 
 export class FileInput extends LabeledInput {
   constructor(labelText, caption='') {
-    super('file', labelText, caption);
+    super('file', labelText, {caption: caption, bold: true});
   }
 }
 
@@ -103,7 +106,7 @@ class Boxes extends Component {
     this.style({
       display: 'flex',
       flexFlow: 'column wrap',
-      gap: '10px',
+      gap: '2px',
     });
 
     Object.entries({
@@ -136,7 +139,8 @@ class Boxes extends Component {
 
     if (this.label) {
       this.append(
-        this.label,
+        new Label(this.label, 'id', {bold: true}),
+        //this.label,
         new Component('br'),
       )
     } 

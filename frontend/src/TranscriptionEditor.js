@@ -217,7 +217,7 @@ export class TranscriptionEditor extends Component {
       this.toggleButton = this.createToggleButton();
 
       this.append(
-        new Label('Testimony transcription'),
+        new Label('Testimony transcription', '', {bold: true}),
         this.input,
         this.highlighter,
         this.toggleButton,
