@@ -1,4 +1,4 @@
-import { Page, Component } from './Component.js';
+import { Page, Component } from '@samzofkie/component';
 import { Header } from './Header.js';
 import { Login } from './Login.js';
 import { UploadForm } from './UploadForm.js';

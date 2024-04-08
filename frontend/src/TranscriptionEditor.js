@@ -1,4 +1,4 @@
-import { Component, Store } from './Component.js';
+import { Component, Store } from '@samzofkie/component';
 import { Label, RadioButtons } from './Inputs.js';
 import { TaggedText, CSSHighlighter } from './TaggedText.js';
 

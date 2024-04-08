@@ -16,6 +16,7 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
+    "@samzofkie/component": "file:src/Component",
     "nanoid": "^5.0.7"
   }
 }

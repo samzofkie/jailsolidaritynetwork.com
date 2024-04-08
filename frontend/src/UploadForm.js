@@ -1,4 +1,4 @@
-import { Component } from './Component.js';
+import { Component } from '@samzofkie/component';
 import { DateInput, TextInput, FileInput, Checkboxes, RadioButtons } from './Inputs.js';
 import { TranscriptionEditor } from './TranscriptionEditor.js';
 
@@ -19,7 +19,7 @@ export class UploadForm extends Component {
       display: 'flex',
       flexFlow: 'column wrap',
       gap: '10px',
-    })
+    });
 
     this.submitButton = new Component('input');
     this.submitButton.root.type = 'submit';

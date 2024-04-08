@@ -1,4 +1,4 @@
-import { Component } from './Component';
+import { Component } from '@samzofkie/component';
 
 class Logo extends Component {
 	constructor(width = '200px') {

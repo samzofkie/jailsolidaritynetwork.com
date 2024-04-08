@@ -1,4 +1,4 @@
-import { Component } from './Component.js';
+import { Component } from '@samzofkie/component';
 import { customAlphabet } from 'nanoid';
 const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVBWXYZabcdefghijklmnopqrstuvwxyz', 30);
 

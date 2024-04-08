@@ -1,4 +1,4 @@
-import { Component, Store } from './Component';
+import { Component, Store } from '@samzofkie/component';
 import { customAlphabet } from 'nanoid';
 // To be valid CSS selectors!
 const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVBWXYZabcdefghijklmnopqrstuvwxyz', 30);

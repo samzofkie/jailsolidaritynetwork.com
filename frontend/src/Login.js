@@ -1,4 +1,4 @@
-import { Component } from './Component.js';
+import { Component } from '@samzofkie/component';
 
 export class Login extends Component {
   constructor() { 
