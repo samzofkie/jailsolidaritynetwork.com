@@ -1,3 +1,6 @@
+import { cssProperties } from './crawler/cssProperties';
+import { htmlAttributes } from './crawler/htmlAttributes';
+
 class Root {
 	style(style) {
 		Object.assign(this.root.style, style);
