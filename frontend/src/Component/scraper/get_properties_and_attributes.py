@@ -93,6 +93,13 @@ class Ensurer:
     else:
       self.read_html_from_file()
 
+  @staticmethod
+  def to_camel_case(string):
+    words = string.split('-')
+    for i in range(1, len(words)):
+      words[i] = words[i].capitalize()
+    return ''.join(words)
+
   def parse_html(self):
     pass
 
@@ -105,7 +112,27 @@ class Ensurer:
       self.ensure_html()
       self.parse_html()
       self.write_output_to_json()
-  
+
+'''
+Currently, the only properties that are in both cssProperties and 
+	htmlAtrributes are
+	  - `border`
+		- `color`
+		- `content`
+		- `height`
+		- `translate`
+		- `width`
+	Of these, all except for `content` are no longer supported or unequivocally
+	best handled by CSS.
+
+	`content` has two different meaningful meanings in both HTML and CSS.
+	However, the programming style encouraged by this framework would use
+	JavaScript to implement the functionality provided by CSS's `content`, so we
+	deem `content` an HTML attribute (it's possible that `content` could be
+	implemented in either way, depending on the tag of the Component, since it's
+	HTML meaning currently only applies to `<meta>` elements).
+'''
+
 class CSSPropertiesEnsurer(Ensurer):
   def __init__(self):
     super().__init__('https://www.w3schools.com/cssref/index.php', 'cssProperties.js', 'cssProperties', 'css-ref.html')
@@ -113,7 +140,10 @@ class CSSPropertiesEnsurer(Ensurer):
   def parse_html(self):
     soup = BeautifulSoup(self.html, 'html.parser')
     tables_div = soup.find(id='cssproperties')
-    self.output = [row.find('td').get_text().strip() for row in tables_div.find_all('tr')]
+    properties = [row.find('td').get_text().strip() for row in tables_div.find_all('tr')]
+    properties = [self.to_camel_case(prop) for prop in properties]
+    # See above comment
+    self.output = [prop for prop in properties if prop != 'content']
 
 class HTMLAttributesEnsurer(Ensurer):
   def __init__(self):
@@ -123,7 +153,10 @@ class HTMLAttributesEnsurer(Ensurer):
     soup = BeautifulSoup(self.html, 'html.parser')
     table = soup.find(class_='ws-table-all')
     rows = [row for row in table.find_all('tr')]
-    self.output = [row.find('td').get_text().strip() for row in rows if row.find('td')]
+    attributes = [row.find('td').get_text().strip() for row in rows if row.find('td')]
+    attributes = [self.to_camel_case(attribute) for attribute in attributes]
+    # See above comment
+    self.output = [attr for attr in attributes if attr not in ['border', 'color', 'height', 'width', 'translate']]
 
 
 if __name__ == '__main__':
