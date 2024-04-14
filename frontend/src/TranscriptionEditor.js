@@ -4,15 +4,17 @@ import { TaggedText, CSSHighlighter } from './TaggedText.js';
 
 class TranscriptionInput extends Component {
   constructor() {
-    super('textarea');
-    this.style({
-      width: '98%',
-      height: '500px',
-      margin: 'auto',
-    });
+    super(
+      'textarea',
+      {
+        width: '98%',
+        height: '500px',
+        margin: 'auto',
 
-    // TODO: remove this
-    this.root.value = 'The Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.';
+        // don't forget to remove!
+        value: 'The Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V>'
+      },
+    );
   }
 
   getTextareaValue() {
@@ -24,68 +26,43 @@ class TranscriptionInput extends Component {
   }
 }
 
-class CategorySelector extends Component {
+class CategorySelector extends RadioButtons {
   constructor() {
-    super('form');
-    this.style({marginBottom: '10px'});
+    super(
+      Store.categories.map(category => category.name),
+      'categorySelectorIgnoreThis',
+      {lineBreaks: true}
+    );
 
-    this.radioButtons = this.createRadioButtons();
-    Store.currentCategory = this.getCategoryByName(this.radioButtons[0].label.root.innerText);
-    this.radioButtons[0].input.root.checked = true;
+    // Set all Labels' backgroundColor and color
+    this.pairs.map(pair => {
+      const category = this.getCategoryByName(pair.label.root.innerText);
+      pair.label.set({
+        color: category.color,
+        backgroundColor: category.backgroundColor,
+      });
+    });
+
+    Store.currentCategory = this.getCategoryByName(this.pairs[0].label.root.innerText);
   }
 
   getCategoryByName(name) {
     return Store.categories.find(category => category.name === name);
   }
 
-  selectCategory(event) {
-    event.preventDefault();
-    const categoryString = event.target.tagName === 'INPUT'? event.target.id : event.target.innerText;
+  handleClick(event) {
+    super.handleClick(event);
+    const categoryString = event.target.tagName === 'INPUT' ? event.target.id : event.target.innerText;
     Store.currentCategory = this.getCategoryByName(categoryString);
-    
-    let currentInput = this.radioButtons.find(pair => pair.label.root.innerText === categoryString).input;
-    setTimeout(() => currentInput.root.checked = true, 0);
 
     if (!Store.highlightAll)
       Store.cssHighlighter.highlight();
-  }
-
-  createRadioButtons() {
-    let radioButtons = [];
-    for (let category of Store.categories) {
-      const handler = event => this.selectCategory.call(this, event);
-
-      let input = new Component('input');
-      input.root.type = 'radio';
-      input.root.id = category.name;
-      input.root.name = 'category';
-      input.root.onclick = handler;
-      input.style({marginBottom: '5px'});
-
-      let label = new Component('label');
-      label.root.for = category.name;
-      label.append(category.name);
-      label.root.onclick = handler;
-      label.style({
-        color: category.color,
-        backgroundColor: category.backgroundColor,
-      });
-
-      radioButtons.push({'input': input, 'label': label});
-
-      this.append(
-        input, 
-        label, 
-        new Component('br')
-      );
-    }
-    return radioButtons;
   }
 }
 
 class HighlighterModeSelector extends RadioButtons {
   constructor() {
-    super(['Highlight all categories at once', 'Highlight only selected category'], 'modeSelectorIgnore', {lineBreaks: true});
+    super(['Highlight all categories at once', 'Highlight only selected category'], 'modeSelectorIgnoreThis', {lineBreaks: true});
   
     this.highlightAllPair = this.pairs[0];
     this.highlightSelectedPair = this.pairs[1];
@@ -110,31 +87,33 @@ class HighlighterModeSelector extends RadioButtons {
 
 class HighlighterControls extends Component {
   constructor() {
-    super('div');
-    this.style({
-      display: 'grid',
-      gridTemplateColumns: '50% 50%',
-    });
-
-    this.append(
+    super(
+      'div',
+      {
+        display: 'grid',
+        gridTemplateColumns: '50% 50%',
+        marginBottom: '10px',
+      },
       new CategorySelector,
-      new Component('div', 
+      new Component(
+        'div',
         new HighlighterModeSelector,
         new Component('hr'),
-      ),
-    )
+      )
+    );
   }
 }
 
 class HighlighterTextDisplay extends Component {
   constructor() {
-    super('div');
-    this.style({
-      textIndent: '35px',
-      maxHeight: '450px',
-      overflow: 'scroll',
-    });
-    this.root.className = 'HighlighterTextDisplay';
+    super(
+      'div',
+      {
+        textIndent: '35px',
+        maxHeight: '450px',
+        overflow: 'scroll',
+      }
+    );
   }
   
   clear() {
@@ -153,56 +132,58 @@ class HighlighterTextDisplay extends Component {
 
 class TranscriptionHighlighter extends Component {
   constructor() {
-    super('div');
-    this.style({
-      border: '3px solid gray',
-      borderRadius: '20px',
-      padding: '10px',
-      backgroundColor: 'white',
-      marginBottom: '10px',
-    });
+    super(
+      'div',
+      {
+        border: '3px solid gray',
+        borderRadius: '20px',
+        padding: '10px',
+        backgroundColor: 'white',
+        marginBottom: '10px',
+      },
+      new HighlighterControls,
+      new Component(
+        'button',
+        {
+          onclick: event => {
+            event.preventDefault();
+            Store.taggedText.addTag();
+          }
+        },
+        'Tag'
+      ),
+      new Component('span', ' '),
+      new Component(
+        'button',
+        {
+          onclick: event => {
+            event.preventDefault();
+            Store.taggedText.removeTag();
+          }
+        },
+        'Remove tag'
+      ),
+      new Component('hr'),
+    );
 
     this.display = new HighlighterTextDisplay;
-
     this.append(
-      new HighlighterControls,
-      this.createTagButton(),
-      new Component('span', ' '),
-      this.createRemoveButton(),
-      new Component('hr'),
       this.display,
-    )
+    );
   }
-
-  tag(event) {
-    event.preventDefault();
-    Store.taggedText.addTag();
-  }
-
-  removeTag(event) {
-    event.preventDefault();
-    Store.taggedText.removeTag();
-  }
-
-  createButton(text, callback) {
-    let button = new Component('button', text);
-    button.root.onclick = event => callback.call(this, event)
-    return button;
-  }
-
-  createTagButton() {return this.createButton('Tag', this.tag)}
-  createRemoveButton() {return this.createButton('Remove tag', this.removeTag)}
 }
 
 export class TranscriptionEditor extends Component {
   constructor() {
-    super('div');
-    this.style({
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '5px',
-      alignItems: 'flex-start',
-    })
+    super(
+      'div',
+      {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '5px',
+        alignItems: 'flex-start',
+      }
+    );
     
     Store.isInHighlightMode = false;
 
@@ -214,7 +195,17 @@ export class TranscriptionEditor extends Component {
       this.input = new TranscriptionInput;
       this.highlighter = new TranscriptionHighlighter;
       this.hideHighlighter();
-      this.toggleButton = this.createToggleButton();
+      this.toggleButton = new Component(
+        'button',
+        {
+          marginBottom: '10px',
+          onclick: event => {
+            event.preventDefault();
+            this.toggleMode();
+          },
+        },
+        'Add tags',
+      );
 
       this.append(
         new Label('Testimony transcription', '', {bold: true}),
@@ -253,20 +244,10 @@ export class TranscriptionEditor extends Component {
     }));
   }
 
-  hideHighlighter() { this.highlighter.style({display: 'none'});}
-  showHighlighter() { this.highlighter.style({display: 'block'});}
-  hideInput() { this.input.style({display: 'none'});}
-  showInput() { this.input.style({display: 'block'});}
-
-  createToggleButton() {
-    let toggleButton = new Component('button', 'Add tags');
-    toggleButton.style({marginBottom: '10px',});
-    toggleButton.root.onclick = e => {
-      e.preventDefault();
-      this.toggleMode();
-    };
-    return toggleButton;
-  }
+  hideHighlighter() { this.highlighter.set({display: 'none'});}
+  showHighlighter() { this.highlighter.set({display: 'block'});}
+  hideInput() { this.input.set({display: 'none'});}
+  showInput() { this.input.set({display: 'block'});}
 
   toggleMode() {
     if (Store.isInHighlightMode) {

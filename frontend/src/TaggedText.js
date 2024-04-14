@@ -5,7 +5,7 @@ const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVBWXYZabcdefghijklmnopqrstuv
 
 export class CSSHighlighter {
   clearRules() {
-    Store.taggedText.allSentences().map(sentence => sentence.node.style({
+    Store.taggedText.allSentences().map(sentence => sentence.component.set({
       background: '',
       backgroundColor: '',
       color: '',
@@ -25,7 +25,7 @@ export class CSSHighlighter {
           Store.categories.find(category => category.shorthand === shorthand));
         const backgroundColors  = categories.map(category => category.backgroundColor);
         const percentageStep = Math.floor(100 / backgroundColors.length);
-        sentence.node.style({
+        sentence.component.set({
           color: this.decideTextColor(categories),
           background: `linear-gradient(180deg, ${categories.reduce(
             (acc, curr, i) => [...acc, `${categories.map(category => category.backgroundColor)[i]} ${percentageStep * i}% ${percentageStep * (i+1)}%`],
@@ -36,9 +36,9 @@ export class CSSHighlighter {
   }
 
   highlightSelected() {
-    const taggedSentences = Store.taggedText.allSentences()
+    Store.taggedText.allSentences()
       .filter(sentence => sentence.tags.has(Store.currentCategory.shorthand))
-      .map(sentence => sentence.node.style({
+      .map(sentence => sentence.component.set({
         backgroundColor: Store.currentCategory.backgroundColor,
         color: Store.currentCategory.color,
       }));
@@ -73,11 +73,11 @@ export class TaggedText {
             .match(/[A-Z,]+/g)[0]
             .split(',')
         );
-        sentence.node = new Component('span');
-        sentence.node.root.id = sentence.id;
-        sentence.node.root.className = 'Sentence';
-        sentence.node.append(sentence.text);
-        paragraphNode.append(sentence.node, ' ');
+        sentence.component = new Component('span');
+        sentence.component.root.id = sentence.id;
+        sentence.component.root.className = 'Sentence';
+        sentence.component.append(sentence.text);
+        paragraphNode.append(sentence.component, ' ');
         return sentence;
       });
   }

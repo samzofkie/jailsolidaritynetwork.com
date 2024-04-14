@@ -55,9 +55,13 @@ class Root {
 	}
 
 	append() {
-		this.root.append(...[...arguments].map(component => 
-			typeof component === 'string'? component : component.root
-		));
+		this.root.append(
+			...[...arguments]
+			.filter(component => component)
+			.map(component => 
+				typeof component === 'string'? component : component.root
+			)
+		);
 	}
 
 	remove() {

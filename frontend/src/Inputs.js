@@ -22,58 +22,70 @@ function toCamelCase(str) {
 }
 
 class Input extends Component {
-  constructor(type, name, id) {
-    super('input');
-    this.root.type = type;
-    this.root.name = name; // This is the query string parameter
-    this.root.id = id;
-    this.root.multiple = true;
+  constructor(type, name, id, {onclick = null}) {
+    super(
+      'input',
+      {
+        type: type,
+        name: name,
+        id: id,
+        multiple: true,
+        onclick: onclick,
+      }
+    );
   }
 }
 
 export class Label extends Component {
-  constructor(text, id, {captionText = '', bold = false} = {}) {
-    super('span');
-    if (captionText) {
-      this.style({
-        display: 'flex',
-        flexFlow: 'column wrap',
-      });
-    };
-
-    let label = new Component('label');
-    label.root.id = id;
-    label.root.innerText = text;
-    label.style({
-      fontWeight: bold? 'bold' : 'normal',
-    });
-    this.append(label);
-
-    if (captionText) {
-      let caption = new Component('span');
-      caption.style({fontSize: '12px'});
-      caption.root.innerText = captionText;
-      this.append(caption);
-    }
+  constructor(text, id, {captionText = '', bold = false, onclick = null}) {
+    super(
+      'span',
+      {
+        onclick: onclick,
+      },
+      new Component(
+        'label',
+        {
+          id: id,
+          fontWeight: bold ? 'bold' : 'normal',
+          display: captionText ? 'flex' : '',
+          flexFlow: 'column wrap',
+        },
+        text,
+      ),
+      captionText ?
+        new Component(
+          'span',
+          {
+            fontSize: '12px',
+          },
+          captionText,
+        ) :
+        null
+    );
   }
 }
 
 class LabelInputPair {
-  constructor(type, name, labelText, {caption = '', bold = false} ={}) {
+  constructor(type, name, labelText, {caption = '', bold = false, onclick = null}) {
     this.id = nanoid();
-    this.input = new Input(type, name, this.id);
-    this.label = new Label(labelText, this.id, {captionText: caption, bold: bold});
+    this.input = new Input(type, name, this.id, {onclick: onclick});
+    this.label = new Label(labelText, this.id, {captionText: caption, bold: bold, onclick: onclick});
   }
 }
 
 class LabeledInput extends Component {
   constructor(inputType, labelText, {caption='', bold=bold} = {}) {
-    super('div');
-    this.style({
-      display: 'flex',
-      gap: '10px',
-    });
+    super(
+      'div',
+      {
+        display: 'flex',
+        gap: '10px',
+      }
+    );
+    
     this.pair = new LabelInputPair(inputType, toCamelCase(labelText), labelText, {caption: caption, bold: bold});
+    
     this.append(
       this.pair.label,
       this.pair.input,
@@ -99,23 +111,18 @@ export class FileInput extends LabeledInput {
   }
 }
 
+/* Boxes entries parameter must be array of string label-texts. */
 class Boxes extends Component {
   constructor(entries, options) {
-    super('div');
     
-    this.style({
-      display: 'flex',
-      flexFlow: 'column wrap',
-      gap: '2px',
-    });
-
+    // Ensure all three options are set to at least something
     Object.entries({
       'type': 'checkbox',
       'label': '',
       'lineBreaks': true,
     }).map( ([property, defaultValue]) => {
       if (!options.hasOwnProperty(property)) {
-        console.warn(`Boxes object initialized without option: ${property}. Defaulting to: ${defaultValue === ''? '<empty string>' : defaultValue}`);
+        console.warn(`Boxes object initialized without option: ${property}. Defaulting to: ${defaultValue === '' ? '<empty string>' : defaultValue}`);
         options[property] = defaultValue;
       }
     });
@@ -125,34 +132,60 @@ class Boxes extends Component {
       throw new Error('Boxes object initialized with \'radio\' type but without .name property!');
     }
 
+    super(
+      'div',
+      {
+        display: 'flex',
+        flexFlow: 'column wrap',
+        gap: '2px',
+        className: 'BoxesClassLabelDiv',
+      },
+      ...(options.label ? 
+        [
+          new Label(options.label, 'id', {bold: true}), 
+          new Component('br')
+        ] :
+        []
+      ),
+    );
+
     this.type = options.type;
-    this.label = options.label;
-    this.lineBreaks = options.lineBreaks;
 
-    this.pairs = entries.map(entry => {
-      let name = this.type === 'radio'? options.fieldName : toCamelCase(entry);
-      const pair = new LabelInputPair(this.type, name, entry);
-      pair.label.root.onclick = event => this.handleClick.call(this, event);
-      pair.input.root.onclick = event => this.handleClick.call(this, event); 
-      return pair;
-    });
-
-    if (this.label) {
-      this.append(
-        new Label(this.label, 'id', {bold: true}),
-        //this.label,
-        new Component('br'),
+    // TODO: I think this can cleverly be reduced even more
+    this.pairs = entries.map(entry => 
+      /*let name = options.type === 'radio'? options.fieldName : toCamelCase(entry);
+      const pair = new LabelInputPair(options.type, name, entry);
+      pair.label.set({onclick: event => this.handleClick.call(this, event)});
+      pair.input.set({onclick: event => this.handleClick.call(this, event)});
+      return pair;*/
+      new LabelInputPair(
+        options.type,
+        options.type === 'radio'? options.name : toCamelCase(entry),
+        entry,
+        {onclick: event => this.handleClick.call(this, event)}
       )
-    } 
+    );
 
-    let container = new Component('div');
-    container.style({
-      display: 'flex',
-      flexDirection: this.lineBreaks? 'column' : 'row',
-      gap: '10px',
-    });
-    container.append(...this.pairs.map(({input, label}) => new Component('div', input, label)));
-    this.append(container);
+    this.append(
+      // This div is only to do flex direction
+      new Component(
+        'div',
+        {
+          display: 'flex',
+          flexDirection: options.lineBreaks ? 'column' : 'row',
+          gap: '10px',
+        },
+        ...this.pairs.map(({input, label}) => new Component(
+          'div',
+          input,
+          label,
+        )),
+      )
+    );
+
+    if (this.type === 'radio') {
+      this.pairs[0].input.set({checked: true});
+    }
   }
 
   getInputNodeById(id) {
@@ -164,17 +197,17 @@ class Boxes extends Component {
     // We do it this way to that if the click event's target is the label,
     // we still get the <input> node.
     const relevantInput = this.getInputNodeById(event.target.id);
-    // Not completely sure why this can't be called directly...
-    setTimeout(() => relevantInput.checked = !relevantInput.checked, 0);
-  }
 
-  getPairsInDivs() {
-    return this.pairs.map(pair => new Component('div', pair.input, pair.label));
+    // Never uncheck a checked radio button!
+    if (this.type === 'radio' && !relevantInput.checked) {
+      // Not completely sure why this can't be called directly...
+      setTimeout(() => relevantInput.checked = !relevantInput.checked, 0);
+    }
   }
 }
 
 export class RadioButtons extends Boxes {
-  constructor(entries, name, {label = '', lineBreaks = false} = {}) {
+  constructor(entries, name, {label = '', lineBreaks = false}) {
     super(entries, {
       type: 'radio',
       label: label,
@@ -185,7 +218,7 @@ export class RadioButtons extends Boxes {
 }
 
 export class Checkboxes extends Boxes {
-  constructor(entries, {label = '', lineBreaks = false} = {}) {
+  constructor(entries, {label = '', lineBreaks = false}) {
     super(entries, {
       type: 'checkbox',
       label: label,
