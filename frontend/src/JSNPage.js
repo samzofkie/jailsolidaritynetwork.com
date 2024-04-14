@@ -4,58 +4,66 @@ import { Login } from './Login.js';
 import { UploadForm } from './UploadForm.js';
  
 class JSNPage extends Page {
-	constructor() {
-		super();
-		
-		this.isMobile = window.innerWidth < 800;
+	constructor(...children) {
+		super(
+			{
+				backgroundColor: '#fff3d4',
+				fontFamily: 'Arial, Helvetica, sans-serif',
+				boxSizing: 'border-box',
+			},
+		  ...children,
+		);
 
-		this.style({
-			backgroundColor: '#fff3d4',
-			fontFamily: 'Arial, Helvetica, sans-serif',
-			boxSizing: 'border-box',
-		});
+		this.isMobile = window.innerWidth < 800;
 	}
 }
 
 export class LandingPage extends JSNPage {
 	constructor() {
 		super();
-		this.append(new Header(this.isMobile));
-		this.append('landing page');
+		this.append(
+			new Header(this.isMobile),
+			'landing page',
+		);
 	}
 }
 
 export class ArchivePage extends JSNPage {
 	constructor() {
-		super();
-		this.append(new Component('h1', 'archive'));
+		super(
+			new Component('h1', 'archive'),
+		);
 	}
 }
 
 export class AboutPage extends JSNPage {
 	constructor() {
-		super();
-		this.append(new Component('h1', 'about the project'));
+		super(
+			new Component('h1', 'about the project'),
+		);
 	}
 }
 
 export class ActionPage extends JSNPage {
 	constructor() {
-		super();
-		this.append(new Component('h1', 'build with us'))
+		super(
+			new Component('h1', 'build with us'),
+		);
 	}
 }
 
 export class LoginPage extends JSNPage {
 	constructor() {
-		super();
-		this.append(new Login);
+		super(
+			new Login,
+		);
 	}
 }
 
 export class UploadPage extends JSNPage {
 	constructor() {
-		super();
-		this.append(new UploadForm);
+		super(
+			new UploadForm,
+		);
 	}
 }

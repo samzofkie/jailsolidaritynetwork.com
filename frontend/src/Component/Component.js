@@ -27,8 +27,31 @@ import { cssProperties } from './scraper/cssProperties.js';
 import { htmlAttributes } from './scraper/htmlAttributes.js';
 
 class Root {
-	style(style) {
-		Object.assign(this.root.style, style);
+	constructor() {
+		let [root, ...args] = [...arguments];
+		
+		this.root = root;
+
+		if (!args.length)
+			return;
+
+		if (!(args[0] instanceof Root) && typeof args[0] !== 'string') {
+			this.set(args.shift());
+		}
+
+		this.append(...args);
+	}
+
+	set(options) {
+		Object.entries(options).map(([key, value]) => {
+			if (cssProperties.includes(key)) {
+				this.root.style[key] = value;
+			} else if (htmlAttributes.includes(key)) {
+				this.root[key] = value;
+			} else {
+				console.warn(`'${key}' is neither an HTML attribute nor a valid CSS property! Attempting to set it may result in unintended consequences...`)
+			}
+		});
 	}
 
 	append() {
@@ -40,39 +63,23 @@ class Root {
 	remove() {
 		this.root.remove();
 	}
-
-	height() {
-		//if (this.root.offsetHeight !== 0)
-			//return this.root.offsetHeight;
-		//else {
-			// https://stackoverflow.com/a/27729544
-			this.root.style.visibility = 'hidden';
-			document.body.append(this.root);
-			let height = this.root.offsetHeight;
-			this.root.style.visibility = 'visible';
-			this.root.remove();
-			return height;
-		//}
-	}
 }
 
 export class Page extends Root {
 	constructor() {
-		super();
-		this.root = document.body;
+		super(document.body, ...arguments);
 	}
 }
 
 export class Component extends Root {
-	constructor(type, ...children) {
-		super();
-		
-		this.root = document.createElement(type);
-		
-		if (this.constructor.name !== 'Component')
+	constructor(elemType, ...other) {
+		super(document.createElement(elemType), ...other);
+		this.setClassName();
+	}
+
+	setClassName() {
+		if (this.constructor.name !== 'Component' && this.root.className === '')
 			this.root.className = this.constructor.name;
-		
-		this.append(...children);
 	}
 }
 
