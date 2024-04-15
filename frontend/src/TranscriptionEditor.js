@@ -181,7 +181,7 @@ export class TranscriptionEditor extends Component {
         display: 'flex',
         flexDirection: 'column',
         gap: '5px',
-        alignItems: 'flex-start',
+        alignItems: 'stretch',
       }
     );
     
@@ -211,7 +211,7 @@ export class TranscriptionEditor extends Component {
         new Label('Testimony transcription', '', {bold: true}),
         this.input,
         this.highlighter,
-        this.toggleButton,
+        new Component('div', this.toggleButton), // div is just to prevent flex alignItems: 'stretch' from stretching this button out
       );
     });
   }

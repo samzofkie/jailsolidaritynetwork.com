@@ -5,7 +5,7 @@ const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVBWXYZabcdefghijklmnopqrstuv
 
 export class CSSHighlighter {
   clearRules() {
-    Store.taggedText.allSentences().map(sentence => sentence.component.set({
+    Store.taggedText.allSentences().map(sentence => sentence?.component.set({
       background: '',
       backgroundColor: '',
       color: '',
@@ -19,7 +19,7 @@ export class CSSHighlighter {
 
   highlightAll() {
     Store.taggedText.allSentences()
-      .filter(sentence => sentence.tags.size)
+      .filter(sentence => sentence?.tags.size)
       .map(sentence => {
         const categories = [...sentence.tags].map(shorthand =>
           Store.categories.find(category => category.shorthand === shorthand));
@@ -62,7 +62,7 @@ export class TaggedText {
   // TODO: unit test and input validation
   parseSentences(paragraphText, paragraphNode) {
     return paragraphText.match(/[^.?!]*[.?!]\S*/g)
-      .map(sentenceText => sentenceText.trim())
+      ?.map(sentenceText => sentenceText.trim())
       .map(sentenceText => {
         let sentence = {};
         sentence.id = nanoid();
@@ -146,7 +146,7 @@ export class TaggedText {
 
   getPlainText() {
     return this.ir.map(paragraph =>
-      paragraph.sentences.map(sentence => 
+      paragraph.sentences?.map(sentence => 
         sentence.text + 
         (sentence.tags.size? '<' + [...sentence.tags].join() + '>' : '') +
         ' '
