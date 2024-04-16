@@ -1,35 +1,29 @@
 import { Component } from '@samzofkie/component';
 
 export class Login extends Component {
-  constructor() { 
+  constructor() {
     super(
       'form',
       {
-        action: 'upload'
+        action: 'upload',
       },
       new Component(
-        'label', 
+        'label',
         {
           for: 'password',
         },
-        'Password: '
+        'Password: ',
       ),
-      new Component(
-        'input',
-        {
-          type: 'text',
-          id: 'password',
-          name: 'password',
-          required: 'true',
-        }
-      ),
-      new Component(
-        'input',
-        {
-          type: 'submit',
-          value: 'Login',
-        }
-      ),
+      new Component('input', {
+        type: 'text',
+        id: 'password',
+        name: 'password',
+        required: 'true',
+      }),
+      new Component('input', {
+        type: 'submit',
+        value: 'Login',
+      }),
     );
   }
 }

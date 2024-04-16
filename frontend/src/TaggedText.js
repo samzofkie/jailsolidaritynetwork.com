@@ -1,47 +1,71 @@
 import { Component, Store } from '@samzofkie/component';
 import { customAlphabet } from 'nanoid';
 // To be valid CSS selectors!
-const nanoid = customAlphabet('ABCDEFGHIJKLMNOPQRSTUVBWXYZabcdefghijklmnopqrstuvwxyz', 30);
+const nanoid = customAlphabet(
+  'ABCDEFGHIJKLMNOPQRSTUVBWXYZabcdefghijklmnopqrstuvwxyz',
+  30,
+);
 
 export class CSSHighlighter {
   clearRules() {
-    Store.taggedText.allSentences().map(sentence => sentence?.component.set({
-      background: '',
-      backgroundColor: '',
-      color: '',
-    }));
+    Store.taggedText.allSentences().map((sentence) =>
+      sentence?.component.set({
+        background: '',
+        backgroundColor: '',
+        color: '',
+      }),
+    );
   }
 
   decideTextColor(categories) {
-    const textColors = categories.map(category => category.color);
-    return textColors.filter(color => color === 'black').length > textColors.filter(color => color === 'white') ? 'black' : 'white';
+    const textColors = categories.map((category) => category.color);
+    return textColors.filter((color) => color === 'black').length >
+      textColors.filter((color) => color === 'white')
+      ? 'black'
+      : 'white';
   }
 
   highlightAll() {
-    Store.taggedText.allSentences()
-      .filter(sentence => sentence?.tags.size)
-      .map(sentence => {
-        const categories = [...sentence.tags].map(shorthand =>
-          Store.categories.find(category => category.shorthand === shorthand));
-        const backgroundColors  = categories.map(category => category.backgroundColor);
+    Store.taggedText
+      .allSentences()
+      .filter((sentence) => sentence?.tags.size)
+      .map((sentence) => {
+        const categories = [...sentence.tags].map((shorthand) =>
+          Store.categories.find((category) => category.shorthand === shorthand),
+        );
+        const backgroundColors = categories.map(
+          (category) => category.backgroundColor,
+        );
         const percentageStep = Math.floor(100 / backgroundColors.length);
         sentence.component.set({
           color: this.decideTextColor(categories),
-          background: `linear-gradient(180deg, ${categories.reduce(
-            (acc, curr, i) => [...acc, `${categories.map(category => category.backgroundColor)[i]} ${percentageStep * i}% ${percentageStep * (i+1)}%`],
-            []
-          ).join(', ')})`,
+          background: `linear-gradient(180deg, ${categories
+            .reduce(
+              (acc, curr, i) => [
+                ...acc,
+                `${categories.map((category) => category.backgroundColor)[i]} ${percentageStep * i}% ${percentageStep * (i + 1)}%`,
+              ],
+              [],
+            )
+            .join(', ')})`,
         });
       });
   }
 
   highlightSelected() {
-    Store.taggedText.allSentences()
-      .filter(sentence => sentence.tags.has(Store.currentCategory.shorthand))
-      .map(sentence => sentence.component.set({
-        backgroundColor: Store.currentCategory.backgroundColor,
-        color: Store.currentCategory.color,
-      }));
+    console.log(Store.taggedText.allSentences()
+      .filter((sentence) => sentence.tags.has(Store.currentCategory.shorthand))
+    );
+    console.log(Store.currentCategory);
+    Store.taggedText
+      .allSentences()
+      .filter((sentence) => sentence.tags.has(Store.currentCategory.shorthand))
+      .map((sentence) =>
+        sentence.component.set({
+          backgroundColor: Store.currentCategory.backgroundColor,
+          color: Store.currentCategory.color,
+        }),
+      );
   }
 
   highlight() {
@@ -61,17 +85,19 @@ export class TaggedText {
 
   // TODO: unit test and input validation
   parseSentences(paragraphText, paragraphNode) {
-    return paragraphText.match(/[^.?!]*[.?!]\S*/g)
-      ?.map(sentenceText => sentenceText.trim())
-      .map(sentenceText => {
+    return paragraphText
+      .match(/[^.?!]*[.?!]\S*/g)
+      ?.map((sentenceText) => sentenceText.trim())
+      .map((sentenceText) => {
         let sentence = {};
         sentence.id = nanoid();
         sentence.text = sentenceText.match(/[^<]+/)[0];
         sentence.tags = new Set(
-          sentenceText.match(/<[A-Z,]*>/)
+          sentenceText
+            .match(/<[A-Z,]*>/)
             ?.at(0)
             .match(/[A-Z,]+/g)[0]
-            .split(',')
+            .split(','),
         );
         sentence.component = new Component('span');
         sentence.component.root.id = sentence.id;
@@ -83,30 +109,32 @@ export class TaggedText {
   }
 
   readInPlainText(text) {
-    this.ir = text.split('\n\n').map(paragraphText => {
+    this.ir = text.split('\n\n').map((paragraphText) => {
       let paragraph = {};
       paragraph.id = nanoid();
       paragraph.node = new Component('p');
-      paragraph.node.root.id = paragraph.id 
+      paragraph.node.root.id = paragraph.id;
       paragraph.sentences = this.parseSentences(paragraphText, paragraph.node);
       return paragraph;
     });
   }
 
   getHTMLNodes() {
-    return this.ir.map(paragraph => paragraph.node);
+    return this.ir.map((paragraph) => paragraph.node);
   }
 
   selectionIsInParagraphsDiv(selection) {
-    return !selection.isCollapsed &&
-           selection.anchorNode &&
-           selection.focusNode &&
-           (selection.anchorNode.parentNode.className === 'Sentence' ||
-            selection.anchorNode.parentNode.className === 'HighlighterTextDisplay');
+    return (
+      !selection.isCollapsed &&
+      selection.anchorNode &&
+      selection.focusNode &&
+      (selection.anchorNode.parentNode.className === 'Sentence' ||
+        selection.anchorNode.parentNode.className === 'HighlighterTextDisplay')
+    );
   }
 
   allSentences() {
-    return this.ir.map(paragraph => paragraph.sentences).flat();
+    return this.ir.map((paragraph) => paragraph.sentences).flat();
   }
 
   iterateOverSelectedSentences(cb) {
@@ -118,17 +146,19 @@ export class TaggedText {
 
     const anchorNode = selection.anchorNode;
     const focusNode = selection.focusNode;
-    const startSentenceId = anchorNode.nodeName === '#text' ? 
-      anchorNode.parentNode.id :
-      anchorNode.firstChild.id;
-    const endSentenceId = focusNode.nodeName === '#text' ?
-      focusNode.parentNode.id :
-      anchorNode.lastChild.id;
+    const startSentenceId =
+      anchorNode.nodeName === '#text'
+        ? anchorNode.parentNode.id
+        : anchorNode.firstChild.id;
+    const endSentenceId =
+      focusNode.nodeName === '#text'
+        ? focusNode.parentNode.id
+        : anchorNode.lastChild.id;
 
-    const allIds = this.allSentences().map(sentence => sentence.id);
+    const allIds = this.allSentences().map((sentence) => sentence.id);
     const startIndex = allIds.indexOf(startSentenceId);
     const endIndex = allIds.indexOf(endSentenceId);
-      
+
     for (let i = startIndex; i <= endIndex; i++) {
       cb(this.allSentences()[i]);
     }
@@ -137,20 +167,31 @@ export class TaggedText {
   }
 
   addTag() {
-    this.iterateOverSelectedSentences(sentence => sentence.tags.add(Store.currentCategory.shorthand));
+    this.iterateOverSelectedSentences((sentence) =>
+      sentence.tags.add(Store.currentCategory.shorthand),
+    );
   }
 
   removeTag() {
-    this.iterateOverSelectedSentences(sentence => sentence.tags.delete(Store.currentCategory.shorthand));
+    this.iterateOverSelectedSentences((sentence) =>
+      sentence.tags.delete(Store.currentCategory.shorthand),
+    );
   }
 
   getPlainText() {
-    return this.ir.map(paragraph =>
-      paragraph.sentences?.map(sentence => 
-        sentence.text + 
-        (sentence.tags.size? '<' + [...sentence.tags].join() + '>' : '') +
-        ' '
-      ).join('')
-    ).join('\n\n');
+    return this.ir
+      .map((paragraph) =>
+        paragraph.sentences
+          ?.map(
+            (sentence) =>
+              sentence.text +
+              (sentence.tags.size
+                ? '<' + [...sentence.tags].join() + '>'
+                : '') +
+              ' ',
+          )
+          .join(''),
+      )
+      .join('\n\n');
   }
 }

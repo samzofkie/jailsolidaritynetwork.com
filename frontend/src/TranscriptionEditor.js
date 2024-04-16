@@ -1,5 +1,6 @@
 import { Component, Store } from '@samzofkie/component';
-import { Label, RadioButtons } from './Inputs.js';
+import { Spinner } from './Spinner.js';
+import { Field } from './Inputs.js';
 import { TaggedText, CSSHighlighter } from './TaggedText.js';
 
 class TranscriptionInput extends Component {
@@ -8,168 +9,159 @@ class TranscriptionInput extends Component {
       'textarea',
       {
         width: '98%',
-        height: '500px',
-        margin: 'auto',
-
-        // don't forget to remove!
-        value: 'The Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V>'
-      },
+        height: '750px',
+        name: 'transcription',
+        value: 'The Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V>',
+      }
     );
   }
-
-  getTextareaValue() {
-    return this.root.value;
-  }
-  
-  setTextareaValue(text) {
-    this.root.value = text;
-  }
 }
 
-class CategorySelector extends RadioButtons {
-  constructor() {
-    super(
-      Store.categories.map(category => category.name),
-      'categorySelectorIgnoreThis',
-      {lineBreaks: true}
-    );
-
-    // Set all Labels' backgroundColor and color
-    this.pairs.map(pair => {
-      const category = this.getCategoryByName(pair.label.root.innerText);
-      pair.label.set({
-        color: category.color,
-        backgroundColor: category.backgroundColor,
-      });
-    });
-
-    Store.currentCategory = this.getCategoryByName(this.pairs[0].label.root.innerText);
-  }
-
-  getCategoryByName(name) {
-    return Store.categories.find(category => category.name === name);
-  }
-
-  handleClick(event) {
-    super.handleClick(event);
-    const categoryString = event.target.tagName === 'INPUT' ? event.target.id : event.target.innerText;
-    Store.currentCategory = this.getCategoryByName(categoryString);
-
-    if (!Store.highlightAll)
-      Store.cssHighlighter.highlight();
-  }
-}
-
-class HighlighterModeSelector extends RadioButtons {
-  constructor() {
-    super(['Highlight all categories at once', 'Highlight only selected category'], 'modeSelectorIgnoreThis', {lineBreaks: true});
-  
-    this.highlightAllPair = this.pairs[0];
-    this.highlightSelectedPair = this.pairs[1];
-
-    Store.highlightAll = true;
-    this.highlightAllPair.input.root.checked = true;
-  }
-
-  handleClick(event) {
-    super.handleClick(event);
-    if (event.target.id === this.highlightAllPair.id 
-        && Store.highlightAll === false) {
-      Store.highlightAll = true;
-      Store.cssHighlighter.highlight();
-    } else if (event.target.id === this.highlightSelectedPair.id
-               && Store.highlightAll === true) {
-      Store.highlightAll = false;
-      Store.cssHighlighter.highlight();
-    }
-  }
-}
-
-class HighlighterControls extends Component {
+class CategorySelector extends Component {
   constructor() {
     super(
       'div',
       {
-        display: 'grid',
-        gridTemplateColumns: '50% 50%',
-        marginBottom: '10px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2px',
       },
-      new CategorySelector,
-      new Component(
-        'div',
-        new HighlighterModeSelector,
-        new Component('hr'),
-      )
+      ...Store.categories
+        .map(category => new Field({
+          type: 'radio',
+          label: category.name,
+          name: 'selectedCategory',
+          inputFirst: true,
+          onclick: event => {
+            Store.currentCategory = category;
+            if (!Store.highlightAll) 
+              Store.cssHighlighter.highlight()
+          },
+          labelOptions: {
+            color: category.color,
+            backgroundColor: category.backgroundColor,
+          },
+        }))
     );
+
+    Store.currentCategory = Store.categories[0];
+    this.children[0].input.root.checked = true;
+  }
+}
+
+class HighlighterModeSelector extends Component {
+  constructor() {
+    super(
+      'div',
+      {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2px',
+      },
+      ...[
+        'Highlight all categories at once', 
+        'Highlight only selected category'
+      ].map(label => new Field({
+        type: 'radio',
+        label: label,
+        name: 'selectedCategoryMode',
+        inputFirst: true,
+        onclick: event => {
+          if (label === 'Highlight all categories at once' &&
+              Store.highlightAll === false) {
+            Store.highlightAll = true;
+            Store.cssHighlighter.highlight();
+          } else if (
+            label === 'Highlight only selected category' &&
+            Store.highlightAll === true
+          ) {
+            Store.highlightAll = false;
+            Store.cssHighlighter.highlight();
+          }
+          if (onclick) onclick(event);
+        },
+      })),
+    );
+
+    Store.highlightAll = true;
+    this.children[0].input.root.checked = true;
   }
 }
 
 class HighlighterTextDisplay extends Component {
   constructor() {
-    super(
-      'div',
-      {
-        textIndent: '35px',
-        maxHeight: '450px',
-        overflow: 'scroll',
-      }
-    );
+    super('div', {
+      textIndent: '35px',
+      maxHeight: '450px',
+      overflow: 'scroll',
+    });
   }
-  
+
   clear() {
-    Array.from(this.root.children).map(element => element.remove());
+    Array.from(this.root.children).map((element) => element.remove());
   }
 
   render() {
     this.clear();
-    Store.taggedText.getHTMLNodes().map(node => this.append(node))
+    Store.taggedText.getHTMLNodes().map((node) => this.append(node));
   }
 
   getSentenceNodes() {
-    return [...this.root.children].map(paragraphNode => [...paragraphNode.children]).flat();
+    return [...this.root.children]
+      .map((paragraphNode) => [...paragraphNode.children])
+      .flat();
   }
 }
 
 class TranscriptionHighlighter extends Component {
   constructor() {
+    let display = new HighlighterTextDisplay;
     super(
       'div',
       {
+        boxSizing: 'border-box',
         border: '3px solid gray',
         borderRadius: '20px',
         padding: '10px',
         backgroundColor: 'white',
-        marginBottom: '10px',
+        width: '100%',
       },
-      new HighlighterControls,
       new Component(
-        'button',
+        'div',
         {
-          onclick: event => {
-            event.preventDefault();
-            Store.taggedText.addTag();
-          }
+          display: 'grid',
+          gridTemplateColumns: '50% 50%',
+          marginBottom: '10px',
         },
-        'Tag'
+        new CategorySelector,
+        new Component('div', new HighlighterModeSelector, new Component('hr')),
       ),
-      new Component('span', ' '),
-      new Component(
-        'button',
-        {
-          onclick: event => {
-            event.preventDefault();
-            Store.taggedText.removeTag();
-          }
-        },
-        'Remove tag'
+      new Component('div', {display: 'flex', gap: '10px'},
+        new Component(
+          'button',
+          {
+            onclick: (event) => {
+              event.preventDefault();
+              Store.taggedText.addTag();
+            },
+          },
+          'Tag',
+        ),
+        new Component(
+          'button',
+          {
+            onclick: (event) => {
+              event.preventDefault();
+              Store.taggedText.removeTag();
+            },
+          },
+          'Remove tag',
+        ),
       ),
       new Component('hr'),
+      display,
     );
-
-    this.display = new HighlighterTextDisplay;
-    this.append(
-      this.display,
-    );
+    this.display = display;
   }
 }
 
@@ -180,45 +172,51 @@ export class TranscriptionEditor extends Component {
       {
         display: 'flex',
         flexDirection: 'column',
-        gap: '5px',
-        alignItems: 'stretch',
-      }
+        gap: '2px',
+        alignItems: 'flex-start',
+        width: '100%',
+        boxSizing: 'border-box',
+      },
+      new Component('div', {fontWeight: 'bold'}, 'Testimony transcription: '),
     );
-    
-    Store.isInHighlightMode = false;
 
-    this.fetchCategories().then(categories => {
-      Store.categories = this.assignColorsToCategories(categories);
-      Store.taggedText = new TaggedText;
-      Store.cssHighlighter = new CSSHighlighter;
+    this.input = new TranscriptionInput;
+    this.categoriesSpinner = new Spinner;
+    this.append(
+      this.input,
+      this.categoriesSpinner,
+    );
 
-      this.input = new TranscriptionInput;
-      this.highlighter = new TranscriptionHighlighter;
-      this.hideHighlighter();
-      this.toggleButton = new Component(
-        'button',
-        {
-          marginBottom: '10px',
-          onclick: event => {
-            event.preventDefault();
-            this.toggleMode();
+    fetch('/categories')
+      .then(res => res.json())
+      .then(this.assignColorsToCategories)
+      .then(categories => {
+        Store.categories = categories;
+        Store.taggedText = new TaggedText;
+        Store.cssHighlighter = new CSSHighlighter;
+
+        this.highlighter = new TranscriptionHighlighter;
+        this.hideHighlighter();
+        
+        this.toggleButton = new Component(
+          'button',
+          {
+            marginBottom: '10px',
+            onclick: (event) => {
+              event.preventDefault();
+              this.toggleMode();
+            },
           },
-        },
-        'Add tags',
-      );
+          'Add tags',
+        );
 
-      this.append(
-        new Label('Testimony transcription', '', {bold: true}),
-        this.input,
-        this.highlighter,
-        new Component('div', this.toggleButton), // div is just to prevent flex alignItems: 'stretch' from stretching this button out
-      );
-    });
-  }
+        this.categoriesSpinner.remove();
+        this.append(
+          this.highlighter,
+          this.toggleButton,
+        )
 
-  fetchCategories() {
-    return fetch('/categories')
-      .then(res => res.json());
+      });
   }
 
   assignColorsToCategories(categories) {
@@ -236,18 +234,21 @@ export class TranscriptionEditor extends Component {
       ['#a9a9a9', 'white'],
       ['#9A6324', 'white'],
       ['#fabed4', 'black'],
-    ].map(pair => ({backgroundColor: pair[0], color: pair[1]}));
-    
+    ].map((pair) => ({ backgroundColor: pair[0], color: pair[1] }));
+
     return categories.map((category, i) => ({
       ...category,
       ...colors[i],
     }));
   }
 
-  hideHighlighter() { this.highlighter.set({display: 'none'});}
-  showHighlighter() { this.highlighter.set({display: 'block'});}
-  hideInput() { this.input.set({display: 'none'});}
-  showInput() { this.input.set({display: 'block'});}
+  hideHighlighter() {this.highlighter.set({display: 'none'});}
+
+  showHighlighter() {this.highlighter.set({display: 'block'});}
+
+  hideInput() {this.input.set({display: 'none'});}
+
+  showInput() {this.input.set({display: 'block'});}
 
   toggleMode() {
     if (Store.isInHighlightMode) {
@@ -255,13 +256,13 @@ export class TranscriptionEditor extends Component {
       this.showInput();
       this.toggleButton.root.innerText = 'Add tags';
 
-      this.input.setTextareaValue(Store.taggedText.getPlainText());
+      this.input.root.value  = Store.taggedText.getPlainText();
     } else {
       this.hideInput();
       this.showHighlighter();
       this.toggleButton.root.innerText = 'Edit text';
 
-      Store.taggedText.readInPlainText(this.input.getTextareaValue());
+      Store.taggedText.readInPlainText(this.input.root.value);
       this.highlighter.display.render();
       Store.cssHighlighter.highlight();
     }

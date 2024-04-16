@@ -1,6 +1,7 @@
 import { Component } from '@samzofkie/component';
-import { DateInput, TextInput, FileInput, Checkboxes, RadioButtons } from './Inputs.js';
 import { TranscriptionEditor } from './TranscriptionEditor.js';
+import { Field, Section } from './Inputs.js';
+
 
 export class UploadForm extends Component {
   constructor() {
@@ -17,25 +18,64 @@ export class UploadForm extends Component {
       new Component('hr'),
       new Component(
         'form',
-        {
-          display: 'flex',
-          flexFlow: 'column wrap',
-          gap: '10px',
-          action: 'testimony',
-        },
-        new DateInput('Date', '(Day value will be ignored)'),
-        new Checkboxes(['2', '3', '4', '6', '9', '10', '11', '14'], {label: 'Division'}),
-        new TextInput('Length of stay', '(In months)'),
-        new Checkboxes(['Male', 'Female', 'Non-binary', 'Other'], {label: 'Gender'}),
-        new TranscriptionEditor,
-        new FileInput('Files'),
-        new TextInput('Password'),
+        { action: 'testimony' },
         new Component(
-          'input',
+          'div',
           {
-            type: 'submit',
-            value: 'Submit',
-          }
+            padding: '10px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: '10px',
+          },
+          new Field({
+            type: 'date',
+            label: 'Date recieved: ',
+            caption: '(day will be ignored)',
+            name: 'dateRecieved',
+          }),
+          new Section(
+            'Division: ',
+            ...['2', '3', '4', '6', '9', '10', '11', '14', 'Cermak', 'Solitary']
+              .map(division => new Field({
+                type: 'checkbox',
+                label: division,
+                name: 'division' + division,
+                inputFirst: true,
+              }))
+          ),
+          new Field({
+            type: 'text',
+            label: 'Length of stay: ',
+            caption: '(in months)',
+            name: 'lengthOfStay',
+          }),
+          new Section(
+            'Gender: ',
+            ...['Male', 'Female', 'Non-binary', 'Other']
+              .map(gender => new Field({
+                type: 'radio',
+                label: gender,
+                name: 'gender',
+                inputFirst: true,
+              })),
+          ),
+          new TranscriptionEditor,
+          new Field({
+            type: 'file',
+            label: 'Files: ',
+            caption: '(select all at once please)',
+            name: 'files',
+            multiple: true,
+          }),
+          new Field(
+            {
+              type: 'submit',
+              inputOptions: {
+                value: 'Submit testimony',
+              }
+            },
+          ),
         ),
       ),
     );

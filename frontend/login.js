@@ -1,2 +1,2 @@
 import { LoginPage } from './src/JSNPage.js';
-let page = new LoginPage;
+let page = new LoginPage();

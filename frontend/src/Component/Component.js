@@ -27,64 +27,66 @@ import { cssProperties } from './scraper/cssProperties.js';
 import { htmlAttributes } from './scraper/htmlAttributes.js';
 
 class Root {
-	constructor() {
-		let [root, ...args] = [...arguments];
-		
-		this.root = root;
+  constructor(root, ...args) {
+    args = args.filter((arg) => arg);
 
-		if (!args.length)
-			return;
+    this.root = root;
+    this.children = [];
 
-		if (!(args[0] instanceof Root) && typeof args[0] !== 'string') {
-			this.set(args.shift());
-		}
+    if (!args.length) return;
 
-		this.append(...args);
-	}
+    if (typeof args[0] === 'object' && !(args[0] instanceof Root)) {
+      this.set(args.shift());
+    }
+    
+    this.append(...args);
+  }
 
-	set(options) {
-		Object.entries(options).map(([key, value]) => {
-			if (cssProperties.includes(key)) {
-				this.root.style[key] = value;
-			} else if (htmlAttributes.includes(key)) {
-				this.root[key] = value;
-			} else {
-				console.warn(`'${key}' is neither an HTML attribute nor a valid CSS property! Attempting to set it may result in unintended consequences...`)
-			}
-		});
-	}
+  set(options) {
+    Object.entries(options).map(([key, value]) => {
+      if (cssProperties.includes(key)) {
+        this.root.style[key] = value;
+      } else if (htmlAttributes.includes(key)) {
+        this.root[key] = value;
+      } else {
+        console.warn(
+          `'${key}' is neither an HTML attribute nor a valid CSS property! Attempting to set it may result in unintended consequences...`,
+        );
+      }
+    });
+  }
 
-	append() {
-		this.root.append(
-			...[...arguments]
-			.filter(component => component)
-			.map(component => 
-				typeof component === 'string'? component : component.root
-			)
-		);
-	}
+  append(..._components) {
+    let components = _components.filter(c => c);
 
-	remove() {
-		this.root.remove();
-	}
+    this.root.append(...components.map(component => 
+      typeof component === 'string' ? component : component.root
+    ));
+
+    this.children.push(...arguments)
+  }
+
+  remove() {
+    this.root.remove();
+  }
 }
 
 export class Page extends Root {
-	constructor() {
-		super(document.body, ...arguments);
-	}
+  constructor() {
+    super(document.body, ...arguments);
+  }
 }
 
 export class Component extends Root {
-	constructor(elemType, ...other) {
-		super(document.createElement(elemType), ...other);
-		this.setClassName();
-	}
+  constructor(elemType, ...other) {
+    super(document.createElement(elemType), ...other);
+    this.setClassName();
+  }
 
-	setClassName() {
-		if (this.constructor.name !== 'Component' && this.root.className === '')
-			this.root.className = this.constructor.name;
-	}
+  setClassName() {
+    if (this.constructor.name !== 'Component' && this.root.className === '')
+      this.root.className = this.constructor.name;
+  }
 }
 
 export let Store = {};

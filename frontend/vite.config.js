@@ -1,6 +1,6 @@
 // vite.config.js
-import { resolve } from 'path'
-import { defineConfig } from 'vite'
+import { resolve } from 'path';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   build: {
@@ -10,14 +10,15 @@ export default defineConfig({
         archive: resolve(__dirname, 'archive.html'),
         about: resolve(__dirname, 'about.html'),
         action: resolve(__dirname, 'action.html'),
-				login: resolve(__dirname, 'login.html'),
+        login: resolve(__dirname, 'login.html'),
         upload: resolve(__dirname, 'upload.html'),
+        test: resolve(__dirname, 'test.html'),
       },
     },
   },
   server: {
     proxy: {
-      '/categories': 'http://api:8080'
-    }
+      '/categories': 'http://api:8080',
+    },
   },
-})
+});
