@@ -2,7 +2,6 @@ import { Component } from '@samzofkie/component';
 import { TranscriptionEditor } from './TranscriptionEditor.js';
 import { Field, Section } from './Inputs.js';
 
-
 export class UploadForm extends Component {
   constructor() {
     super(
@@ -58,6 +57,7 @@ export class UploadForm extends Component {
                 label: gender,
                 name: 'gender',
                 inputFirst: true,
+                inputOptions: {value: gender},
               })),
           ),
           new TranscriptionEditor,
@@ -68,14 +68,18 @@ export class UploadForm extends Component {
             name: 'files',
             multiple: true,
           }),
-          new Field(
-            {
+          new Field({
+            type: 'text',
+            label: 'Password: ',
+            name: 'password',
+            labelOptions: {fontWeight: 'bold'},
+          }),
+          new Field({
               type: 'submit',
               inputOptions: {
                 value: 'Submit testimony',
               }
-            },
-          ),
+          }),
         ),
       ),
     );

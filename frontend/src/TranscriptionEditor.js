@@ -11,7 +11,8 @@ class TranscriptionInput extends Component {
         width: '98%',
         height: '750px',
         name: 'transcription',
-        value: 'The Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages. In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.\n\nThe purpose of website security is to prevent these (or any) sorts of attacks. The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.\n\nThe Internet is a dangerous place!<BSM,CF,V>',
+        value: 'The Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages.',
+        id: 'testimonyEditor',
       }
     );
   }
@@ -177,7 +178,13 @@ export class TranscriptionEditor extends Component {
         width: '100%',
         boxSizing: 'border-box',
       },
-      new Component('div', {fontWeight: 'bold'}, 'Testimony transcription: '),
+      new Component(
+        'label', 
+        {
+          fontWeight: 'bold', 
+          htmlFor: 'testimonyEditor'
+        }, 
+        'Testimony transcription: '),
     );
 
     this.input = new TranscriptionInput;

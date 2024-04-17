@@ -6,12 +6,11 @@ const nanoid = customAlphabet(
 );
 
 export class Field extends Component {
-  constructor({type, label, name, onclick, multiple, caption, id = nanoid(), inputFirst = false, inputOptions={}, labelOptions={}}, ...children) {
+  constructor({type, label, name, multiple, caption, id = nanoid(), inputFirst = false, inputOptions={}, labelOptions={}}, ...children) {
     let input = new Component('input', {
       type: type,
       id: id,
       name: name,
-      onclick: onclick,
       multiple: multiple,
       ...inputOptions,
     });
@@ -20,21 +19,14 @@ export class Field extends Component {
       new Component(
         'label',
         {
-          for: id,
-          onclick: event => {
-            if (type === 'radio') {
-              if (!input.root.checked)
-                input.root.checked = true;
-            } else if (type === 'checkbox')
-              input.root.checked = !input.root.checked;
-            if (onclick) onclick(event);
-          },
+          htmlFor: id,
           fontWeight: caption ? 'bold' : null,
           ...labelOptions,
         },
         label
-      ) : null; 
+      ) : null;
 
+    
     if (caption)
       _label = new Component(
         'div',
