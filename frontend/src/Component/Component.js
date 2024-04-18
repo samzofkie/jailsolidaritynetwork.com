@@ -87,6 +87,10 @@ export class Component extends Root {
     if (this.constructor.name !== 'Component' && this.root.className === '')
       this.root.className = this.constructor.name;
   }
+
+  hide() {this.set({visibility: 'collapse'})}
+
+  show() {this.set({visibility: 'visible'})}
 }
 
 export let Store = {};

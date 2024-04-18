@@ -17,7 +17,6 @@ export class Spinner extends Component {
 				height: width,
 				width: width,
 				animation: `spin ${speed}s linear infinite`,
-				//margin: 'auto',
 			}
 		);
 	}

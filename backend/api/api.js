@@ -3,6 +3,10 @@ const crypto = require('crypto');
 const fs = require('fs');
 const mysql = require('mysql2/promise');
 
+var bodyParser = require('body-parser');
+const multer = require('multer');
+const upload = multer({dest: 'uploads/'});
+
 const app = express();
 const port = 8080;
 
@@ -10,13 +14,13 @@ const adminHash = JSON.parse(fs.readFileSync('./.adminPassword'));
 adminHash.salt = Buffer.from(adminHash.salt);
 adminHash.hash = Buffer.from(adminHash.hash);
 
-app.get('/testimony', (req, res) => {
-  if (!(req.query.hasOwnProperty('password'))) {
+app.post('/testimony', upload.array('files'), (req, res) => {
+  if (!req.body.password) {
     res.sendStatus(401);
     return;
   }
 
-  const challengerHash = crypto.pbkdf2Sync(req.query.password, adminHash.salt, adminHash.iterations, adminHash.hash.length, adminHash.digest);
+  const challengerHash = crypto.pbkdf2Sync(req.body.password, adminHash.salt, adminHash.iterations, adminHash.hash.length, adminHash.digest);
     
   if (!challengerHash.equals(adminHash.hash)) {
     res.sendStatus(403);

@@ -45,12 +45,26 @@ export class ActionPage extends JSNPage {
 
 export class LoginPage extends JSNPage {
   constructor() {
-    super(new Login());
+    super(new Login);
   }
 }
 
 export class UploadPage extends JSNPage {
   constructor() {
-    super(new UploadForm());
+    super(
+      new Component(
+        'div',
+        {
+          width: '70%',
+          margin: 'auto',
+          border: '3px solid black',
+          borderRadius: '30px',
+          padding: '10px',
+        },
+        new Component('h1', 'Upload new testimony'),
+        new Component('hr'),
+        new UploadForm,
+      ),
+    );
   }
 }

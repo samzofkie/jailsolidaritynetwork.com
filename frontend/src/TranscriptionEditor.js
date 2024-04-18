@@ -13,6 +13,7 @@ class TranscriptionInput extends Component {
         name: 'transcription',
         value: 'The Internet is a dangerous place!<BSM,CF,V> With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages.',
         id: 'testimonyEditor',
+        required: true,
       }
     );
   }

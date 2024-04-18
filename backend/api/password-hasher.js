@@ -1,4 +1,4 @@
-#!/usr/local/bin/node
+#!/usr/bin/node
 const crypto = require('crypto');
 const fs = require('fs');
 
