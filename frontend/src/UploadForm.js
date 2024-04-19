@@ -19,7 +19,7 @@ export class UploadForm extends Component {
       label: 'Date recieved: ',
       caption: '(day will be ignored)',
       name: 'dateRecieved',
-      required: true,
+      //required: true,
     });
 
     this.division = new Section(
@@ -38,7 +38,7 @@ export class UploadForm extends Component {
       label: 'Length of stay: ',
       caption: '(in months)',
       name: 'lengthOfStay',
-      required: true,
+      //required: true,
       inputOptions: {pattern: '[0-9]*'}
     });
 
@@ -54,7 +54,7 @@ export class UploadForm extends Component {
             value: gender,
             checked: i === 0 ? true : '',
           },
-          required: true,
+          //required: true,
         })),
     );
 
@@ -73,7 +73,7 @@ export class UploadForm extends Component {
       label: 'Password: ',
       name: 'password',
       labelOptions: {fontWeight: 'bold'},
-      required: true,
+      //required: true,
     });
 
     this.complaint = new Component('span', {color: 'red'});
@@ -148,12 +148,22 @@ export class UploadForm extends Component {
       return;
     }
 
+    let formData = new FormData(this.root);
+
+    const divisions = [...formData.entries()]
+      .filter(([field, _]) => field.slice(0, 'division'.length) === 'division')
+      .map(([division, _]) => division.slice('division'.length));
+
+    divisions.map(division => formData.delete('division' + division))
+
+    formData.append('divisions', divisions);
+
     this.spinner.show();
     this.submit.hide();
 
     fetch("/testimony", {
         method: 'POST',
-        body: new FormData(this.root),
+        body: formData,
     })
       .then(res => {
         if (res.status === 401) {

@@ -27,6 +27,8 @@ app.post('/testimony', upload.array('files'), (req, res) => {
     return;
   }
 
+  console.log(new Map(Object.entries(req.body)), req.files);
+
   res.send('Success');
 });
 
