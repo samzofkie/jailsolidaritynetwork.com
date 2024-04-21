@@ -1,10 +1,7 @@
-CREATE DATABASE jailsolidaritynetwork;
-USE jailsolidaritynetwork;
 CREATE TABLE categories (
-  id INT NOT NULL AUTO_INCREMENT, 
-  name VARCHAR(255) UNIQUE, 
-  shorthand VARCHAR(3) UNIQUE,
-	PRIMARY KEY (id)
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) UNIQUE,
+  shorthand VARCHAR(3) UNIQUE
 );
 INSERT INTO categories (name, shorthand) VALUES
   ('Basic Services and Materials', 'BSM'),

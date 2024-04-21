@@ -1,9 +1,8 @@
 const express = require('express');
 const crypto = require('crypto');
 const fs = require('fs');
-const mysql = require('mysql2/promise');
+const { Client } = require('pg');
 
-var bodyParser = require('body-parser');
 const multer = require('multer');
 const upload = multer({dest: 'uploads/'});
 
@@ -27,30 +26,22 @@ app.post('/testimony', upload.array('files'), (req, res) => {
     return;
   }
 
-  console.log(new Map(Object.entries(req.body)), req.files);
+  //console.log(new Map(Object.entries(req.body)), req.files);
 
   res.send('Success');
 });
 
 app.get('/categories', async (req, res) => {
-  const connection = await mysql.createConnection({
+  const client = new Client({
+    user: 'postgres',
     host: 'db',
-    user: 'root',
-    password: 'samzofkie',
     database: 'jailsolidaritynetwork',
+    password: 'xGfKqmOznGVrzHc40WY-Y',
   });
-
-  try {
-    const [results, fields] = await connection.query(
-      'SELECT * FROM categories;'
-    );
-    res.json(results.map(row => ({
-      'name': row.name, 
-      'shorthand': row.shorthand
-    })));
-  } catch(err) {
-    console.error(err);
-  }
+  await client.connect();
+  const response = (await client.query('SELECT * FROM categories')).rows;
+  res.json(response);
+  await client.end();
 });
 
 app.listen(port, () => {
