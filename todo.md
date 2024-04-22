@@ -1,4 +1,5 @@
-1) Input validation
+1) Bug in `TranscriptionEditor`
+2) Input validation
 2) `/testimony` API endpoint parsing / SQL injection resistance
 3) reduce .html .js vite boilerplate
 3) testimony tables
