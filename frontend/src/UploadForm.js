@@ -3,6 +3,21 @@ import { TranscriptionEditor } from './TranscriptionEditor.js';
 import { Field, Section } from './Inputs.js';
 import { Spinner } from './Spinner.js';
 
+class FetchedSection extends Section {
+  constructor(title, endpoint, itemToField) {
+    let spinner = new Spinner;
+    fetch(endpoint)
+      .then(res => res.json())
+      .then(items => {
+        spinner.remove();
+        this.append(
+          ...items.map(itemToField)
+        );
+      })
+    super(title, spinner);
+  }
+}
+
 export class UploadForm extends Component {
   constructor() {
     super('form', {
@@ -22,15 +37,28 @@ export class UploadForm extends Component {
       required: true,
     });
 
-    this.division = new Section(
-      'Division: ',
-      ...['2', '3', '4', '6', '9', '10', '11', '14', 'Cermak', 'Solitary']
+    //this.divisionSpinner = new Spinner;
+    //this.divisions = new Section(
+      //'Division: ',
+      /*...['2', '3', '4', '6', '9', '10', '11', '14', 'Cermak', 'Solitary']
         .map(division => new Field({
           type: 'checkbox',
           label: division,
           name: 'division' + division,
           inputFirst: true,
-        }))
+        }))*/
+        //this.divisionSpinner,
+    //);
+
+    this.division = new FetchedSection(
+      'Divisions: ', 
+      '/divisions',
+      division => new Field({
+        type: 'checkbox',
+        label: division.name,
+        name: 'division' + division.name,
+        inputFirst: true,
+      })
     );
 
     this.lengthOfStay = new Field({
@@ -42,7 +70,7 @@ export class UploadForm extends Component {
       inputOptions: {pattern: '[0-9]*'}
     });
 
-    this.gender = new Section(
+    /*this.gender = new Section(
       'Gender: ',
       ...['Male', 'Female', 'Non-binary', 'Other']
         .map((gender, i) => new Field({
@@ -56,6 +84,21 @@ export class UploadForm extends Component {
           },
           required: true,
         })),
+    );*/
+    this.gender = new FetchedSection(
+      'Gender: ',
+      '/genders',
+      (gender, i) => new Field({
+        type: 'radio',
+        label: gender.name,
+        name: 'gender',
+        inputFirst: true,
+        inputOptions: {
+          value: gender.name,
+          checked: i === 0 ? true : '',
+        },
+        required: true,
+      })
     );
 
     this.editor = new TranscriptionEditor;
@@ -103,8 +146,10 @@ export class UploadForm extends Component {
       this.submit,
       this.spinner,
     );
+  }
 
-    this.inputs = [
+  getInputs() {
+    return [
       this.date.input,
       ...this.division.getInputs(),
       this.lengthOfStay.input,
@@ -116,20 +161,20 @@ export class UploadForm extends Component {
   }
 
   allInputsValid() {
-    return this.inputs.reduce(
+    return this.getInputs().reduce(
       (acc, curr) => acc && curr.root.validity.valid,
       true,
     );
   }
 
   highlightInvalidInputs() {
-    this.inputs
+    this.getInputs()
       .filter(input => !input.root.validity.valid)
       .map(input => input.set({border: '5px solid red'}));
   }
 
   unhighlightAllInputs() {
-    this.inputs.map(input => input.set({border: null}))
+    this.getInputs().map(input => input.set({border: null}))
   }
 
   complain(message) {

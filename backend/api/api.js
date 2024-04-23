@@ -48,71 +48,133 @@ app.post('/testimony', upload.array('files'), async (req, res) => {
   if (!req.body.password) {
     res.sendStatus(401);
     return;
-  }
-    
-  if (!authenticate(req.body.password)) {
+  } else if (!authenticate(req.body.password)) {
     res.sendStatus(403);
     return;
   }
 
   let {dateRecieved, lengthOfStay, gender, transcriptionText, divisions} = req.body;
+  divisions = divisions.split(',').filter(d => d);
+  const sentences = transcriptionText
+    .match(/[^.?!]*[.?!]\S*/g)
+    ?.map((sentenceText) => sentenceText.trim())
+    .map(sentence => {
+      let [_text, punct, tags] = sentence.split(/([.!?])/);
+      return {
+        fullText: sentence,
+        text: _text + punct,
+        tags: tags.replace('<','').replace('>','').split(',').filter(tag => tag),
+      };
+    });
   let files = req.files;
 
-  // TODO: input validation
-
   const client = await newConnectedClient();
+
+  const validCategories = (await client.query('SELECT * FROM categories')).rows;
+  const validDivisions = (await client.query('SELECT * FROM divisions')).rows;
+
+  // Input validation
+  for (let param of [
+    {
+      name: 'dateRecieved',
+      value: dateRecieved,
+      valid: () => /^\d{4}-\d{2}-\d{2}$/.test(dateRecieved),
+    },
+    {
+      name: 'lengthOfStay',
+      value: lengthOfStay,
+      valid: () => /^\d+$/.test(lengthOfStay),
+    },
+    {
+      name: 'divisions',
+      value: divisions,
+      valid: async () => {
+        const validDivisionNames = validDivisions.map(row => row.name);
+        return divisions.reduce(
+          (acc, curr) => acc && validDivisionNames.includes(curr),
+          true
+        );
+      }
+    },
+    {
+      name: 'gender',
+      value: gender,
+      valid: async () => {
+        const validGenders = (await client.query('SELECT * FROM genders'))
+          .rows.map(row => row.name);
+        return validGenders.includes(gender);
+      }
+    },
+    {
+      name: 'transcriptionText',
+      value: transcriptionText.slice(0, 100) + 
+        (transcriptionText.length > 100 ? '...' : ''),
+      valid: async () => {
+        const validShorthands = validCategories.map(row => row.shorthand);
+
+        return sentences.reduce(
+          (acc, sentence) => {
+            const formValid = /^[^<]+(?:<[A-Z,]+>)?$/.test(sentence.fullText);
+            const tagsValid = sentence.tags.reduce(
+              (acc, shorthand) => acc && validShorthands.includes(shorthand),
+              true
+            );
+            return acc && formValid && tagsValid;
+          },
+          true
+        );
+      },
+    }
+  ]) {
+    if (!(await param.valid())) {
+      console.error(`${param.name} invalid: ${param.value}`);
+      res.sendStatus(400);
+      return;
+    }
+  };
+
+  console.log('Uploading new testimony...');
+  
   let response = await client.query(
     'INSERT INTO testimonies (date_received, length_of_stay, gender) VALUES ($1, $2, $3) RETURNING id', 
     [dateRecieved, lengthOfStay, gender]
   );
   const testimonyId = response.rows[0].id;
 
-  divisions = divisions.split(',').filter(s => s);
-
   for (let division of divisions) {
-    response = await client.query("SELECT id FROM divisions WHERE name = $1", [division]);
-    let divisionId = response.rows[0].id;
-
+    const divisionId = validDivisions.find(vd => vd.name === division).id;
     await client.query(
       'INSERT INTO testimony_divisions (testimony_id, division_id) VALUES ($1, $2)',
       [testimonyId, divisionId]
     );
   }
 
-  const sentences = transcriptionText
-    .match(/[^.?!]*[.?!]\S*/g)
-    ?.map((sentenceText) => sentenceText.trim());
-  
   for (let sentence of sentences) {
-    let [_text, punct, tags] = sentence.split(/([.!?])/);
-    const text = _text + punct;
-
     response = await client.query(
       'INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id',
-      [text, testimonyId]
+      [sentence.text, testimonyId]
     );
     const sentenceId = response.rows[0].id;
 
-
-    if (tags) {
-      tags = tags.split(',')
-        .map(str => str.replace('<','').replace('>',''));;
-      for (let tag of tags) {
-        response = await client.query('SELECT id FROM categories WHERE shorthand = $1', [tag]);
-        let categoryId = response.rows[0].id;
-        await client.query(
-          'INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, $2)',
-          [sentenceId, categoryId]
-        );
-      }
+    for (let tag of sentence.tags) {
+      const categoryId = validCategories.find(vc => vc.shorthand === tag).id;
+      await client.query(
+        'INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, $2)',
+        [sentenceId, categoryId]
+      );
     }
   }
 
+  let i = 0;
   for (let file of files) {
+    const newFileName = `${testimonyId}-${i}.` + file.originalname.split('.')[1];
+    fs.renameSync(file.destination + file.filename, file.destination + newFileName);
+
     await client.query(
       'INSERT INTO testimony_Files (testimony_id, file_name) VALUES ($1, $2)',
-      [testimonyId, file.filename]
+      [testimonyId, newFileName]
     );
+    i++;
   }
     
   await client.end();
@@ -120,12 +182,17 @@ app.post('/testimony', upload.array('files'), async (req, res) => {
   res.send('Success');
 });
 
-app.get('/categories', async (req, res) => {
+async function sendRowsFomDb(table, res) {
   const client = await newConnectedClient();
-  const response = (await client.query('SELECT * FROM categories')).rows;
+  const response = (await client.query(`SELECT * FROM ${table}`)).rows;
   res.json(response);
   await client.end();
-});
+}
+
+app.get('/divisions', (_, res) => sendRowsFomDb('divisions', res))
+app.get('/genders', (_, res) => sendRowsFomDb('genders', res))
+app.get('/categories', (_, res) => sendRowsFomDb('categories', res))
+
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

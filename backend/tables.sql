@@ -25,6 +25,14 @@ CREATE TABLE divisions (
 INSERT INTO divisions (name) VALUES
   ('2'), ('3'), ('4'), ('6'), ('9'), ('10'), ('11'), ('14'), ('Cermak'), ('Solitary');
 
+CREATE TABLE genders (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(15) UNIQUE
+);
+
+INSERT INTO genders (name) VALUES
+  ('Male'), ('Female'), ('Non-binary'), ('Other');
+
 CREATE TABLE testimonies (
   id SERIAL PRIMARY KEY,
   date_received DATE,

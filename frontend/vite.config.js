@@ -18,6 +18,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      '/genders': 'http://api:8080',
+      '/divisions': 'http://api:8080',
       '/categories': 'http://api:8080',
       '/testimony': 'http://api:8080',
     },
