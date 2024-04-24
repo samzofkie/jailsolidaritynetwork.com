@@ -1,4 +1,3 @@
-1) Bug in `TranscriptionEditor`
 2) SQL injection / file validity
 3) reduce .html .js vite boilerplate
 5) Azure

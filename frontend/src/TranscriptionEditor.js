@@ -34,10 +34,12 @@ class CategorySelector extends Component {
           label: category.name,
           name: 'selectedCategory',
           inputFirst: true,
-          onclick: event => {
-            Store.currentCategory = category;
-            if (!Store.highlightAll) 
-              Store.cssHighlighter.highlight()
+          inputOptions: {
+            onclick: event => {
+              Store.currentCategory = category;
+              if (!Store.highlightAll) 
+                Store.cssHighlighter.highlight()
+            },
           },
           labelOptions: {
             color: category.color,
@@ -68,19 +70,20 @@ class HighlighterModeSelector extends Component {
         label: label,
         name: 'selectedCategoryMode',
         inputFirst: true,
-        onclick: event => {
-          if (label === 'Highlight all categories at once' &&
-              Store.highlightAll === false) {
-            Store.highlightAll = true;
-            Store.cssHighlighter.highlight();
-          } else if (
-            label === 'Highlight only selected category' &&
-            Store.highlightAll === true
-          ) {
-            Store.highlightAll = false;
-            Store.cssHighlighter.highlight();
-          }
-          if (onclick) onclick(event);
+        inputOptions: {
+          onclick: event => {
+            if (label === 'Highlight all categories at once' &&
+                Store.highlightAll === false) {
+              Store.highlightAll = true;
+              Store.cssHighlighter.highlight();
+            } else if (
+              label === 'Highlight only selected category' &&
+              Store.highlightAll === true
+            ) {
+              Store.highlightAll = false;
+              Store.cssHighlighter.highlight();
+            }
+          },
         },
       })),
     );
@@ -223,7 +226,6 @@ export class TranscriptionEditor extends Component {
           this.highlighter,
           this.toggleButton,
         )
-
       });
   }
 

@@ -53,10 +53,6 @@ export class CSSHighlighter {
   }
 
   highlightSelected() {
-    console.log(Store.taggedText.allSentences()
-      .filter((sentence) => sentence.tags.has(Store.currentCategory.shorthand))
-    );
-    console.log(Store.currentCategory);
     Store.taggedText
       .allSentences()
       .filter((sentence) => sentence.tags.has(Store.currentCategory.shorthand))

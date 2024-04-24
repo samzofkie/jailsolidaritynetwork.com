@@ -25,30 +25,16 @@ export class UploadForm extends Component {
       flexFlow: 'column wrap',
       gap: '10px',
       alignItems: 'flex-start',
-
       enctype: 'multipart/form-data',
     });
 
     this.date = new Field({
       type: 'date',
       label: 'Date recieved: ',
-      caption: '(day will be ignored)',
       name: 'dateRecieved',
-      required: true,
+      caption: '(day will be ignored)',
+      inputOptions: {required: true},
     });
-
-    //this.divisionSpinner = new Spinner;
-    //this.divisions = new Section(
-      //'Division: ',
-      /*...['2', '3', '4', '6', '9', '10', '11', '14', 'Cermak', 'Solitary']
-        .map(division => new Field({
-          type: 'checkbox',
-          label: division,
-          name: 'division' + division,
-          inputFirst: true,
-        }))*/
-        //this.divisionSpinner,
-    //);
 
     this.division = new FetchedSection(
       'Divisions: ', 
@@ -64,27 +50,14 @@ export class UploadForm extends Component {
     this.lengthOfStay = new Field({
       type: 'text',
       label: 'Length of stay: ',
-      caption: '(in months)',
       name: 'lengthOfStay',
-      required: true,
-      inputOptions: {pattern: '[0-9]*'}
+      caption: '(in months)',
+      inputOptions: {
+        required: true,
+        pattern: '[0-9]*'
+      },
     });
 
-    /*this.gender = new Section(
-      'Gender: ',
-      ...['Male', 'Female', 'Non-binary', 'Other']
-        .map((gender, i) => new Field({
-          type: 'radio',
-          label: gender,
-          name: 'gender',
-          inputFirst: true,
-          inputOptions: {
-            value: gender,
-            checked: i === 0 ? true : '',
-          },
-          required: true,
-        })),
-    );*/
     this.gender = new FetchedSection(
       'Gender: ',
       '/genders',
@@ -94,10 +67,10 @@ export class UploadForm extends Component {
         name: 'gender',
         inputFirst: true,
         inputOptions: {
+          required: true,
           value: gender.name,
           checked: i === 0 ? true : '',
         },
-        required: true,
       })
     );
 
@@ -106,9 +79,9 @@ export class UploadForm extends Component {
     this.files = new Field({
       type: 'file',
       label: 'Files: ',
-      caption: '(select all at once please)',
       name: 'files',
-      multiple: true,
+      caption: '(select all at once please)',
+      inputOptions: {multiple: true},
     });
 
     this.password = new Field({
@@ -116,7 +89,7 @@ export class UploadForm extends Component {
       label: 'Password: ',
       name: 'password',
       labelOptions: {fontWeight: 'bold'},
-      required: true,
+      inputOptions: {required: true},
     });
 
     this.complaint = new Component('span', {color: 'red'});

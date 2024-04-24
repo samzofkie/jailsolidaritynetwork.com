@@ -6,13 +6,20 @@ const nanoid = customAlphabet(
 );
 
 export class Field extends Component {
-  constructor({type, label, name, multiple, caption, required = '', id = nanoid(), inputFirst = false, inputOptions={}, labelOptions={}}, ...children) {
+  constructor({
+    type, 
+    label, 
+    name,
+    caption,
+    id = nanoid(), 
+    inputFirst = false, 
+    inputOptions={}, 
+    labelOptions={}
+  }, ...children) {
     let input = new Component('input', {
       type: type,
       id: id,
       name: name,
-      multiple: multiple,
-      required: required,
       ...inputOptions,
     });
 
@@ -71,5 +78,20 @@ export class Section extends Component {
     return this.children
       .filter(comp => comp instanceof Field)
         .map(field => field.input);
+  }
+}
+
+export class FetchedSection extends Section {
+  constructor(title, endpoint, itemToField) {
+    let spinner = new Spinner;
+    fetch(endpoint)
+      .then(res => res.json())
+      .then(items => {
+        spinner.remove();
+        this.append(
+          ...items.map(itemToField)
+        );
+      })
+    super(title, spinner);
   }
 }
