@@ -1,4 +1,4 @@
-import { Component } from '@samzofkie/component';
+import { Component, Store } from '@samzofkie/component';
 
 class Logo extends Component {
   constructor(fullWidth = '200px') {
@@ -138,7 +138,9 @@ class SideMenu extends Component {
 }
 
 export class Header extends Component {
-  constructor(isMobile) {
+  constructor() {
+    const isMobile = window.innerWidth < 800;
+
     super('div', {
       borderBottom: '2px solid black',
       display: 'flex',
@@ -146,8 +148,6 @@ export class Header extends Component {
       justifyContent: 'space-between',
       alignItems: isMobile ? 'center' : null,
     });
-
-    this.isMobile = isMobile;
 
     this.logo = new Logo();
 
@@ -161,7 +161,7 @@ export class Header extends Component {
 
     this.append(this.logo);
 
-    if (this.isMobile) this.append(new SideMenu(this.linkButtons, this.logo));
+    if (isMobile) this.append(new SideMenu(this.linkButtons, this.logo));
     else this.append(new NavBar(this.linkButtons));
   }
 }

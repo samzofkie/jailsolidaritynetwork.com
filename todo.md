@@ -1,10 +1,9 @@
-2) SQL injection / file validity
-3) reduce .html .js vite boilerplate
-5) Azure
-6) Cloudflare
-7) Security once-over
-8) Log rotation / observability
-9) SEO
+1) reduce .html .js vite boilerplate
+2) Azure
+3) Cloudflare
+4) Security once-over
+5) Log rotation / observability
+6) SEO
 
 ### Component
   - rewrite with all React / JSX style parameter object unpacking, all default args

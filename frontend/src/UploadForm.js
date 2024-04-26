@@ -1,22 +1,7 @@
 import { Component } from '@samzofkie/component';
 import { TranscriptionEditor } from './TranscriptionEditor.js';
-import { Field, Section } from './Inputs.js';
+import { Field, FetchedSection } from './Inputs.js';
 import { Spinner } from './Spinner.js';
-
-class FetchedSection extends Section {
-  constructor(title, endpoint, itemToField) {
-    let spinner = new Spinner;
-    fetch(endpoint)
-      .then(res => res.json())
-      .then(items => {
-        spinner.remove();
-        this.append(
-          ...items.map(itemToField)
-        );
-      })
-    super(title, spinner);
-  }
-}
 
 export class UploadForm extends Component {
   constructor() {
@@ -118,6 +103,7 @@ export class UploadForm extends Component {
       this.complaint,
       this.submit,
       this.spinner,
+      new Spinner,
     );
   }
 

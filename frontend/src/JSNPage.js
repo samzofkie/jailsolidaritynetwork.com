@@ -1,9 +1,6 @@
-import { Page, Component } from '@samzofkie/component';
-import { Header } from './Header.js';
-import { Login } from './Login.js';
-import { UploadForm } from './UploadForm.js';
+import { Component, Page, Store } from '@samzofkie/component';
 
-class JSNPage extends Page {
+export class JSNPage extends Page {
   constructor(...children) {
     super(
       {
@@ -14,57 +11,14 @@ class JSNPage extends Page {
       ...children,
     );
 
-    this.isMobile = window.innerWidth < 800;
-  }
-}
-
-export class LandingPage extends JSNPage {
-  constructor() {
-    super();
-    this.append(new Header(this.isMobile), 'landing page');
-  }
-}
-
-export class ArchivePage extends JSNPage {
-  constructor() {
-    super(new Component('h1', 'archive'));
-  }
-}
-
-export class AboutPage extends JSNPage {
-  constructor() {
-    super(new Component('h1', 'about the project'));
-  }
-}
-
-export class ActionPage extends JSNPage {
-  constructor() {
-    super(new Component('h1', 'build with us'));
-  }
-}
-
-export class LoginPage extends JSNPage {
-  constructor() {
-    super(new Login);
-  }
-}
-
-export class UploadPage extends JSNPage {
-  constructor() {
-    super(
+    this.head.append(
       new Component(
-        'div',
+        'meta',
         {
-          width: '70%',
-          margin: 'auto',
-          border: '3px solid black',
-          borderRadius: '30px',
-          padding: '10px',
+          name: 'viewport',
+          content: 'width-device-width, initial=scale=1',
         },
-        new Component('h1', 'Upload new testimony'),
-        new Component('hr'),
-        new UploadForm,
-      ),
+      )
     );
   }
 }

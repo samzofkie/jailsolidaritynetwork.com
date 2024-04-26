@@ -35,10 +35,14 @@ class Root {
 
     if (!args.length) return;
 
+    // If the first argument after `root` is an object that isn't a decendant
+    // of `Root`, we'll interpret it as an object specifying HTML attributes
+    // and CSS properties to be set, and pass it to `this.set`.
     if (typeof args[0] === 'object' && !(args[0] instanceof Root)) {
       this.set(args.shift());
     }
     
+    // Everything else we interpret as a string or Component to be appended
     this.append(...args);
   }
 
@@ -56,41 +60,38 @@ class Root {
     });
   }
 
-  append(..._components) {
-    let components = _components.filter(c => c);
-
+  append(...components) {
     this.root.append(...components.map(component => 
       typeof component === 'string' ? component : component.root
     ));
-
-    this.children.push(...arguments)
-  }
-
-  remove() {
-    this.root.remove();
-  }
-}
-
-export class Page extends Root {
-  constructor() {
-    super(document.body, ...arguments);
+    this.children.push(...components);
   }
 }
 
 export class Component extends Root {
-  constructor(elemType, ...other) {
-    super(document.createElement(elemType), ...other);
+  constructor(type, ...args) {
+    super(document.createElement(type), ...args);
     this.setClassName();
   }
 
   setClassName() {
-    if (this.constructor.name !== 'Component' && this.root.className === '')
+    if (this.constructor.name !== 'Component' && this.root.className === '') {
       this.root.className = this.constructor.name;
+    }
   }
 
-  hide() {this.set({visibility: 'collapse'})}
+  hide() {this.set({visibility: 'collapse'});}
 
-  show() {this.set({visibility: 'visible'})}
+  show() {this.set({visibility: 'visible'});}
+
+  remove() {this.root.remove();}
+}
+
+export class Page extends Root {
+  constructor(...args) {
+    super(document.body, ...args);
+    this.head = new Root(document.head);
+  }
 }
 
 export let Store = {};

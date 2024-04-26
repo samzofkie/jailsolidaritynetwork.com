@@ -8,6 +8,17 @@ export class Spinner extends Component {
     secondaryColor = '#ffffff',
     speed = 1,
   } = {}) {
+		// TODO: make sure we don't construct and insert a new CSSStyleSheet if
+		// one with the '@keyframes' rule already exists!
+		const ss = new CSSStyleSheet;
+		ss.insertRule(`
+			@keyframes spin { 
+				0% { transform: rotate(0deg); } 
+				100% { transform: rotate(360deg); } 
+			}
+		`);
+		document.adoptedStyleSheets = [ss];
+
 		super(
 			'div',
 			{

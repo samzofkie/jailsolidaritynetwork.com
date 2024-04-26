@@ -1,4 +1,5 @@
 import { Component } from '@samzofkie/component';
+import { Spinner } from './Spinner.js';
 import { customAlphabet } from 'nanoid';
 const nanoid = customAlphabet(
   'ABCDEFGHIJKLMNOPQRSTUVBWXYZabcdefghijklmnopqrstuvwxyz',
