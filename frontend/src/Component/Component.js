@@ -88,9 +88,12 @@ export class Component extends Root {
 }
 
 export class Page extends Root {
-  constructor(...args) {
+  constructor(title, ...args) {
     super(document.body, ...args);
     this.head = new Root(document.head);
+    this.head.append(
+      new Component('title', title)
+    );
   }
 }
 

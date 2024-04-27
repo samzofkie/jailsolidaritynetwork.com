@@ -1,8 +1,9 @@
-import { Component, Page, Store } from '@samzofkie/component';
+import { Component, Page } from '@samzofkie/component';
 
 export class JSNPage extends Page {
-  constructor(...children) {
+  constructor(title, ...children) {
     super(
+      title,
       {
         backgroundColor: '#fff3d4',
         fontFamily: 'Arial, Helvetica, sans-serif',

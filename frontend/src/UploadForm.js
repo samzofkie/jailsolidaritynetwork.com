@@ -103,7 +103,6 @@ export class UploadForm extends Component {
       this.complaint,
       this.submit,
       this.spinner,
-      new Spinner,
     );
   }
 

@@ -1,5 +1,5 @@
-1) reduce .html .js vite boilerplate
-2) Azure
+1) Azure
+2) Let's encrypt
 3) Cloudflare
 4) Security once-over
 5) Log rotation / observability
