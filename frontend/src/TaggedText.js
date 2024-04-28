@@ -125,7 +125,7 @@ export class TaggedText {
       selection.anchorNode &&
       selection.focusNode &&
       (selection.anchorNode.parentNode.className === 'Sentence' ||
-        selection.anchorNode.parentNode.className === 'HighlighterTextDisplay')
+        selection.anchorNode.parentNode.parentNode.className === 'HighlighterTextDisplay')
     );
   }
 
@@ -144,7 +144,9 @@ export class TaggedText {
     const focusNode = selection.focusNode;
     const startSentenceId =
       anchorNode.nodeName === '#text'
-        ? anchorNode.parentNode.id
+        ? (anchorNode.wholeText === ' ' // If you only highlight the first word of a sentence, anchorNode is the #text before the first span 
+	  ? anchorNode.nextElementSibling.id
+	  : anchorNode.parentNode.id)
         : anchorNode.firstChild.id;
     const endSentenceId =
       focusNode.nodeName === '#text'

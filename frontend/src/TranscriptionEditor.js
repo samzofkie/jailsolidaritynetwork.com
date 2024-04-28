@@ -99,6 +99,7 @@ class HighlighterTextDisplay extends Component {
       textIndent: '35px',
       maxHeight: '450px',
       overflow: 'scroll',
+      className: 'HighlighterTextDisplay',
     });
   }
 
