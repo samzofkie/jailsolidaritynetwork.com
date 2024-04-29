@@ -153,7 +153,8 @@ app.post('/testimony', upload.array('files'), async (req, res) => {
 
   let i = 0;
   for (let file of files) {
-    const newFileName = `${testimonyId}-${i}.` + file.originalname.split('.')[1];
+    const suffix = file.originalname.split('.')[1] ? '.' + file.originalname.split('.')[1] : '';
+    const newFileName = `${testimonyId}-${i}` + suffix;
     fs.renameSync(file.destination + file.filename, file.destination + newFileName);
 
     await client.query(

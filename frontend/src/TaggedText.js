@@ -145,8 +145,8 @@ export class TaggedText {
     const startSentenceId =
       anchorNode.nodeName === '#text'
         ? (anchorNode.wholeText === ' ' // If you only highlight the first word of a sentence, anchorNode is the #text before the first span 
-	  ? anchorNode.nextElementSibling.id
-	  : anchorNode.parentNode.id)
+	          ? anchorNode.nextElementSibling.id
+	          : anchorNode.parentNode.id)
         : anchorNode.firstChild.id;
     const endSentenceId =
       focusNode.nodeName === '#text'

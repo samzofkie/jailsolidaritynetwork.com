@@ -139,29 +139,32 @@ class SideMenu extends Component {
 
 export class Header extends Component {
   constructor() {
-    const isMobile = window.innerWidth < 800;
+    super('div');
+    setTimeout(() => {
+      const isMobile = window.innerWidth < 800;
 
-    super('div', {
-      borderBottom: '2px solid black',
-      display: 'flex',
-      flexFlow: 'row wrap',
-      justifyContent: 'space-between',
-      alignItems: isMobile ? 'center' : null,
+      this.set({
+        borderBottom: '2px solid black',
+        display: 'flex',
+        flexFlow: 'row wrap',
+        justifyContent: 'space-between',
+        alignItems: isMobile ? 'center' : null,
+      });
+    
+      this.linkButtons = {
+        Archive: '/archive.html',
+        'Sheriff Dart vs. Reality': '/dart.html',
+        'Cook County Jail Timeline': '/timeline.html',
+        About: '/about.html',
+        Action: '/action.html',
+      };
+  
+      this.append(
+        new Logo,
+        isMobile ? 
+          new SideMenu(this.linkButtons, this.logo) :
+          new NavBar(this.linkButtons)
+      );
     });
-
-    this.logo = new Logo();
-
-    this.linkButtons = {
-      Archive: '/archive.html',
-      'Sheriff Dart vs. Reality': '/dart.html',
-      'Cook County Jail Timeline': '/timeline.html',
-      About: '/about.html',
-      Action: '/action.html',
-    };
-
-    this.append(this.logo);
-
-    if (isMobile) this.append(new SideMenu(this.linkButtons, this.logo));
-    else this.append(new NavBar(this.linkButtons));
   }
 }
