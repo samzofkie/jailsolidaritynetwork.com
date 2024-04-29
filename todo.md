@@ -1,8 +1,6 @@
 1) Frontend
   - nicer file upload input
   - nice date entry input
-  - harley's request for remove tag button
-  - date uploaded column
   - landing page
   - archive page
   - individual testimony pages

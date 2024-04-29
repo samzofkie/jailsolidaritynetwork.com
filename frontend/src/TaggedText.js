@@ -172,7 +172,9 @@ export class TaggedText {
 
   removeTag() {
     this.iterateOverSelectedSentences((sentence) =>
-      sentence.tags.delete(Store.currentCategory.shorthand),
+      sentence.tags = new Set
+      // The old way: only remove the tag of the selected category type
+      // sentence.tags.delete(Store.currentCategory.shorthand)
     );
   }
 
