@@ -1,11 +1,10 @@
 services:
   proxy:
-    image: nginx
+    image: nginx-log-rotate
     ports:
       - 80:80
       - 443:443
     volumes:
-      - ./nginx:/etc/nginx
       - ../frontend/dist:/data/www
     depends_on:
       - db
