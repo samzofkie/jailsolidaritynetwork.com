@@ -6,6 +6,7 @@ services:
       - 443:443
     volumes:
       - ../frontend/dist:/data/www
+      - ./logs/:/logs
     depends_on:
       - db
 
