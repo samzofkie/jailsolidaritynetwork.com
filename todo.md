@@ -7,9 +7,8 @@
   - about + action pages
 2) Security
   - Cloudflare DDOS protection
-3) Log rotation / observability
-4) Database backups
-5) SEO
+3) Database backups
+4) SEO
   - SSR
 
 ### Component
