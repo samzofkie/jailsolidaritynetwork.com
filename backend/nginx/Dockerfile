@@ -6,6 +6,6 @@ RUN rm /var/log/nginx/access.log
 RUN rm /var/log/nginx/error.log
 COPY rotate-logs.py /root/
 COPY nginx.conf mime.types cert.pem privkey.pem /etc/nginx/
-COPY rotate-logs-crontab /etc/cron.d/
+COPY root /var/spool/cron/crontabs/root
 
 CMD service cron start && nginx -g 'daemon off;'
