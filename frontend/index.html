@@ -4,19 +4,13 @@
   import { JSNPage } from './src/JSNPage.js';
   import { Header } from './src/Header.js';
 
-  const page = new JSNPage(
-    'Jail Solidarity Network',
-    new Header,
-    'landing page'
-  );
+  
+  const page = new JSNPage('Jail Solidarity Network');
 
-  page.head.append(
-    new Component(
-      'link',
-      {
-        rel: 'stylesheet',
-        href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0',
-      }
-    )
-  );
+  document.body.onload = _ => {
+    page.append(
+      new Header,
+      'landing page'
+    );
+  }
 </script>
