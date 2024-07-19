@@ -18,9 +18,9 @@ export class CSSHighlighter {
   }
 
   decideTextColor(categories) {
-    const textColors = categories.map((category) => category.color);
-    return textColors.filter((color) => color === 'black').length >
-      textColors.filter((color) => color === 'white')
+    const textColors = categories.map(category => category.color);
+    return textColors.filter(color => color === 'black').length >
+      textColors.filter(color => color === 'white')
       ? 'black'
       : 'white';
   }
@@ -28,13 +28,13 @@ export class CSSHighlighter {
   highlightAll() {
     Store.taggedText
       .allSentences()
-      .filter((sentence) => sentence?.tags.size)
-      .map((sentence) => {
+      .filter(sentence => sentence?.tags.size)
+      .map(sentence => {
         const categories = [...sentence.tags].map((shorthand) =>
-          Store.categories.find((category) => category.shorthand === shorthand),
+          Store.categories.find(category => category.shorthand === shorthand),
         );
         const backgroundColors = categories.map(
-          (category) => category.backgroundColor,
+          category => category.backgroundColor,
         );
         const percentageStep = Math.floor(100 / backgroundColors.length);
         sentence.component.set({
@@ -55,8 +55,8 @@ export class CSSHighlighter {
   highlightSelected() {
     Store.taggedText
       .allSentences()
-      .filter((sentence) => sentence.tags.has(Store.currentCategory.shorthand))
-      .map((sentence) =>
+      .filter(sentence => sentence.tags.has(Store.currentCategory.shorthand))
+      .map(sentence =>
         sentence.component.set({
           backgroundColor: Store.currentCategory.backgroundColor,
           color: Store.currentCategory.color,
@@ -66,11 +66,10 @@ export class CSSHighlighter {
 
   highlight() {
     this.clearRules();
-    if (Store.highlightAll) {
+    if (Store.highlightAll)
       this.highlightAll();
-    } else {
+    else
       this.highlightSelected();
-    }
   }
 }
 
@@ -95,10 +94,14 @@ export class TaggedText {
             .match(/[A-Z,]+/g)[0]
             .split(','),
         );
-        sentence.component = new Component('span');
-        sentence.component.root.id = sentence.id;
-        sentence.component.root.className = 'Sentence';
-        sentence.component.append(sentence.text);
+        sentence.component = new Component(
+          'span',
+          {
+            id: sentence.id,
+            className: 'Sentence',
+          },
+          sentence.text,
+        );
         paragraphNode.append(sentence.component, ' ');
         return sentence;
       });
@@ -108,8 +111,7 @@ export class TaggedText {
     this.ir = text.split('\n\n').map((paragraphText) => {
       let paragraph = {};
       paragraph.id = nanoid();
-      paragraph.node = new Component('p');
-      paragraph.node.root.id = paragraph.id;
+      paragraph.node = new Component('p', {id: paragraph.id});
       paragraph.sentences = this.parseSentences(paragraphText, paragraph.node);
       return paragraph;
     });
@@ -130,7 +132,7 @@ export class TaggedText {
   }
 
   allSentences() {
-    return this.ir.map((paragraph) => paragraph.sentences).flat();
+    return this.ir.map(paragraph => paragraph.sentences).flat();
   }
 
   iterateOverSelectedSentences(cb) {
@@ -153,25 +155,24 @@ export class TaggedText {
         ? focusNode.parentNode.id
         : anchorNode.lastChild.id;
 
-    const allIds = this.allSentences().map((sentence) => sentence.id);
+    const allIds = this.allSentences().map(sentence => sentence.id);
     const startIndex = allIds.indexOf(startSentenceId);
     const endIndex = allIds.indexOf(endSentenceId);
 
-    for (let i = startIndex; i <= endIndex; i++) {
+    for (let i = startIndex; i <= endIndex; i++)
       cb(this.allSentences()[i]);
-    }
 
     Store.cssHighlighter.highlight();
   }
 
   addTag() {
-    this.iterateOverSelectedSentences((sentence) =>
+    this.iterateOverSelectedSentences(sentence =>
       sentence.tags.add(Store.currentCategory.shorthand),
     );
   }
 
   removeTag() {
-    this.iterateOverSelectedSentences((sentence) =>
+    this.iterateOverSelectedSentences(sentence =>
       sentence.tags = new Set
       // The old way: only remove the tag of the selected category type
       // sentence.tags.delete(Store.currentCategory.shorthand)
@@ -183,7 +184,7 @@ export class TaggedText {
       .map((paragraph) =>
         paragraph.sentences
           ?.map(
-            (sentence) =>
+            sentence =>
               sentence.text +
               (sentence.tags.size
                 ? '<' + [...sentence.tags].join() + '>'

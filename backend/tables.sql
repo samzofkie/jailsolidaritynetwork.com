@@ -1,3 +1,10 @@
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) UNIQUE,
+  salt VARCHAR(40),
+  hash VARCHAR(128)
+);
+
 CREATE TABLE categories (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) UNIQUE,
@@ -62,4 +69,4 @@ CREATE TABLE testimony_files (
   id SERIAL PRIMARY KEY,
   testimony_id INT NOT NULL REFERENCES testimonies(id),
   file_name TEXT
-)
+);

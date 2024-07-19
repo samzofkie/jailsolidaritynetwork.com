@@ -1,19 +1,69 @@
-const express = require('express');
+/*const express = require('express');
 const crypto = require('crypto');
 const fs = require('fs');
 const { Client } = require('pg');
 
 const multer = require('multer');
-const upload = multer({dest: 'uploads/'});
+const upload = multer({dest: 'uploads/'});*/
+
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import { authenticatePassword, authenticateToken, readAllRowsFromTable } from './utils.js';
+
+if (!process.env.ACCESS_TOKEN_SECRET) {
+  console.error('ACCESS_TOKEN_SECRET env var not set! Exiting');
+  process.exit(1);
+}
+
+async function sendNewAuthenticationToken(req, res) {
+  const token = jwt.sign({name: 'admin'}, process.env.ACCESS_TOKEN_SECRET);
+  res.json({accessToken: token});
+}
+
+async function listTestimonies(req, res) {
+  /*const client = await newDBConnection();
+  const { rows } = client.query('SELECT * FROM testimonies');
+  await client.end();
+
+  console.log(rows);*/
+  res.send(req.path);
+}
+
+function getSpecificTestimony(req, res) {
+
+}
+
+function createNewTestimony(req, res) {
+
+}
+
+function updateExistingTestimony(req, res) {
+
+}
+
+function deleteExistingTestimony(req, res) {
+
+}
 
 const app = express();
 const port = 8080;
+app.get('/auth', authenticatePassword, sendNewAuthenticationToken);
+['categories', 'divisions', 'genders'].map(identifier => app.get(
+  '/' + identifier, 
+  async (_, res) => res.json(await readAllRowsFromTable(identifier))));
+app.get('/testimonies', listTestimonies);
+app.get('/testimonies/:testimonyId', getSpecificTestimony);
+app.post('/testimonies', authenticateToken, createNewTestimony);
+app.put('/testimonies/:testimonyId', authenticateToken, updateExistingTestimony);
+app.delete('/testimonies/:testimonyId', authenticateToken, deleteExistingTestimony);
+app.listen(port, () => {
+  console.log(`API listening on port ${port}`);
+});
 
-const adminHash = JSON.parse(fs.readFileSync('./.adminPassword'));
-adminHash.salt = Buffer.from(adminHash.salt);
-adminHash.hash = Buffer.from(adminHash.hash);
-
-
+//const adminHash = JSON.parse(fs.readFileSync('./.adminPassword'));
+//adminHash.salt = Buffer.from(adminHash.salt);
+//adminHash.hash = Buffer.from(adminHash.hash);
+/*
 function authenticate(password) {
   const challengerHash = crypto.pbkdf2Sync(password, adminHash.salt, adminHash.iterations, adminHash.hash.length, adminHash.digest);
   return challengerHash.equals(adminHash.hash);
@@ -41,9 +91,9 @@ app.post('/testimony', upload.array('files'), async (req, res) => {
 
   let {dateRecieved, lengthOfStay, gender, transcriptionText, divisions} = req.body;
   divisions = divisions.split(',').filter(d => d);
-  const sentences = transcriptionText
-    .match(/[^.?!]*[.?!]\S*/g)
-    ?.map((sentenceText) => sentenceText.trim())
+  const sentences = transcriptionText*/
+    //.match(/[^.?!]*[.?!]\S*/g)
+    /*?.map((sentenceText) => sentenceText.trim())
     .map(sentence => {
       let [_text, punct, tags] = sentence.split(/([.!?])/);
       return {
@@ -169,6 +219,7 @@ app.post('/testimony', upload.array('files'), async (req, res) => {
   res.send('Success');
 });
 
+
 async function sendRowsFomDb(table, res) {
   const client = await newConnectedClient();
   const response = (await client.query(`SELECT * FROM ${table}`)).rows;
@@ -179,8 +230,4 @@ async function sendRowsFomDb(table, res) {
 app.get('/divisions', (_, res) => sendRowsFomDb('divisions', res))
 app.get('/genders', (_, res) => sendRowsFomDb('genders', res))
 app.get('/categories', (_, res) => sendRowsFomDb('categories', res))
-
-
-app.listen(port, () => {
-  console.log(`API listening on port ${port}`);
-});
+*/

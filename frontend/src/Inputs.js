@@ -6,23 +6,43 @@ const nanoid = customAlphabet(
   30,
 );
 
+// Field constructs a flexbox div with at least two children; an input 
+// Component and a label Component. Depending on the presence or absence
+// of a `label` property in the options parameter, it may rearrange the label
+// Component into another flexbox div with a caption div underneath it. 
+//
+// The important properties of the controlling object parameter are:
+//   - `type`: the .type property for the input Component
+//   - `label`: text to display in the label Component
+//   - `name`: a .name property for the input
+//   - `caption` (optional):  text to display underneath the label
+//   - `inputFirst` (optional): bool to specify the order in which to unpack
+//       the input and label into the containing flexbox div
+//   - `inputOptions` and `labelOptions` (optional): objects specifying
+//       properties to be applied to the input and label Components, 
+//       respectively.
+
 export class Field extends Component {
   constructor({
     type, 
     label, 
     name,
-    caption,
-    id = nanoid(), 
+    caption = '',
     inputFirst = false, 
     inputOptions={}, 
-    labelOptions={}
+    labelOptions={},
+    divOptions={},
   }, ...children) {
-    let input = new Component('input', {
-      type: type,
-      id: id,
-      name: name,
-      ...inputOptions,
-    });
+    const id = nanoid();
+    let input = new Component(
+      'input', 
+      {
+        type: type,
+        id: id,
+        name: name,
+        ...inputOptions,
+      }
+    );
 
     let _label = label ?
       new Component(
@@ -52,7 +72,8 @@ export class Field extends Component {
       {
         display: 'flex',
         alignItems: 'center',
-        gap: '5px',
+        gap: 5,
+        ...divOptions,
       },
       ...(inputFirst ? [input, _label] : [_label, input]),
       ...children,
@@ -60,12 +81,14 @@ export class Field extends Component {
 
     this.input = input;
     this.label = _label;
+    this.id = id;
   }
 }
 
 export class Section extends Component {
   constructor(title, ...children) {
-    super('div',
+    super(
+      'div',
       {
         display: 'flex',
         flexDirection: 'column',
@@ -92,7 +115,7 @@ export class FetchedSection extends Section {
         this.append(
           ...items.map(itemToField)
         );
-      })
+      });
     super(title, spinner);
   }
 }

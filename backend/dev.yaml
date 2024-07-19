@@ -18,6 +18,7 @@ services:
     volumes:
       - ./api:/api
     working_dir: /api
+    env_file: ./api/.env
     command: node api.js
 
   db:
