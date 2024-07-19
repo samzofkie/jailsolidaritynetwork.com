@@ -8,7 +8,7 @@ export class UploadForm extends Component {
     super('form', {
       display: 'flex',
       flexFlow: 'column wrap',
-      gap: '10px',
+      gap: 10,
       alignItems: 'flex-start',
       enctype: 'multipart/form-data',
     });

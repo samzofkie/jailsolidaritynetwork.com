@@ -9,7 +9,7 @@ class TranscriptionInput extends Component {
       'textarea',
       {
         width: '98%',
-        height: '750px',
+        height: 750,
         name: 'transcriptionText',
         value: 'The Internet is a dangerous place! With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages.<LS> In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.<LS,V> The purpose of website security is to prevent these (or any) sorts of attacks.<BSM> The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.<BSM,FW>',
         id: 'testimonyEditor',
@@ -26,7 +26,7 @@ class CategorySelector extends Component {
       {
         display: 'flex',
         flexDirection: 'column',
-        gap: '2px',
+        gap: 2,
       },
       ...Store.categories
         .map(category => new Field({
@@ -35,7 +35,7 @@ class CategorySelector extends Component {
           name: 'selectedCategory',
           inputFirst: true,
           inputOptions: {
-            onclick: event => {
+            onclick: _ => {
               Store.currentCategory = category;
               if (!Store.highlightAll) 
                 Store.cssHighlighter.highlight()
@@ -60,7 +60,7 @@ class HighlighterModeSelector extends Component {
       {
         display: 'flex',
         flexDirection: 'column',
-        gap: '2px',
+        gap: 2,
       },
       ...[
         'Highlight all categories at once', 
@@ -71,7 +71,7 @@ class HighlighterModeSelector extends Component {
         name: 'selectedCategoryMode',
         inputFirst: true,
         inputOptions: {
-          onclick: event => {
+          onclick: _ => {
             if (label === 'Highlight all categories at once' &&
                 Store.highlightAll === false) {
               Store.highlightAll = true;
@@ -95,12 +95,15 @@ class HighlighterModeSelector extends Component {
 
 class HighlighterTextDisplay extends Component {
   constructor() {
-    super('div', {
-      textIndent: '35px',
-      maxHeight: '450px',
-      overflow: 'scroll',
-      className: 'HighlighterTextDisplay',
-    });
+    super(
+      'div', 
+      {
+        textIndent: 35,
+        maxHeight: 450,
+        overflow: 'scroll',
+        className: 'HighlighterTextDisplay',
+      }
+    );
   }
 
   clear() {
@@ -121,14 +124,14 @@ class HighlighterTextDisplay extends Component {
 
 class TranscriptionHighlighter extends Component {
   constructor() {
-    let display = new HighlighterTextDisplay;
+    const display = new HighlighterTextDisplay;
     super(
       'div',
       {
         boxSizing: 'border-box',
         border: '3px solid gray',
-        borderRadius: '20px',
-        padding: '10px',
+        borderRadius: 20,
+        padding: 10,
         backgroundColor: 'white',
         width: '100%',
       },
@@ -137,16 +140,16 @@ class TranscriptionHighlighter extends Component {
         {
           display: 'grid',
           gridTemplateColumns: '50% 50%',
-          marginBottom: '10px',
+          marginBottom: 10,
         },
         new CategorySelector,
         new Component('div', new HighlighterModeSelector, new Component('hr')),
       ),
-      new Component('div', {display: 'flex', gap: '10px'},
+      new Component('div', {display: 'flex', gap: 10},
         new Component(
           'button',
           {
-            onclick: (event) => {
+            onclick: event => {
               event.preventDefault();
               Store.taggedText.addTag();
             },
@@ -156,7 +159,7 @@ class TranscriptionHighlighter extends Component {
         new Component(
           'button',
           {
-            onclick: (event) => {
+            onclick: event => {
               event.preventDefault();
               Store.taggedText.removeTag();
             },
@@ -178,7 +181,7 @@ export class TranscriptionEditor extends Component {
       {
         display: 'flex',
         flexDirection: 'column',
-        gap: '2px',
+        gap: 2,
         alignItems: 'flex-start',
         width: '100%',
         boxSizing: 'border-box',
@@ -213,7 +216,7 @@ export class TranscriptionEditor extends Component {
         this.toggleButton = new Component(
           'button',
           {
-            marginBottom: '10px',
+            marginBottom: 10,
             onclick: (event) => {
               event.preventDefault();
               this.toggleMode();
