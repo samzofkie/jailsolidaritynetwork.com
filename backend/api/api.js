@@ -1,14 +1,11 @@
-/*const express = require('express');
-const crypto = require('crypto');
-const fs = require('fs');
-const { Client } = require('pg');
-
-const multer = require('multer');
-const upload = multer({dest: 'uploads/'});*/
-
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { authenticatePassword, authenticateToken, readAllRowsFromTable } from './utils.js';
+import { 
+  newDBConnection, 
+  authenticatePassword, 
+  authenticateToken, 
+  readAllRowsFromTable 
+} from './utils.js';
 
 if (!process.env.ACCESS_TOKEN_SECRET) {
   console.error('ACCESS_TOKEN_SECRET env var not set! Exiting');
@@ -21,12 +18,41 @@ async function sendNewAuthenticationToken(req, res) {
 }
 
 async function listTestimonies(req, res) {
-  /*const client = await newDBConnection();
-  const { rows } = client.query('SELECT * FROM testimonies');
+  const client = await newDBConnection();
+  const { rows: categories } = await client.query('SELECT * FROM categories');
+  const { rows: divisions } = await client.query('SELECT * FROM divisions');
+  const { rows: testimonies } = await client.query('SELECT * FROM testimonies');
+  const { rows: testimonyDivisions } = await client.query('SELECT * FROM testimony_divisions');
+  const { rows: testimonySentences } = await client.query('SELECT * FROM testimony_sentences');
+  const { rows: testimonySentecesCategories } = await client.query('SELECT * FROM testimony_sentences_categories');
+  const { rows: testimonyFiles } = await client.query('SELECT * FROM testimony_files');
   await client.end();
 
-  console.log(rows);*/
-  res.send(req.path);
+  const divisionIdToNameMap = new Map(divisions.map(division => [division.id, division.name]));
+  const categoryIdToNameMap = new Map(categories.map(category => [category.id, category.name]));
+  
+  testimonies.map(testimony => {
+    testimony.divisions = testimonyDivisions
+      .filter(division => division.testimony_id === testimony.id)
+      .map(division => divisionIdToNameMap.get(division.division_id));
+    testimony.sentences = testimonySentences
+      .filter(sentence => sentence.testimony_id === testimony.id)
+      .map(s => ({id : s.id, sentence: s.sentence }));
+    
+    // Add categories to each sentence
+    testimony.sentences.map(sentence => {
+      const sentenceCategories = testimonySentecesCategories
+        .filter(category => category.sentence_id === sentence.id)
+        .map(c => categoryIdToNameMap.get(c.id));
+      sentence.categories = sentenceCategories;
+    });
+
+    testimony.files = testimonyFiles
+      .filter(file => file.testimony_id === testimony.id)
+      .map(file => file.file_name);
+  });
+
+  res.send(testimonies);
 }
 
 function getSpecificTestimony(req, res) {

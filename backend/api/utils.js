@@ -1,6 +1,9 @@
 import crypto from 'crypto';
 import pg from 'pg';
 import jwt from 'jsonwebtoken';
+import * as fs from 'fs';
+import * as mupdf from 'mupdf';
+
 
 export function hashFunction(plaintext, salt) {
   return crypto.pbkdf2Sync(plaintext, salt, 10000, 64, 'sha3-512');
@@ -74,4 +77,14 @@ export async function readAllRowsFromTable(table) {
   const { rows } = await client.query(`SELECT * FROM ${table}`);
   await client.end();
   return rows;
+}
+
+export function extractPreviewImageFromPDF(pdf, previewPNGFilename) {
+  const doc = mupdf.Document.openDocument(
+    fs.readFileSync(pdf), 'application/pdf'
+  );
+  const page = doc.loadPage(0);
+  const pixmap = page.toPixmap(mupdf.Matrix.identity, mupdf.ColorSpace.DeviceRGB, false, true);
+  const pngImage = pixmap.asPNG();
+  fs.writeFileSync(previewPNGFilename, Buffer.from(pngImage));
 }
