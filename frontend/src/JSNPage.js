@@ -5,7 +5,7 @@ export class JSNPage extends Page {
     super(
       title,
       {
-        backgroundColor: '#fff3d4',
+        backgroundColor: localStorage.getItem('accessToken') ? '#505050' : '#fff3d4',
         fontFamily: 'Arial, Helvetica, sans-serif',
         boxSizing: 'border-box',
       },

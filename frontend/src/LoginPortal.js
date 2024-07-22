@@ -119,7 +119,7 @@ export class LoginPortal extends Component {
         } else {
           const { accessToken } = await res.json();
           localStorage.setItem('accessToken', accessToken);
-          window.location.href = '/';
+          window.location.href = '/admin.html';
         }
       });
   }
