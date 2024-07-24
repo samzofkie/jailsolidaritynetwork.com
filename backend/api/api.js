@@ -1,11 +1,24 @@
-import express from 'express';
+/*import express from 'express';
 import jwt from 'jsonwebtoken';
 import { 
   newDBConnection, 
   authenticatePassword, 
   authenticateToken, 
-  readAllRowsFromTable 
-} from './utils.js';
+  readAllRowsFromTable,
+  parseTranscriptionText,
+  testimonyInputsValid,
+} from './utils.js';*/
+
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const {
+  newDBConnection,
+  authenticatePassword,
+  authenticateToken,
+  readAllRowsFromTable,
+  parseTranscriptionText,
+  testimonyInputsValid
+} = require('./utils.js');
 
 if (!process.env.ACCESS_TOKEN_SECRET) {
   console.error('ACCESS_TOKEN_SECRET env var not set! Exiting');
@@ -59,8 +72,77 @@ function getSpecificTestimony(req, res) {
 
 }
 
-function createNewTestimony(req, res) {
+async function createNewTestimony(req, res) {
+  // Add testimony to database
+  let {dateReceived, lengthOfStay, gender, transcriptionText, divisions} = req.body;
+  divisions = divisions.split(',').filter(d => d);
+  const sentences = parseTranscriptionText(transcriptionText);
+  const files = req.files;
 
+  const client = await newConnectedClient();
+
+  if (!(await testimonyInputsValid(
+    {
+      dateReceived: dateReceived,
+      lengthOfStay: lengthOfStay,
+      gender: gender,
+      transcriptionText: transcriptionText,
+      divisions: divisions,
+    },
+    client
+  ))) {
+    res.sendStatus(400);
+    return;
+  }
+
+  console.log('Uploading new testimony...');
+  
+  let response = await client.query(
+    'INSERT INTO testimonies (date_received, length_of_stay, gender) VALUES ($1, $2, $3) RETURNING id', 
+    [dateReceived, lengthOfStay, gender]
+  );
+  const testimonyId = response.rows[0].id;
+
+  for (let division of divisions) {
+    const divisionId = validDivisions.find(vd => vd.name === division).id;
+    await client.query(
+      'INSERT INTO testimony_divisions (testimony_id, division_id) VALUES ($1, $2)',
+      [testimonyId, divisionId]
+    );
+  }
+
+  for (let sentence of sentences) {
+    response = await client.query(
+      'INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id',
+      [sentence.text, testimonyId]
+    );
+    const sentenceId = response.rows[0].id;
+
+    for (let tag of sentence.tags) {
+      const categoryId = validCategories.find(vc => vc.shorthand === tag).id;
+      await client.query(
+        'INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, $2)',
+        [sentenceId, categoryId]
+      );
+    }
+  }
+
+  let i = 0;
+  for (let file of files) {
+    const suffix = file.originalname.split('.')[1] ? '.' + file.originalname.split('.')[1] : '';
+    const newFileName = `${testimonyId}-${i}` + suffix;
+    fs.renameSync(file.destination + file.filename, file.destination + newFileName);
+
+    await client.query(
+      'INSERT INTO testimony_Files (testimony_id, file_name) VALUES ($1, $2)',
+      [testimonyId, newFileName]
+    );
+    i++;
+  }
+    
+  await client.end();
+
+  res.send('Success');
 }
 
 function updateExistingTestimony(req, res) {
@@ -72,6 +154,7 @@ function deleteExistingTestimony(req, res) {
 }
 
 const app = express();
+app.use(express.json())
 const port = 8080;
 app.get('/auth', authenticatePassword, sendNewAuthenticationToken);
 ['categories', 'divisions', 'genders'].map(identifier => app.get(
