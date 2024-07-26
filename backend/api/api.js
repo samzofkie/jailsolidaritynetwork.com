@@ -1,24 +1,17 @@
-/*import express from 'express';
-import jwt from 'jsonwebtoken';
-import { 
-  newDBConnection, 
-  authenticatePassword, 
-  authenticateToken, 
-  readAllRowsFromTable,
-  parseTranscriptionText,
-  testimonyInputsValid,
-} from './utils.js';*/
-
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 const {
   newDBConnection,
   authenticatePassword,
   authenticateToken,
   readAllRowsFromTable,
-  parseTranscriptionText,
-  testimonyInputsValid
 } = require('./utils.js');
+const { 
+  TestimonyCreationValidator, 
+  TestimonyCreationValidatorError 
+} = require('./TestimonyCreationValidator.js');
+const upload = multer({ dest: 'uploads/'});
 
 if (!process.env.ACCESS_TOKEN_SECRET) {
   console.error('ACCESS_TOKEN_SECRET env var not set! Exiting');
@@ -73,8 +66,27 @@ function getSpecificTestimony(req, res) {
 }
 
 async function createNewTestimony(req, res) {
-  // Add testimony to database
-  let {dateReceived, lengthOfStay, gender, transcriptionText, divisions} = req.body;
+
+  // Validate form values
+  const validator = new TestimonyCreationValidator(req.body, req.files);
+  try {
+    await validator.validate();
+  } catch (error) {
+    if (error instanceof TestimonyCreationValidatorError) {
+      res.status(400).send(error.message);
+      return;
+    } else {
+      throw error;
+    }
+  }
+
+  // Format testimony upload data
+
+  // Write testimony data to database
+  
+  res.send('Success');
+  
+  /*let {dateReceived, lengthOfStay, gender, transcriptionText, divisions} = req.body;
   divisions = divisions.split(',').filter(d => d);
   const sentences = parseTranscriptionText(transcriptionText);
   const files = req.files;
@@ -142,7 +154,7 @@ async function createNewTestimony(req, res) {
     
   await client.end();
 
-  res.send('Success');
+  res.send('Success');*/
 }
 
 function updateExistingTestimony(req, res) {
@@ -154,15 +166,21 @@ function deleteExistingTestimony(req, res) {
 }
 
 const app = express();
-app.use(express.json())
+app.use(express.json());
 const port = 8080;
+
 app.get('/auth', authenticatePassword, sendNewAuthenticationToken);
 ['categories', 'divisions', 'genders'].map(identifier => app.get(
   '/' + identifier, 
   async (_, res) => res.json(await readAllRowsFromTable(identifier))));
 app.get('/testimonies', listTestimonies);
 app.get('/testimonies/:testimonyId', getSpecificTestimony);
-app.post('/testimonies', authenticateToken, createNewTestimony);
+app.post(
+  '/testimonies', 
+  authenticateToken, 
+  upload.array('file'), 
+  createNewTestimony
+);
 app.put('/testimonies/:testimonyId', authenticateToken, updateExistingTestimony);
 app.delete('/testimonies/:testimonyId', authenticateToken, deleteExistingTestimony);
 app.listen(port, () => {

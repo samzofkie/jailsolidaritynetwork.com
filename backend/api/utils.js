@@ -100,14 +100,14 @@ function parseTranscriptionText(text) {
     });
 }
 
-async function testimonyInputsValid(inputs, client) {
+/*async function testimonyInputsValid(inputs, client) {
   const {dateReceived, lengthOfStay, gender, transcriptionText, divisions, sentences} = inputs;
 
   const { rows: validCategories } = await client.query('SELECT * FROM categories');
-  const { rows: validDivisions } = await client.query('SELECT * FROM divisions');
+  const validCategoryShorthands = validCategories.map(row => row.shorthand);
+  let { rows: validDivisions } = await client.query('SELECT * FROM divisions');
+  validDivisions  = validDivisions.map(d => d.name);
   const { rows: validGenders } = await client.query('SELECT * FROM genders');
-
-
 
   for (let param of [
     {
@@ -169,7 +169,7 @@ async function testimonyInputsValid(inputs, client) {
 
   return true;
 
-}
+}*/
 
 module.exports = {
   newDBConnection,
@@ -177,5 +177,4 @@ module.exports = {
   authenticateToken,
   readAllRowsFromTable,
   parseTranscriptionText,
-  testimonyInputsValid
 };
