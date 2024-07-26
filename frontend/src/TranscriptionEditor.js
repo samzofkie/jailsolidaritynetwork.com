@@ -11,7 +11,6 @@ class TranscriptionInput extends Component {
         width: '98%',
         height: 750,
         name: 'transcriptionText',
-        value: 'The Internet is a dangerous place! With great regularity, we hear about websites becoming unavailable due to denial of service attacks, or displaying modified (and often damaging) information on their homepages.<LS> In other high-profile cases, millions of passwords, email addresses, and credit card details have been leaked into the public domain, exposing website users to both personal embarrassment and financial risk.<LS,V> The purpose of website security is to prevent these (or any) sorts of attacks.<BSM> The more formal definition of website security is the act/practice of protecting websites from unauthorized access, use, modification, destruction, or disruption.<BSM,FW>',
         id: 'testimonyEditor',
         required: true,
       }

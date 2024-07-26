@@ -38,6 +38,10 @@ function show(component) { component.set({display: 'block'}); }
 
 export class LoginPortal extends Component {
   constructor() {
+    // Redirect to root if logged in
+    if (localStorage.getItem('accessToken'))
+      window.location.href = '/';
+
     const fieldOptions = {
       inputOptions: {
         fontSize: 18,        
