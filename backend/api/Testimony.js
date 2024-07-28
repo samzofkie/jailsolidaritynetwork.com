@@ -99,6 +99,38 @@ class Testimony {
     }
     return true;
   }
+
+  async insertIntoDatabase() {
+    const client = await this.pool.connect();
+
+    // date, lengthOfStay and gender
+    const id = (await client.query(
+      'INSERT INTO testimonies (date_received, length_of_stay, gender) VALUES ($1, $2, $3) RETURNING id', 
+      [this.date, this.lengthOfStay, this.gender]
+    )).rows[0].id;
+
+    // divisions
+    for (const division of this.divisions)
+      await client.query(
+        `INSERT INTO testimony_divisions (testimony_id, division_id) VALUES ($1, (SELECT id FROM divisions WHERE name = $2))`,
+        [id, division]
+      );
+
+    // transcription
+    console.log(this.transcription);
+    for (const sentence of this.transcription) {
+      const sentenceId = (await client.query(
+        `INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id`,
+        [sentence.text, id]
+      )).rows[0].id;
+      console.log('sentence', sentenceId, sentence.text);
+      for (const tag of sentence.tags)
+        await client.query(
+          `INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = shorthand))`,
+          [sentenceId, tag]
+        );
+    }
+  }
 }
 
 module.exports = {
