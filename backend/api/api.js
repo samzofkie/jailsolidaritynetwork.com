@@ -1,30 +1,80 @@
+const crypto = require('crypto');
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const multer = require('multer');
-const {
-  newDBConnection,
-  authenticatePassword,
-  authenticateToken,
-  readAllRowsFromTable,
-} = require('./utils.js');
-const { 
-  TestimonyCreationValidator, 
-  TestimonyCreationValidatorError 
-} = require('./TestimonyCreationValidator.js');
-const upload = multer({ dest: 'uploads/'});
+const { Pool } = require('pg');
+const { TestimonyUploadValidator } = require('./TestimonyUploadValidator');
 
-if (!process.env.ACCESS_TOKEN_SECRET) {
-  console.error('ACCESS_TOKEN_SECRET env var not set! Exiting');
-  process.exit(1);
+const app = express();
+const port = 8080;
+app.use(express.json());
+
+const pool = new Pool({
+    user: 'postgres',
+    host: 'db',
+    database: 'jailsolidaritynetwork',
+    password: 'xGfKqmOznGVrzHc40WY-Y',
+});
+
+const uploadValidator = new TestimonyUploadValidator(pool);
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) 
+    return res.sendStatus(401);
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, name) => {
+    if (err)
+      return res.sendStatus(403);
+    req.name = name;
+    next();
+  });
 }
 
-async function sendNewAuthenticationToken(req, res) {
-  const token = jwt.sign({name: 'admin'}, process.env.ACCESS_TOKEN_SECRET);
-  res.json({accessToken: token});
-}
+// GET /categories
+app.get('/categories', async (_, res) => {
+  const { rows } = await pool.query('SELECT * FROM categories');
+  return res.json(rows);
+});
 
-async function listTestimonies(req, res) {
-  const client = await newDBConnection();
+// GET /divisions
+app.get('/divisions', async (_, res) => {
+  const { rows } = await pool.query('SELECT * FROM divisions');
+  return res.json(rows);
+});
+
+// POST /auth
+app.post('/auth', async (req, res) => {
+  const { username, password } = req.body;
+
+  // Validate username
+  if (/[^\S]+/.test(username))
+    return res.status(400).send('Value passed for \'username\' ill-formed!');
+
+  const { rows } = await pool.query(
+    'SELECT * FROM users WHERE name = $1', 
+    [username]
+  );
+
+  const unauthorizedMessage = 'Username and or password incorrect!'
+
+  if (!rows.length) 
+    return res.status(401).send(unauthorizedMessage);
+
+  const salt = Buffer.from(rows[0].salt, 'hex'),
+        hash = Buffer.from(rows[0].hash, 'hex');
+
+  if (crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha3-512').equals(hash)) {
+    const token = jwt.sign({name: 'admin'}, process.env.ACCESS_TOKEN_SECRET);
+    return res.json({accessToken: token});
+  } else {
+    return res.status(401).send(unauthorizedMessage);
+  }
+});
+
+// GET /testimonies
+app.get('/testimonies', async (_, res) => {
+  const client = await pool.connect();
   const { rows: categories } = await client.query('SELECT * FROM categories');
   const { rows: divisions } = await client.query('SELECT * FROM divisions');
   const { rows: testimonies } = await client.query('SELECT * FROM testimonies');
@@ -32,11 +82,12 @@ async function listTestimonies(req, res) {
   const { rows: testimonySentences } = await client.query('SELECT * FROM testimony_sentences');
   const { rows: testimonySentecesCategories } = await client.query('SELECT * FROM testimony_sentences_categories');
   const { rows: testimonyFiles } = await client.query('SELECT * FROM testimony_files');
-  await client.end();
+  client.release();
 
   const divisionIdToNameMap = new Map(divisions.map(division => [division.id, division.name]));
   const categoryIdToNameMap = new Map(categories.map(category => [category.id, category.name]));
   
+  // Populate 'divisions' and 'sentences' properties for each testimony
   testimonies.map(testimony => {
     testimony.divisions = testimonyDivisions
       .filter(division => division.testimony_id === testimony.id)
@@ -58,303 +109,22 @@ async function listTestimonies(req, res) {
       .map(file => file.file_name);
   });
   
-  res.send(testimonies);
-}
+  return res.send(testimonies);
+});
 
-function getSpecificTestimony(req, res) {
-
-}
-
-async function createNewTestimony(req, res) {
-
-  // Validate form values
-  const validator = new TestimonyCreationValidator(req.body, req.files);
-  try {
-    await validator.validate();
-  } catch (error) {
-    if (error instanceof TestimonyCreationValidatorError) {
-      res.status(400).send(error.message);
-      return;
-    } else {
-      throw error;
-    }
-  }
+// POST /testimonies
+app.post(
+  '/testimonies',
+  authenticateToken,
+  async (req, res) => {
+  if (!(await uploadValidator.validate(req.body)))
+    return res.status(400).send(uploadValidator.errorMessage);
 
   // Format testimony upload data
 
   // Write testimony data to database
   
   res.send('Success');
-  
-  /*let {dateReceived, lengthOfStay, gender, transcriptionText, divisions} = req.body;
-  divisions = divisions.split(',').filter(d => d);
-  const sentences = parseTranscriptionText(transcriptionText);
-  const files = req.files;
-
-  const client = await newConnectedClient();
-
-  if (!(await testimonyInputsValid(
-    {
-      dateReceived: dateReceived,
-      lengthOfStay: lengthOfStay,
-      gender: gender,
-      transcriptionText: transcriptionText,
-      divisions: divisions,
-    },
-    client
-  ))) {
-    res.sendStatus(400);
-    return;
-  }
-
-  console.log('Uploading new testimony...');
-  
-  let response = await client.query(
-    'INSERT INTO testimonies (date_received, length_of_stay, gender) VALUES ($1, $2, $3) RETURNING id', 
-    [dateReceived, lengthOfStay, gender]
-  );
-  const testimonyId = response.rows[0].id;
-
-  for (let division of divisions) {
-    const divisionId = validDivisions.find(vd => vd.name === division).id;
-    await client.query(
-      'INSERT INTO testimony_divisions (testimony_id, division_id) VALUES ($1, $2)',
-      [testimonyId, divisionId]
-    );
-  }
-
-  for (let sentence of sentences) {
-    response = await client.query(
-      'INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id',
-      [sentence.text, testimonyId]
-    );
-    const sentenceId = response.rows[0].id;
-
-    for (let tag of sentence.tags) {
-      const categoryId = validCategories.find(vc => vc.shorthand === tag).id;
-      await client.query(
-        'INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, $2)',
-        [sentenceId, categoryId]
-      );
-    }
-  }
-
-  let i = 0;
-  for (let file of files) {
-    const suffix = file.originalname.split('.')[1] ? '.' + file.originalname.split('.')[1] : '';
-    const newFileName = `${testimonyId}-${i}` + suffix;
-    fs.renameSync(file.destination + file.filename, file.destination + newFileName);
-
-    await client.query(
-      'INSERT INTO testimony_Files (testimony_id, file_name) VALUES ($1, $2)',
-      [testimonyId, newFileName]
-    );
-    i++;
-  }
-    
-  await client.end();
-
-  res.send('Success');*/
-}
-
-function updateExistingTestimony(req, res) {
-
-}
-
-function deleteExistingTestimony(req, res) {
-
-}
-
-const app = express();
-app.use(express.json());
-const port = 8080;
-
-app.get('/auth', authenticatePassword, sendNewAuthenticationToken);
-['categories', 'divisions', 'genders'].map(identifier => app.get(
-  '/' + identifier, 
-  async (_, res) => res.json(await readAllRowsFromTable(identifier))));
-app.get('/testimonies', listTestimonies);
-app.get('/testimonies/:testimonyId', getSpecificTestimony);
-app.post(
-  '/testimonies', 
-  authenticateToken, 
-  upload.array('file'), 
-  createNewTestimony
-);
-app.put('/testimonies/:testimonyId', authenticateToken, updateExistingTestimony);
-app.delete('/testimonies/:testimonyId', authenticateToken, deleteExistingTestimony);
-app.listen(port, () => {
-  console.log(`API listening on port ${port}`);
 });
 
-//const adminHash = JSON.parse(fs.readFileSync('./.adminPassword'));
-//adminHash.salt = Buffer.from(adminHash.salt);
-//adminHash.hash = Buffer.from(adminHash.hash);
-/*
-function authenticate(password) {
-  const challengerHash = crypto.pbkdf2Sync(password, adminHash.salt, adminHash.iterations, adminHash.hash.length, adminHash.digest);
-  return challengerHash.equals(adminHash.hash);
-}
-
-async function newConnectedClient() {
-  const client = new Client({
-    user: 'postgres',
-    host: 'db',
-    database: 'jailsolidaritynetwork',
-    password: 'xGfKqmOznGVrzHc40WY-Y',
-  });
-  await client.connect();
-  return client;
-}
-
-app.post('/testimony', upload.array('files'), async (req, res) => {
-  if (!req.body.password) {
-    res.sendStatus(401);
-    return;
-  } else if (!authenticate(req.body.password)) {
-    res.sendStatus(403);
-    return;
-  }
-
-  let {dateRecieved, lengthOfStay, gender, transcriptionText, divisions} = req.body;
-  divisions = divisions.split(',').filter(d => d);
-  const sentences = transcriptionText*/
-    //.match(/[^.?!]*[.?!]\S*/g)
-    /*?.map((sentenceText) => sentenceText.trim())
-    .map(sentence => {
-      let [_text, punct, tags] = sentence.split(/([.!?])/);
-      return {
-        fullText: sentence,
-        text: _text + punct,
-        tags: tags.replace('<','').replace('>','').split(',').filter(tag => tag),
-      };
-    });
-  let files = req.files;
-
-  const client = await newConnectedClient();
-
-  const validCategories = (await client.query('SELECT * FROM categories')).rows;
-  const validDivisions = (await client.query('SELECT * FROM divisions')).rows;
-
-  // Input validation
-  for (let param of [
-    {
-      name: 'dateRecieved',
-      value: dateRecieved,
-      valid: () => /^\d{4}-\d{2}-\d{2}$/.test(dateRecieved),
-    },
-    {
-      name: 'lengthOfStay',
-      value: lengthOfStay,
-      valid: () => /^\d+$/.test(lengthOfStay),
-    },
-    {
-      name: 'divisions',
-      value: divisions,
-      valid: async () => {
-        const validDivisionNames = validDivisions.map(row => row.name);
-        return divisions.reduce(
-          (acc, curr) => acc && validDivisionNames.includes(curr),
-          true
-        );
-      }
-    },
-    {
-      name: 'gender',
-      value: gender,
-      valid: async () => {
-        const validGenders = (await client.query('SELECT * FROM genders'))
-          .rows.map(row => row.name);
-        return validGenders.includes(gender);
-      }
-    },
-    {
-      name: 'transcriptionText',
-      value: transcriptionText.slice(0, 100) + 
-        (transcriptionText.length > 100 ? '...' : ''),
-      valid: async () => {
-        const validShorthands = validCategories.map(row => row.shorthand);
-
-        return sentences.reduce(
-          (acc, sentence) => {
-            const formValid = /^[^<]+(?:<[A-Z,]+>)?$/.test(sentence.fullText);
-            const tagsValid = sentence.tags.reduce(
-              (acc, shorthand) => acc && validShorthands.includes(shorthand),
-              true
-            );
-            return acc && formValid && tagsValid;
-          },
-          true
-        );
-      },
-    }
-  ]) {
-    if (!(await param.valid())) {
-      console.error(`${param.name} invalid: ${param.value}`);
-      res.sendStatus(400);
-      return;
-    }
-  };
-
-  console.log('Uploading new testimony...');
-  
-  let response = await client.query(
-    'INSERT INTO testimonies (date_received, length_of_stay, gender) VALUES ($1, $2, $3) RETURNING id', 
-    [dateRecieved, lengthOfStay, gender]
-  );
-  const testimonyId = response.rows[0].id;
-
-  for (let division of divisions) {
-    const divisionId = validDivisions.find(vd => vd.name === division).id;
-    await client.query(
-      'INSERT INTO testimony_divisions (testimony_id, division_id) VALUES ($1, $2)',
-      [testimonyId, divisionId]
-    );
-  }
-
-  for (let sentence of sentences) {
-    response = await client.query(
-      'INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id',
-      [sentence.text, testimonyId]
-    );
-    const sentenceId = response.rows[0].id;
-
-    for (let tag of sentence.tags) {
-      const categoryId = validCategories.find(vc => vc.shorthand === tag).id;
-      await client.query(
-        'INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, $2)',
-        [sentenceId, categoryId]
-      );
-    }
-  }
-
-  let i = 0;
-  for (let file of files) {
-    const suffix = file.originalname.split('.')[1] ? '.' + file.originalname.split('.')[1] : '';
-    const newFileName = `${testimonyId}-${i}` + suffix;
-    fs.renameSync(file.destination + file.filename, file.destination + newFileName);
-
-    await client.query(
-      'INSERT INTO testimony_Files (testimony_id, file_name) VALUES ($1, $2)',
-      [testimonyId, newFileName]
-    );
-    i++;
-  }
-    
-  await client.end();
-
-  res.send('Success');
-});
-
-
-async function sendRowsFomDb(table, res) {
-  const client = await newConnectedClient();
-  const response = (await client.query(`SELECT * FROM ${table}`)).rows;
-  res.json(response);
-  await client.end();
-}
-
-app.get('/divisions', (_, res) => sendRowsFomDb('divisions', res))
-app.get('/genders', (_, res) => sendRowsFomDb('genders', res))
-app.get('/categories', (_, res) => sendRowsFomDb('categories', res))
-*/
+app.listen(port, () => console.log(`API listening on port ${port}`));
