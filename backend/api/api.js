@@ -121,9 +121,7 @@ app.post(
   if (!(await testimony.validate()))
     return res.status(400).send(testimony.errorMessage);
 
-  // Format testimony upload data
-
-  // Write testimony data to database
+  await testimony.insertIntoDatabase();
   
   res.send('Success');
 });
