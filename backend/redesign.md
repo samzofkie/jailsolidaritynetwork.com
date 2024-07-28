@@ -6,19 +6,28 @@
 
 The reverse proxy implements SSL, serves static content, and forwards certain requests to the API.
 
-The API includes two main resources and some methods:
+The API has the following resource model:
+  - a resource respresenting valid categories: `categories`,
+  - a resource representing valid divisions: `divisions`,
+  - a collection serving authentication tokens: `auth`,
+  - and a collection of testimonies: `testimonies/*`, where each testimony has:
+    - a collection of files: `testimonies/*/files/*`,
 
-| HTTP Request | REST Method | Authenticated | Request Body | Response Body |
-| --- | --- | --- | --- | --- |
-| `GET /auth` | `Get` | Password | Username and plain-text password (query string) | JWT |
-| `GET /categories` | `List` | | | JSON array of categories |
-| `GET /divisions` | `List` | | | JSON array of divisions |
-| `GET /genders` | `List` | | | JSON array of valid values for gender |
-| `GET /testimonies` | `List` | | Query parameters | JSON array of testimonies |
-| `GET /testimonies/:id` | `Get` | | | JSON testimony |
-| `POST /testimonies` | `Create ` | Token | Testimony data | |
-| `PUT /testimonies/:id` | `Update` | Token | Testimony data |
-| `DELETE /testimonies/:id` | `Delete` | Token | |
+and supports the following methods:
+| REST Method | HTTP Request | Header |
+| --- | --- | --- |
+| `Get`    | `GET /categories` |
+| `Get`    | `GET /divisions` |
+| `Create` | `POST /auth` |
+| `List`   | `GET /testimonies` |
+| `Create` | `POST /testimonies` |
+| `Get`    | `GET /testimony/:id` |
+| `Update` | `PUT /testimony/:id` |
+| `Delete` | `DELETE /testimony/:id` |
+| `Create` | `POST /testimony/:id/files` |
+| `Update` | `PUT /testimonies/:id/files/:fileId` |
+| `Delete` | `DELETE /testimonies/:id/file/:fileId` |
 
-This all is coming from reading [https://cloud.google.com/apis/design](https://cloud.google.com/apis/design).
+
+(Inspired by [https://cloud.google.com/apis/design](https://cloud.google.com/apis/design)).
   

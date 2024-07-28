@@ -108,23 +108,30 @@ export class LoginPortal extends Component {
     };
   }
   
-  upload() {
+  async upload() {
     hide(this.submitButton);
     show(this.spinner);
 
-    const queryString = new URLSearchParams(new FormData(this.root)).toString();
-    fetch('/auth?' + queryString)
-      .then(async res => {
-        if (res.status !== 200) {
-          this.complain(await res.text());
-          hide(this.spinner);
-          show(this.submitButton);
-          this.clearInputs();
-        } else {
-          const { accessToken } = await res.json();
-          localStorage.setItem('accessToken', accessToken);
-          window.location.href = '/admin.html';
-        }
-      });
+    const credentials = Object.fromEntries(new FormData(this.root).entries());
+    console.log(credentials);
+
+    fetch('/auth', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }).then(async res => {
+      if (res.status !== 200) {
+        this.complain(await res.text());
+        hide(this.spinner);
+        show(this.submitButton);
+        this.clearInputs();
+      } else {
+        const { accessToken } = await res.json();
+        localStorage.setItem('accessToken', accessToken);
+        window.location.href = '/admin.html';
+      }
+    });
   }
 }
