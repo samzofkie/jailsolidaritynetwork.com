@@ -1,6 +1,6 @@
 import { Component } from '@samzofkie/component';
 import { TranscriptionEditor } from './TranscriptionEditor.js';
-import { Field, FetchedSection } from './Inputs.js';
+import { Field, Section, FetchedSection } from './Inputs.js';
 import { Spinner } from './Spinner.js';
 
 export class UploadForm extends Component {
@@ -43,7 +43,7 @@ export class UploadForm extends Component {
       },
     });
 
-    this.gender = new FetchedSection(
+    /*this.gender = new FetchedSection(
       'Gender: ',
       '/genders',
       (gender, i) => new Field({
@@ -57,6 +57,24 @@ export class UploadForm extends Component {
           checked: i === 0 ? true : '',
         },
       })
+    );*/
+
+    this.gender = new Section(
+      'Gender: ',
+      ...['Male', 'Female', 'Non-binary', 'Other']
+        .map((gender, i) =>
+          new Field({
+            type: 'radio',
+            label: gender,
+            name: 'gender',
+            inputFirst: true,
+            inputOptions: {
+              required: true,
+              value: gender,
+              checked: i === 0 ? true : '',
+            },
+          })
+        )
     );
 
     this.editor = new TranscriptionEditor;
@@ -172,7 +190,7 @@ export class UploadForm extends Component {
       .filter(d => d.input.root.checked)
       .map(d => d.label.root.innerText));
     formData.set('lengthOfStay', this.lengthOfStay.input.root.value);
-    formData.set('gender', this.gender.children.slice(2)
+    formData.set('gender', this.gender.children.slice(1)
       .find(field => field.input.root.checked)
       .label.root.innerText,);
     formData.set('transcription', this.editor.input.root.value);
@@ -194,16 +212,17 @@ export class UploadForm extends Component {
       return;
     }
 
-    const formData = this.buildPostFormData();
+    const testimonyData = Object.fromEntries(this.buildPostFormData().entries())
 
     this.spinner.show();
     this.submit.hide();
 
     fetch("/testimonies", {
         method: 'POST',
-        body: formData,
+        body: JSON.stringify(testimonyData),
         headers: {
-          Authorization: 'Bearer ' +  localStorage.getItem('accessToken')
+          Authorization: 'Bearer ' +  localStorage.getItem('accessToken'),
+          'Content-Type': 'application/json',
         },
     })
       .then(res => {

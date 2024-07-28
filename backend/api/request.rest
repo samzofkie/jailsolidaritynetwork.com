@@ -1,9 +1,0 @@
-GET http://localhost:5173/auth?username=admin&password=crap
-
-####
-
-POST http://localhost:5173/testimonies
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiYWRtaW4iLCJpYXQiOjE3MjE4MzUzMzd9.DB4YzHQVrvN1Z58yo-0CzWD1ICo16PTKqrsEbkvFkPc
-
-{"dateReceived":"2024-01-01","lengthOfStay":"20","gender":"Male","transcriptionText":"Sentence from the form. Another sentence from the form!<ACB,ST> ","selectedCategory":"on","selectedCategoryMode":"on","files":{},"divisions":"2,4,9,10"}
