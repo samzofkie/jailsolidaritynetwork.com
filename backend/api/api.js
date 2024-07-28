@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
-const { TestimonyUploadValidator } = require('./TestimonyUploadValidator');
+const { Testimony } = require('./Testimony');
 
 const app = express();
 const port = 8080;
@@ -14,8 +14,6 @@ const pool = new Pool({
     database: 'jailsolidaritynetwork',
     password: 'xGfKqmOznGVrzHc40WY-Y',
 });
-
-const uploadValidator = new TestimonyUploadValidator(pool);
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -117,8 +115,11 @@ app.post(
   '/testimonies',
   authenticateToken,
   async (req, res) => {
-  if (!(await uploadValidator.validate(req.body)))
-    return res.status(400).send(uploadValidator.errorMessage);
+  
+  const testimony = new Testimony(req.body, pool);
+  
+  if (!(await testimony.validate()))
+    return res.status(400).send(testimony.errorMessage);
 
   // Format testimony upload data
 
