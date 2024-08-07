@@ -9,12 +9,10 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "prettier": "^3.2.4",
     "vite": "^5.0.8"
   },
   "dependencies": {
     "@samzofkie/component": "^2.0.1",
-    "mupdf": "^0.2.3",
     "nanoid": "^5.0.7"
   }
 }
