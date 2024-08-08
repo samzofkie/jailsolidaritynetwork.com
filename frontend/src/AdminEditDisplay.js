@@ -55,7 +55,7 @@ class TestimonyEditCard extends Component {
         gap: 10,
       },
       data.files.length ? 
-        new Component('img', {src: `${data.id}-preview.png`, width: 200, overflow: 'hidden'})
+        new Component('img', {src: `${data.id}-thumbnail.jpg`, width: 200, overflow: 'hidden'})
         : new Component('div', {width: 200}, ' '),
       new Component(
         'div',

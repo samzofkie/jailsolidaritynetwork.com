@@ -1,12 +1,18 @@
 const crypto = require('crypto');
+const fs = require('fs');
+
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 const { Pool } = require('pg');
+
 const { Testimony } = require('./Testimony');
+const { TestimonyFileManager } = require('./TestimonyFileManager');
 
 const app = express();
 const port = 8080;
 app.use(express.json());
+const upload = multer({ dest: 'files/' });
 
 const pool = new Pool({
     user: 'postgres',
@@ -14,6 +20,8 @@ const pool = new Pool({
     database: 'jailsolidaritynetwork',
     password: 'xGfKqmOznGVrzHc40WY-Y',
 });
+
+const testimonyFileManager = new TestimonyFileManager(pool);
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -121,9 +129,41 @@ app.post(
   if (!(await testimony.validate()))
     return res.status(400).send(testimony.errorMessage);
 
-  await testimony.insertIntoDatabase();
+  const id = await testimony.insertIntoDatabase();
   
-  res.send('Success');
+  return res.status(200).json({id: id});
 });
+
+// GET /testimonies/:id
+
+// PUT /testimonies/:id
+
+// DELETE /testimonies/:id
+
+// POST /testimonies/:id/files
+app.post(
+  '/testimonies/:id/files',
+  authenticateToken,
+  upload.single('file'),
+  async (req, res) => {
+
+    const testimonyId = req.params.id;
+    const file = req.file;
+    
+    if (!file)
+      return res.status(400).send('File in body of request is undefined!')
+
+    const newFileName = await testimonyFileManager.insertNewFile(testimonyId, file);
+
+    if (!newFileName)
+      return res.status(400).send(testimonyFileManager.errorMessage);
+    else 
+      return res.status(200).json({fileName: newFileName});
+  }
+);
+
+// PUT /testimonies/:id/files/:fileId
+
+// DELETE /testimonies/:id/file/:fileId
 
 app.listen(port, () => console.log(`API listening on port ${port}`));

@@ -1,4 +1,15 @@
+- Make sure `prod.yaml` has proper bind mounting for `backend/files` directory
+- Finish thumbnail support for PDFs and PNGs
+---
+- Bugs
+  - `UploadForm.js` making `POST /testimonies/:id/files` request when you click add file and then cancel
 - API
+  - `GET /testimony/:id`
+  - `PUT /testimony/:id`
+  - `DELETE /testimony/:id`
+  - `POST /testimony/:id/files`
+  - `PUT /testimonies/:id/files/:fileId`
+  - `DELETE /testimonies/:id/file/:fileId`
 - UI redesign
 - Cloudflare (DDOS prevention and CDN)
 - Redo log rotation
