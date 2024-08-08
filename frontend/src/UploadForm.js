@@ -2,6 +2,7 @@ import { Component } from '@samzofkie/component';
 import { TranscriptionEditor } from './TranscriptionEditor.js';
 import { Field, Section, FetchedSection } from './Inputs.js';
 import { Spinner } from './Spinner.js';
+import { FileUpload } from './FileUpload.js';
 
 export class UploadForm extends Component {
   constructor() {
@@ -79,13 +80,13 @@ export class UploadForm extends Component {
 
     this.editor = new TranscriptionEditor;
 
-    this.files = new Field({
+    /*this.files = new Field({
       type: 'file',
       label: 'Files: ',
       name: 'files',
       caption: '(select all at once please)',
       inputOptions: {multiple: true},
-    });
+    });*/
 
     this.complaint = new Component('span', {color: 'red'});
     this.complaint.hide();
@@ -113,13 +114,17 @@ export class UploadForm extends Component {
         )
       );
 
+    this.fileUpload = new FileUpload;
+
     this.append(        
       this.date,
       this.divisions,
       this.lengthOfStay,
       this.gender,
       this.editor,
-      this.files,
+      //this.files,
+      new Component('div', {fontWeight: 'bold'}, 'Files:'),
+      this.fileUpload,
       this.complaint,
       this.submit,
       this.spinner,
@@ -148,7 +153,7 @@ export class UploadForm extends Component {
       this.lengthOfStay.input,
       ...this.gender.getInputs(),
       this.editor.input,
-      this.files.input,
+      //this.files.input,
       //this.password.input,
     ];
   }
@@ -195,13 +200,13 @@ export class UploadForm extends Component {
       .label.root.innerText,);
     formData.set('transcription', this.editor.input.root.value);
 
-    [...this.files.input.root.files].map(
-      (file, i) => formData.append('file', file, file.name));
+    /*[...this.files.input.root.files].map(
+      (file, i) => formData.append('file', file, file.name));*/
 
     return formData;
   }
 
-  upload(event) {
+  async upload(event) {
     event.preventDefault();
     this.unhighlightAllInputs();
     this.complaint.hide();
@@ -217,15 +222,51 @@ export class UploadForm extends Component {
     this.spinner.show();
     this.submit.hide();
 
-    fetch("/testimonies", {
+    const res = await fetch(
+      '/testimonies', 
+      {
         method: 'POST',
-        body: JSON.stringify(testimonyData),
         headers: {
           Authorization: 'Bearer ' +  localStorage.getItem('accessToken'),
           'Content-Type': 'application/json',
         },
-    })
-      .then(res => {
+        body: JSON.stringify(testimonyData),
+      }
+    );
+
+    if (res.status !== 200) {
+      if (res.status === 401)
+        this.complain('Your upload attempt lacked an authorization token! That seems like a problem with the frontend.');
+      else if (res.status === 403)
+        this.complain('The authorization token your browser sent is invalid!');
+      this.spinner.hide();
+      this.submit.show();
+      return;
+    }
+
+    const id = (await res.json()).id;
+
+    for (const input of this.fileUpload.inputs) {
+      const file = input.root.files[0];
+      const fileFormData = new FormData;
+      //fileFormData.append('name', file.name);
+      fileFormData.append('file', file);
+
+      const fileRes = await fetch(
+        `/testimonies/${id}/files`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' +  localStorage.getItem('accessToken'),
+            //'Content-Type': 'multipart/form-data',
+          },
+          //body: input.root.files[0],
+          body: fileFormData,
+        }
+      );
+
+    }
+      /*.then(res => {
         if (res.status === 401) {
           this.complain('Your upload attempt lacked an authorization token! That seems like a problem with the frontend.');
         } else if (res.status === 403) {
@@ -237,6 +278,6 @@ export class UploadForm extends Component {
         this.spinner.hide();
         this.submit.show();
       })
-      .catch(console.error);
+      .catch(console.error);*/
   }
 }
