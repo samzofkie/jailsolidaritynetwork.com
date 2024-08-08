@@ -117,19 +117,19 @@ class Testimony {
       );
 
     // transcription
-    console.log(this.transcription);
     for (const sentence of this.transcription) {
       const sentenceId = (await client.query(
         `INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id`,
         [sentence.text, id]
       )).rows[0].id;
-      console.log('sentence', sentenceId, sentence.text);
       for (const tag of sentence.tags)
         await client.query(
           `INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = shorthand))`,
           [sentenceId, tag]
         );
     }
+
+    return id;
   }
 }
 

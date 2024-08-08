@@ -5,6 +5,7 @@ services:
       - api
     volumes:
       - ../frontend:/frontend
+      - ./files:/frontend/public
     working_dir: /frontend
     command: npm run dev
     ports:
@@ -17,6 +18,7 @@ services:
     restart: on-failure:10
     volumes:
       - ./api:/api
+      - ./files:/api/files
     working_dir: /api
     env_file: ./api/.env
     command: node api.js
