@@ -1,4 +1,5 @@
 const fs = require('fs');
+const sharp = require('sharp');
 
 class TestimonyFileUploadError extends Error {}
 
@@ -11,7 +12,7 @@ class TestimonyFileManager {
   constructor(pool) {
     this.pool = pool;
     this.filesPath = 'files';
-    this.validFileTypes = ['jpg', 'jpeg', 'pdf'];
+    this.validFileTypes = ['jpg', 'jpeg', 'pdf', 'png'];
     this.errorMessage = '';
   }
 
@@ -60,8 +61,10 @@ class TestimonyFileManager {
         false, 
         true
       );
-      const jpg = pixmap.asJPEG(80);
+      const jpg = pixmap.asJPEG(90);
       fs.writeFileSync(thumbnailFilePath, Buffer.from(jpg));
+    } else if (fileExtension === 'png') {
+      sharp(newFilePath).toFile(thumbnailFilePath);
     }
   }
 

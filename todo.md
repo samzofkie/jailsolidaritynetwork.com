@@ -1,7 +1,8 @@
 - Make sure `prod.yaml` has proper bind mounting for `backend/files` directory
-- Finish thumbnail support for PNGs
 - Resolve issue with `backend/files:frontend/public` bind mount overwriting static content already in `frontend/public`
 - Reconsider switching from CommonJS to ES6 for api
+- What happens if file upload fails?
+- Remove vestiges of `GET /gender` endpoint
 ---
 - Bugs
   - `UploadForm.js` making `POST /testimonies/:id/files` request when you click add file and then cancel
@@ -9,7 +10,6 @@
   - `GET /testimony/:id`
   - `PUT /testimony/:id`
   - `DELETE /testimony/:id`
-  - `POST /testimony/:id/files`
   - `PUT /testimonies/:id/files/:fileId`
   - `DELETE /testimonies/:id/file/:fileId`
 - UI redesign

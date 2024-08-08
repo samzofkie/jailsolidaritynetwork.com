@@ -42,9 +42,9 @@ The `node` container's REST API exposes the following endpoints:
 | `Create` | `POST /auth` |
 | `List`   | `GET /testimonies` |
 | `Create` | `POST /testimonies` |
-| `Get`    | `GET /testimony/:id` |
-| `Update` | `PUT /testimony/:id` |
-| `Delete` | `DELETE /testimony/:id` |
-| `Create` | `POST /testimony/:id/files` |
+| `Get`    | `GET /testimonies/:id` |
+| `Update` | `PUT /testimonies/:id` |
+| `Delete` | `DELETE /testimonies/:id` |
+| `Create` | `POST /testimonies/:id/files` |
 | `Update` | `PUT /testimonies/:id/files/:fileId` |
 | `Delete` | `DELETE /testimonies/:id/file/:fileId` |
