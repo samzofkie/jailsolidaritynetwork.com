@@ -1,5 +1,7 @@
 - Make sure `prod.yaml` has proper bind mounting for `backend/files` directory
-- Finish thumbnail support for PDFs and PNGs
+- Finish thumbnail support for PNGs
+- Resolve issue with `backend/files:frontend/public` bind mount overwriting static content already in `frontend/public`
+- Reconsider switching from CommonJS to ES6 for api
 ---
 - Bugs
   - `UploadForm.js` making `POST /testimonies/:id/files` request when you click add file and then cancel
