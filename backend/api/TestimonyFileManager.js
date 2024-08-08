@@ -11,7 +11,7 @@ class TestimonyFileManager {
   constructor(pool) {
     this.pool = pool;
     this.filesPath = 'files';
-    this.validFileTypes = ['jpg', 'jpeg'];
+    this.validFileTypes = ['jpg', 'jpeg', 'pdf'];
     this.errorMessage = '';
   }
 
@@ -35,12 +35,33 @@ class TestimonyFileManager {
       );
   }
 
-  generateThumbnail(testimonyId, fileExtension, newFileName) {
+  async generateThumbnail(testimonyId, fileExtension, newFileName, newFilePath) {
+    const thumbnailFileName = `${testimonyId}-thumbnail.jpg`;
+    const thumbnailFilePath = `${this.filesPath}/${thumbnailFileName}`;
     if (fileExtension === 'jpg' || fileExtension === 'jpeg') {
       fs.copyFileSync(
-        `${this.filesPath}/${newFileName}`,
+        newFilePath,
+        thumbnailFilePath
         `${this.filesPath}/${testimonyId}-thumbnail.jpg`
       );
+    } else if (fileExtension === 'pdf') {
+      // mupdf is only available as an ES6 module, so for now we're doing a
+      // dynamic import each time we run this function
+      const mupdf = await import('mupdf');
+      
+      const doc = mupdf.Document.openDocument(
+        fs.readFileSync(newFilePath), 
+        'application/pdf'
+      );
+      const page = doc.loadPage(0);
+      const pixmap = page.toPixmap(
+        mupdf.Matrix.identity, 
+        mupdf.ColorSpace.DeviceRGB, 
+        false, 
+        true
+      );
+      const jpg = pixmap.asJPEG(80);
+      fs.writeFileSync(thumbnailFilePath, Buffer.from(jpg));
     }
   }
 
@@ -51,12 +72,13 @@ class TestimonyFileManager {
       const fileNum = (await this.numberOfFilesForTestimony(testimonyId)) + 1;
       const fileExtension = this.getFileExtension(fileObject);
       const newFileName = `${testimonyId}-${fileNum}.${fileExtension}`;
+      const newFilePath = `${this.filesPath}/${newFileName}`;
 
       this.validateFileType(fileExtension);
 
       fs.renameSync(
         fileObject.path, 
-        `${this.filesPath}/${newFileName}`,
+        newFilePath,
       );
 
       // We need to await this insertion query to prevent a race between calls to
@@ -67,7 +89,7 @@ class TestimonyFileManager {
       );
 
       if (fileNum === 1) {
-        this.generateThumbnail(testimonyId, fileExtension, newFileName);
+        this.generateThumbnail(testimonyId, fileExtension, newFileName, newFilePath);
       }
 
       return newFileName;
