@@ -83,6 +83,7 @@ app.get('/testimonies', async (_, res) => {
   const client = await pool.connect();
   const { rows: categories } = await client.query('SELECT * FROM categories');
   const { rows: divisions } = await client.query('SELECT * FROM divisions');
+  
   const { rows: testimonies } = await client.query('SELECT * FROM testimonies');
   const { rows: testimonyDivisions } = await client.query('SELECT * FROM testimony_divisions');
   const { rows: testimonySentences } = await client.query('SELECT * FROM testimony_sentences');
@@ -135,6 +136,57 @@ app.post(
 });
 
 // GET /testimonies/:id
+app.get('/testimonies/:id', async (req, res) => {
+  const testimonyId = req.params.id;
+  const client = await pool.connect();
+
+  const testimony = (await client.query(
+    'SELECT * FROM testimonies WHERE id = $1',
+    [testimonyId]
+  )).rows[0];
+  
+  if (!testimony) {
+    return res.status(404).send('\'id\' value not found!');
+  }
+
+  testimony.divisions = (await client.query(
+    'SELECT divisions.name FROM testimony_divisions \
+    INNER JOIN divisions ON testimony_divisions.division_id = divisions.id \
+    WHERE testimony_id = $1',
+    [testimonyId]
+  )).rows.map(row => row.name);
+
+  const sentencesCategories = (await client.query(
+    'SELECT sentence_id, categories.name AS category \
+    FROM testimony_sentences_categories \
+    INNER JOIN testimony_sentences \
+    ON testimony_sentences_categories.sentence_id = testimony_sentences.id \
+    INNER JOIN categories \
+    ON testimony_sentences_categories.category_id = categories.id \
+    WHERE testimony_id = $1',
+    [testimonyId]
+  )).rows;
+
+  testimony.sentences = (await client.query(
+    'SELECT id, sentence FROM testimony_sentences WHERE testimony_id = $1',
+    [testimonyId]
+  )).rows.map(sentence => {
+
+    return {
+      ...sentence,
+      categories: sentencesCategories
+        .filter(sc => sentence.id === sc.sentence_id)
+        .map(sc => sc.category)
+    }
+  });
+
+  testimony.files = (await client.query(
+    'SELECT file_name FROM testimony_files WHERE testimony_id = $1',
+    [testimonyId]
+  )).rows.map(row => row.file_name);
+
+  return res.send(testimony);
+});
 
 // PUT /testimonies/:id
 

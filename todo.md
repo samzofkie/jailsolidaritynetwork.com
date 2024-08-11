@@ -3,13 +3,13 @@
 - Reconsider switching from CommonJS to ES6 for api
 - What happens if file upload fails?
 - Remove vestiges of `GET /gender` endpoint
+- Use SQL `INNER JOIN` on `GET /testimonies` endpoint
 ---
 - Bugs
   - `UploadForm.js` making `POST /testimonies/:id/files` request when you click add file and then cancel
 - API
-  - `GET /testimony/:id`
-  - `PUT /testimony/:id`
-  - `DELETE /testimony/:id`
+  - `PUT /testimonies/:id`
+  - `DELETE /testimonies/:id`
   - `PUT /testimonies/:id/files/:fileId`
   - `DELETE /testimonies/:id/file/:fileId`
 - UI redesign
