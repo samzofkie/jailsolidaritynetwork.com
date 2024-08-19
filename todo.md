@@ -1,7 +1,6 @@
 - Reconsider switching from CommonJS to ES6 for api
 - What happens if file upload fails?
   - redirect or success message on file upload success
-- Use SQL `INNER JOIN` on `GET /testimonies` endpoint
 - API and frontend should use camel case
 - Header logo should redirect to index.html
 - nginx log rotate

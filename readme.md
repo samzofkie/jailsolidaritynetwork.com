@@ -48,3 +48,17 @@ The `node` container's REST API exposes the following endpoints:
 | `Create` | `POST /testimonies/:id/files` |
 | `Update` | `PUT /testimonies/:id/files/:fileId` |
 | `Delete` | `DELETE /testimonies/:id/file/:fileId` |
+
+A *testimonyObject* has the following properties:
+- `id` (*integer*): the database id for the particular testimony
+- `date_received` (*string*): a date of the form `MM-DD-YYYY`
+- `length_of_stay` (*integer*): the number of months the respondent has been incarcerated
+- `gender` (*string*): the gender of the respondent
+- `divisions` (*array of strings*): the divisions the respondent has been incarcerated in
+- `sentences` (*array of objects*):
+  - `id` (*integer*): the integer id of that sentence
+  - `sentence` (*string*): the actual text of that sentence (a Postgres `TEXT` value)
+  - `categories` (*array of strings*): the full name of the categories associated with that sentence
+- `files` (*array of strings*): a list of document files associated with the testimony
+
+`GET /testimonies` responds with an array of *testimonyObject*s, one for each testimony in the database, and `GET /testimonies/:id` responds with the data for the single testimony with the id value `:id`.
