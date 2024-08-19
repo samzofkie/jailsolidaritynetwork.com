@@ -27,6 +27,14 @@ export class JSNPage extends Page {
           href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0',
         }
       ),
+      new Component(
+        'link',
+        {
+          rel: 'icon',
+          type: 'image/x-icon',
+          href: 'static/favicon.ico'
+        }
+      ),
     );
   }
 }

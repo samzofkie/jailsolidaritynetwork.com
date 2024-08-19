@@ -12,7 +12,7 @@ const { TestimonyFileManager } = require('./TestimonyFileManager');
 const app = express();
 const port = 8080;
 app.use(express.json());
-const upload = multer({ dest: 'files/' });
+const upload = multer({ dest: 'documents/' });
 
 const pool = new Pool({
     user: 'postgres',

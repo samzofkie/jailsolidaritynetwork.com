@@ -11,7 +11,7 @@ class TestimonyFileUploadError extends Error {}
 class TestimonyFileManager {
   constructor(pool) {
     this.pool = pool;
-    this.filesPath = 'files';
+    this.filesPath = 'documents';
     this.validFileTypes = ['jpg', 'jpeg', 'pdf', 'png'];
     this.errorMessage = '';
   }
@@ -42,8 +42,7 @@ class TestimonyFileManager {
     if (fileExtension === 'jpg' || fileExtension === 'jpeg') {
       fs.copyFileSync(
         newFilePath,
-        thumbnailFilePath
-        `${this.filesPath}/${testimonyId}-thumbnail.jpg`
+        thumbnailFilePath,
       );
     } else if (fileExtension === 'pdf') {
       // mupdf is only available as an ES6 module, so for now we're doing a

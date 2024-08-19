@@ -1,21 +1,25 @@
 services:
   proxy:
-    image: nginx-log-rotate
+    image: nginx
+    restart: always
     ports:
       - 80:80
       - 443:443
     volumes:
+      - ./nginx:/etc/nginx
       - ../frontend/dist:/data/www
-      - ./logs/:/logs
-    depends_on:
-      - db
+      - ../frontend/public/static:/data/static
+      - ./documents:/data/documents
+      - ./logs:/logs
 
   api:
     image: node
+    restart: always
     volumes:
       - ./api:/api
-    restart: on-failure:10
+      - ./documents:/api/documents
     working_dir: /api
+    env_file: ./api/.env
     command: node api.js
 
   db:
