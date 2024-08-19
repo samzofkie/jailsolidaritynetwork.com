@@ -6,9 +6,10 @@ class Logo extends Component {
       'img', 
       {
         width: fullWidth,
-        src: 'jsn-logo-transparent.png',
+        src: 'static/jsn-logo-transparent.png',
         alt: 'Jail Solidarity Network logo',
-    });
+      }
+    );
     this.fullWidth = fullWidth;
   }
 }
@@ -146,8 +147,8 @@ export class Header extends Component {
     const isMobile = window.innerWidth < 800;
     const linkButtons = Object.entries({
       Archive: '/archive.html',
-      'Sheriff Dart vs. Reality': '/dart.html',
-      'Cook County Jail Timeline': '/timeline.html',
+      'Sheriff Dart vs. Reality': 'static/dart.html',
+      'Cook County Jail Timeline': 'static/timeline.html',
       About: '/about.html',
       Action: '/action.html',
     }).map(pair => new LinkButton(...pair));

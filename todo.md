@@ -1,9 +1,10 @@
-- Make sure `prod.yaml` has proper bind mounting for `backend/files` directory
-- Resolve issue with `backend/files:frontend/public` bind mount overwriting static content already in `frontend/public`
 - Reconsider switching from CommonJS to ES6 for api
 - What happens if file upload fails?
-- Remove vestiges of `GET /gender` endpoint
+  - redirect or success message on file upload success
 - Use SQL `INNER JOIN` on `GET /testimonies` endpoint
+- API and frontend should use camel case
+- Header logo should redirect to index.html
+- nginx log rotate
 ---
 - Bugs
   - `UploadForm.js` making `POST /testimonies/:id/files` request when you click add file and then cancel
@@ -13,6 +14,10 @@
   - `PUT /testimonies/:id/files/:fileId`
   - `DELETE /testimonies/:id/file/:fileId`
 - UI redesign
+- Testing
+  - Jest
+  - Playwright
+  - Postman
 - Cloudflare (DDOS prevention and CDN)
 - Redo log rotation
   - database backups ( and restores )
