@@ -81,41 +81,47 @@ app.post('/auth', async (req, res) => {
 // GET /testimonies
 app.get('/testimonies', async (_, res) => {
   const client = await pool.connect();
-  const { rows: categories } = await client.query('SELECT * FROM categories');
-  const { rows: divisions } = await client.query('SELECT * FROM divisions');
   
-  const { rows: testimonies } = await client.query('SELECT * FROM testimonies');
-  const { rows: testimonyDivisions } = await client.query('SELECT * FROM testimony_divisions');
-  const { rows: testimonySentences } = await client.query('SELECT * FROM testimony_sentences');
-  const { rows: testimonySentecesCategories } = await client.query('SELECT * FROM testimony_sentences_categories');
-  const { rows: testimonyFiles } = await client.query('SELECT * FROM testimony_files');
+  const { rows: testimonyDivisions } = await client.query(
+    'SELECT testimony_divisions.testimony_id, divisions.name \
+    FROM testimony_divisions \
+    INNER JOIN divisions ON testimony_divisions.division_id = divisions.id'
+  );
+  const { rows: testimonySentences } = await client.query(
+    'SELECT * FROM testimony_sentences'
+  );
+  const { rows: testimonySentencesCategories } = await client.query(
+    'SELECT testimony_sentences_categories.sentence_id, categories.name \
+    FROM testimony_sentences_categories \
+    INNER JOIN categories \
+    ON testimony_sentences_categories.category_id = categories.id'
+  );
+  const { rows: testimonyFiles } = await client.query(
+    'SELECT testimony_id, file_name FROM testimony_files'
+  );
+
+  const testimonies = (await client.query('SELECT * FROM testimonies')).rows
+    .map(testimony => ({
+      ...testimony,
+      divisions: testimonyDivisions
+        .filter(td => td.testimony_id === testimony.id)
+        .map(td => td.name),
+      sentences: testimonySentences
+        .filter(ts => ts.testimony_id === testimony.id)
+        .map(ts => ({
+          id: ts.id,
+          sentence: ts.sentence,
+          categories: testimonySentencesCategories
+            .filter(tsc => tsc.sentence_id === ts.id)
+            .map(tsc => tsc.name),
+        })),
+      files: testimonyFiles
+        .filter(tf => tf.testimony_id === testimony.id)
+        .map(tf => tf.file_name),
+    }));
+    
   client.release();
 
-  const divisionIdToNameMap = new Map(divisions.map(division => [division.id, division.name]));
-  const categoryIdToNameMap = new Map(categories.map(category => [category.id, category.name]));
-  
-  // Populate 'divisions' and 'sentences' properties for each testimony
-  testimonies.map(testimony => {
-    testimony.divisions = testimonyDivisions
-      .filter(division => division.testimony_id === testimony.id)
-      .map(division => divisionIdToNameMap.get(division.division_id));
-    testimony.sentences = testimonySentences
-      .filter(sentence => sentence.testimony_id === testimony.id)
-      .map(s => ({id : s.id, sentence: s.sentence }));
-    
-    // Add categories to each sentence
-    testimony.sentences.map(sentence => {
-      const sentenceCategories = testimonySentecesCategories
-        .filter(category => category.sentence_id === sentence.id)
-        .map(c => categoryIdToNameMap.get(c.id));
-      sentence.categories = sentenceCategories;
-    });
-
-    testimony.files = testimonyFiles
-      .filter(file => file.testimony_id === testimony.id)
-      .map(file => file.file_name);
-  });
-  
   return res.send(testimonies);
 });
 
