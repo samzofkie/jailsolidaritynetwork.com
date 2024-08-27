@@ -122,17 +122,29 @@ app.get('/testimonies', async (_, res) => {
     'SELECT testimony_id, file_name FROM testimony_files'
   );
 
+  const formatDate = dateString => {
+    const date = new Date(dateString);
+    let month = (date.getMonth() + 1).toString();
+    if (month.length < 2) {
+      month = '0' + month;
+    }
+    return `${month}-${date.getFullYear()}`;
+  }
+
   const testimonies = (await client.query('SELECT * FROM testimonies')).rows
     .map(testimony => ({
-      ...testimony,
+      testimonyId: testimony.id,
+      dateReceived: formatDate(testimony.date_received),
+      lengthOfStay: testimony.length_of_stay,
+      gender: testimony.gender,
       divisions: testimonyDivisions
         .filter(td => td.testimony_id === testimony.id)
         .map(td => td.name),
-      sentences: testimonySentences
+      transcription: testimonySentences
         .filter(ts => ts.testimony_id === testimony.id)
         .map(ts => ({
-          id: ts.id,
-          sentence: ts.sentence,
+          sentenceId: ts.id,
+          text: ts.sentence,
           categories: testimonySentencesCategories
             .filter(tsc => tsc.sentence_id === ts.id)
             .map(tsc => tsc.name),
