@@ -33,7 +33,7 @@ components:
           type: array
           items:
             type: string
-        transcriptionSentences:
+        transcription:
           type: array
           items:
             type: object
@@ -73,7 +73,7 @@ components:
           type: array
           items:
             type: string
-        transcriptionSentences:
+        transcription:
           type: array
           items:
             type: object
