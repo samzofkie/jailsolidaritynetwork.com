@@ -29,52 +29,74 @@ function authenticateToken(req, res, next) {
   if (!token) 
     return res.sendStatus(401);
 
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, name) => {
-    if (err)
-      return res.sendStatus(403);
-    req.name = name;
-    next();
-  });
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+  } catch (error) {
+    return res.sendStatus(401);
+  }
+
+  req.jwtPayload = payload;
+  next();
 }
 
 // GET /categories
 app.get('/categories', async (_, res) => {
   const { rows } = await pool.query('SELECT * FROM categories');
-  return res.json(rows);
+  return res.json({
+    data: {
+      items: rows,
+    }
+  });
 });
 
 // GET /divisions
 app.get('/divisions', async (_, res) => {
   const { rows } = await pool.query('SELECT * FROM divisions');
-  return res.json(rows);
+  return res.json({
+    data: {
+      items: rows
+    }
+  });
 });
 
 // POST /auth
 app.post('/auth', async (req, res) => {
   const { username, password } = req.body;
 
-  // Validate username
-  if (/[^\S]+/.test(username))
-    return res.status(400).send('Value passed for \'username\' ill-formed!');
+  if (/[^\S]+/.test(username) || !username || !password)
+    return res.status(400).json({
+      error: {
+        message: 'Bad request syntax.'
+      },
+    });
 
   const { rows } = await pool.query(
     'SELECT * FROM users WHERE name = $1', 
     [username]
   );
 
-  const unauthorizedMessage = 'Username and or password incorrect!'
+  const unauthorizedResponseBody = {
+    error: {
+      message: 'Username or password invalid.'
+    }
+  };
 
   if (!rows.length) 
-    return res.status(401).send(unauthorizedMessage);
+    return res.status(401).json(unauthorizedResponseBody);
 
   const salt = Buffer.from(rows[0].salt, 'hex'),
         hash = Buffer.from(rows[0].hash, 'hex');
 
   if (crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha3-512').equals(hash)) {
     const token = jwt.sign({name: 'admin'}, process.env.ACCESS_TOKEN_SECRET);
-    return res.json({accessToken: token});
+    return res.status(201).json({
+      data: {
+        token: token
+      }
+    });
   } else {
-    return res.status(401).send(unauthorizedMessage);
+    return res.status(401).json(unauthorizedResponseBody);
   }
 });
 
@@ -130,16 +152,16 @@ app.post(
   '/testimonies',
   authenticateToken,
   async (req, res) => {
-  
-  const testimony = new Testimony(req.body, pool);
-  
-  if (!(await testimony.validate()))
-    return res.status(400).send(testimony.errorMessage);
+    const testimony = new Testimony(req.body, pool);
+    
+    if (!(await testimony.validate()))
+      return res.status(400).send(testimony.errorMessage);
 
-  const id = await testimony.insertIntoDatabase();
-  
-  return res.status(200).json({id: id});
-});
+    const id = await testimony.insertIntoDatabase();
+    
+    return res.status(200).json({id: id});
+  }
+);
 
 // GET /testimonies/:id
 app.get('/testimonies/:id', async (req, res) => {
@@ -195,6 +217,13 @@ app.get('/testimonies/:id', async (req, res) => {
 });
 
 // PUT /testimonies/:id
+app.put(
+  '/testimonies/:id',
+  authenticateToken,
+  async (req, res) => {
+    const testimony = new Testimony(req.body);
+  }
+);
 
 // DELETE /testimonies/:id
 
@@ -202,8 +231,19 @@ app.get('/testimonies/:id', async (req, res) => {
 app.post(
   '/testimonies/:id/files',
   authenticateToken,
-  upload.single('file'),
+  //upload.single('file'),
+  express.raw({
+    type: [
+      'image/png',
+    ]
+  }),
   async (req, res) => {
+
+    //console.log('here', req);
+    //console.log(req.get('Content-Type'));
+
+    console.log(typeof req.body);
+    fs.writeFileSync('./test.png', req.body);
 
     const testimonyId = req.params.id;
     const file = req.file;
