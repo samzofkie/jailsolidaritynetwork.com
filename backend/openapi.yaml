@@ -12,7 +12,7 @@ components:
           type: object
           properties:
             message:
-            type: string
+              type: string
     testimonyRead:
       type: object
       properties:
@@ -107,10 +107,11 @@ components:
               data:
                 type: object
                 properties:
-                  type: array
-                  minItems: 1
                   items:
-                    type: string
+                    type: array
+                    minItems: 1
+                    items:
+                      type: string
     unauthorized:
       description: Authorization attempt failed.
       content:
