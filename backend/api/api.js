@@ -3,16 +3,11 @@ const fs = require('fs');
 
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const multer = require('multer');
 const { Pool } = require('pg');
-
-const { Testimony } = require('./Testimony');
-const { TestimonyFileManager } = require('./TestimonyFileManager');
 
 const app = express();
 const port = 8080;
 app.use(express.json());
-const upload = multer({ dest: 'documents/' });
 
 const pool = new Pool({
     user: 'postgres',
@@ -20,8 +15,6 @@ const pool = new Pool({
     database: 'jailsolidaritynetwork',
     password: 'xGfKqmOznGVrzHc40WY-Y',
 });
-
-const testimonyFileManager = new TestimonyFileManager(pool);
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -37,6 +30,17 @@ function authenticateToken(req, res, next) {
   }
 
   req.jwtPayload = payload;
+  next();
+}
+
+function verifyRequestBodyData(req, res, next) {
+  if (req.body.data === undefined)
+    return res.status(400).json({
+      error: {
+        message: 'Request body must be a JSON object with a .data property containing the data to be uploaded.'
+      }
+    });
+
   next();
 }
 
@@ -61,44 +65,48 @@ app.get('/divisions', async (_, res) => {
 });
 
 // POST /auth
-app.post('/auth', async (req, res) => {
-  const { username, password } = req.body.data;
+app.post(
+  '/auth',
+  verifyRequestBodyData,
+  async (req, res) => {
+    const { username, password } = req.body.data;
 
-  if (/[^\S]+/.test(username) || !username || !password)
-    return res.status(400).json({
+    if (/[^\S]+/.test(username) || !username || !password)
+      return res.status(400).json({
+        error: {
+          message: 'Bad request syntax.'
+        },
+      });
+
+    const { rows } = await pool.query(
+      'SELECT * FROM users WHERE name = $1', 
+      [username]
+    );
+
+    const unauthorizedResponseBody = {
       error: {
-        message: 'Bad request syntax.'
-      },
-    });
-
-  const { rows } = await pool.query(
-    'SELECT * FROM users WHERE name = $1', 
-    [username]
-  );
-
-  const unauthorizedResponseBody = {
-    error: {
-      message: 'Username or password invalid.'
-    }
-  };
-
-  if (!rows.length) 
-    return res.status(401).json(unauthorizedResponseBody);
-
-  const salt = Buffer.from(rows[0].salt, 'hex'),
-        hash = Buffer.from(rows[0].hash, 'hex');
-
-  if (crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha3-512').equals(hash)) {
-    const token = jwt.sign({name: 'admin'}, process.env.ACCESS_TOKEN_SECRET);
-    return res.status(201).json({
-      data: {
-        token: token
+        message: 'Username or password invalid.'
       }
-    });
-  } else {
-    return res.status(401).json(unauthorizedResponseBody);
+    };
+
+    if (!rows.length) 
+      return res.status(401).json(unauthorizedResponseBody);
+
+    const salt = Buffer.from(rows[0].salt, 'hex'),
+          hash = Buffer.from(rows[0].hash, 'hex');
+
+    if (crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha3-512').equals(hash)) {
+      const token = jwt.sign({name: 'admin'}, process.env.ACCESS_TOKEN_SECRET);
+      return res.status(201).json({
+        data: {
+          token: token
+        }
+      });
+    } else {
+      return res.status(401).json(unauthorizedResponseBody);
+    }
   }
-});
+);
 
 // GET /testimonies
 app.get('/testimonies', async (_, res) => {
@@ -161,31 +169,15 @@ app.get('/testimonies', async (_, res) => {
 
 class TestimonyValidatorError extends Error {}
 
-/*class TestimonyValidator {
-  constructor(pool) {
-    this.pool = pool;
-  }
-
-  validate(data) {
-
-  }
-}*/
-
 // POST /testimonies
 app.post(
   '/testimonies',
+  verifyRequestBodyData,
   authenticateToken,
   async (req, res) => {
 
     // Validation
-    const data = req?.body?.data;
-    
-    if (data === undefined)
-      return res.status(400).json({
-        error: {
-          message: 'Request body must be a JSON object with a .data property containing the data to be uploaded.'
-        }
-      });
+    const data = req.body.data;
 
     if (
       [
@@ -431,7 +423,7 @@ app.get('/testimonies/:testimonyId', async (req, res) => {
   return res.send(testimony);
 });
 
-// PUT /testimonies/:id
+// PUT /testimonies/:testimonyId
 app.put(
   '/testimonies/:id',
   authenticateToken,
@@ -453,11 +445,12 @@ app.post(
     ]
   }),
   async (req, res) => {
+    return;
 
     //console.log('here', req);
     //console.log(req.get('Content-Type'));
 
-    console.log(typeof req.body);
+    /*console.log(typeof req.body);
     fs.writeFileSync('./test.png', req.body);
 
     const testimonyId = req.params.id;
@@ -471,11 +464,9 @@ app.post(
     if (!newFileName)
       return res.status(400).send(testimonyFileManager.errorMessage);
     else 
-      return res.status(200).json({fileName: newFileName});
+      return res.status(200).json({fileName: newFileName});*/
   }
 );
-
-// PUT /testimonies/:id/files/:fileId
 
 // DELETE /testimonies/:id/file/:fileId
 
