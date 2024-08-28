@@ -20,7 +20,7 @@ components:
           description: The unique identifier for the testimony.
           type: integer
         dateReceived:
-          description: A string denoting the month the testimony was received, in the format "MM-YYYY".
+          description: A string denoting the month the testimony was received, in the format 'YYYY-MM'.
           type: string
         lengthOfStay:
           description: The number of months the respondent was incarcerated, at the time the tesimony was received.
@@ -35,6 +35,7 @@ components:
             type: string
         transcription:
           type: array
+          minItems: 1
           items:
             type: object
             properties:
@@ -60,7 +61,7 @@ components:
       type: object
       properties:
         dateReceived:
-          description: A string denoting the month the testimony was received, in the format "MM-YYYY".
+          description: A string denoting the month the testimony was received, in the format 'YYYY-MM'.
           type: string
         lengthOfStay:
           description: The number of months the respondent was incarcerated, at the time the tesimony was received.
@@ -78,9 +79,6 @@ components:
           items:
             type: object
             properties:
-              sentenceId:
-                description: The unique identifier for the sentence.
-                type: integer
               text:
                 description: The text of the sentence.
                 type: string
@@ -89,13 +87,15 @@ components:
                 type: array
                 items:
                   type: string
+            required:
+            - text
       required:
       - anyOf:
         - dateReceived
         - lengthOfStay
         - gender
         - divisions
-        - transcriptionSentences
+        - transcription
   responses:
     successfulArray:
       description: OK
