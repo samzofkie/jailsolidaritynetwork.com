@@ -62,7 +62,7 @@ app.get('/divisions', async (_, res) => {
 
 // POST /auth
 app.post('/auth', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password } = req.body.data;
 
   if (/[^\S]+/.test(username) || !username || !password)
     return res.status(400).json({
@@ -128,7 +128,7 @@ app.get('/testimonies', async (_, res) => {
     if (month.length < 2) {
       month = '0' + month;
     }
-    return `${month}-${date.getFullYear()}`;
+    return `${date.getFullYear()}-${month}`;
   }
 
   const testimonies = (await client.query('SELECT * FROM testimonies')).rows
@@ -153,41 +153,244 @@ app.get('/testimonies', async (_, res) => {
         .filter(tf => tf.testimony_id === testimony.id)
         .map(tf => tf.file_name),
     }));
-    
+
   client.release();
 
   return res.send(testimonies);
 });
+
+class TestimonyValidatorError extends Error {}
+
+/*class TestimonyValidator {
+  constructor(pool) {
+    this.pool = pool;
+  }
+
+  validate(data) {
+
+  }
+}*/
 
 // POST /testimonies
 app.post(
   '/testimonies',
   authenticateToken,
   async (req, res) => {
-    const testimony = new Testimony(req.body, pool);
-    
-    if (!(await testimony.validate()))
-      return res.status(400).send(testimony.errorMessage);
 
-    const id = await testimony.insertIntoDatabase();
+    // Validation
+    const data = req?.body?.data;
     
-    return res.status(200).json({id: id});
+    if (data === undefined)
+      return res.status(400).json({
+        error: {
+          message: 'Request body must be a JSON object with a .data property containing the data to be uploaded.'
+        }
+      });
+
+    if (
+      [
+        data.dateReceived,
+        data.lengthOfStay,
+        data.gender,
+        data.divisions,
+        data.transcription,
+      ].every(property => property === undefined) 
+    ) {
+      res.status(400).json({
+        error: {
+          message: 'At least one of these properties must be defined: \
+          dateReceived, lengthOfStay, gender, divisions, transcription'
+        }
+      })
+    }
+    
+    try {
+      if (
+        data.dateReceived &&
+        !(/^\d{4}-\d{2}$/.test(data.dateReceived))
+      )
+        throw new TestimonyValidatorError(
+          '\'dateReceived\' property should be a string in the format \'YYYY-MM\'.'
+        );
+      
+      if (
+        data.lengthOfStay &&
+        !(/^\d+$/.test(data.lengthOfStay))
+      )
+        throw new TestimonyValidatorError(
+          '\'lengthOfStay\' property should be an integer.'
+        );
+
+      if ( 
+        data.gender &&
+        !['Male', 'Female', 'Non-binary', 'Other'].includes(data.gender)
+      )
+        throw new TestimonyValidatorError(
+          '\'gender\' property should be one of \'Male\', \'Female\', \
+          \'Non-binary\', or \'Other\''
+        );
+
+      if (data.divisions) {
+        const validDivisions = (await pool.query('SELECT name FROM divisions')).rows
+          .map(row => row.name);
+
+        const invalidDivisions = divisions.filter(div => !validDivisions.includes(div));
+
+        if (invalidDivisions.length) 
+          throw new TestimonyValidatorError(
+            '\'divisions\' property included one or more unrecognized \
+            divisions:\n' + invalidDivisions.join('\n')
+          );
+      }
+
+      if (data.transcription) {
+        if (!data.transcription.length)
+          throw new TestimonyValidatorError(
+            '\'transcription\' property must have at least one element.'
+          );
+
+        const validCategories = (await pool.query('SELECT name FROM categories')).rows
+          .map(row => row.name);
+        
+        for (const sentenceObject of data.transcription) {
+          if (sentenceObject.text === undefined)
+            throw new TestimonyValidatorError(
+              'All \'sentence\' objects in transcription must include a \
+              \'.text\' property.'
+            );
+          
+          if (
+            sentenceObject.categories !== undefined &&
+            sentenceObject.categories.length
+          ) {
+            const invalidCategories = sentenceObject.categories
+              .filter(cat => !validCategories.includes(cat));
+
+            if (invalidCategories.length)
+              throw new TestimonyValidatorError(
+                '\'categories\' property for one sentence included the \
+                following unrecognized categories:\n' + 
+                invalidCategories.join('\n')
+              );
+          }
+        }
+      }
+    } catch (error) {
+      if (error instanceof TestimonyValidatorError) {
+        return res.status(400).json({
+          error: {
+            message: error.message
+          }
+        });
+      }
+    }
+    
+    // Insertion
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const testimoniesFields = [
+        data.dateReceived,
+        data.lengthOfStay,
+        data.gender
+      ];
+  
+      let testimonyId;
+      if (testimoniesFields.every(property => property === undefined)) {
+        testimonyId = (await client.query(
+          'INSERT INTO testimonies DEFAULT VALUES'
+        )).rows[0].id;
+      } else {
+        let insertionCommand = 'INSERT INTO testimonies (';
+        let insertionValues = [];
+  
+        if (data?.dateReceived !== undefined) {
+          insertionCommand += 'date_received, ';
+          insertionValues.push(data.dateReceived + '-01');
+        }
+  
+        if (data?.lengthOfStay !== undefined) {
+          insertionCommand += 'length_of_stay, ';
+          insertionValues.push(data.lengthOfStay);
+        }
+  
+        if (data?.gender !== undefined) {
+          insertionCommand += 'gender, ';
+          insertionValues.push(data.gender);
+        }
+  
+        insertionCommand = insertionCommand.slice(0, -2) + ') VALUES ('
+          + testimoniesFields
+            .filter(field => field !== undefined)
+            .map((_, i) => '$' + (i + 1))
+            .join(', ')
+          + ') RETURNING id';
+  
+        testimonyId = (await client.query(
+          insertionCommand,
+          insertionValues
+        )).rows[0].id;
+      }
+  
+      for (const division of data.divisions)
+        await client.query(
+          'INSERT INTO testimony_divisions (testimony_id, division_id) \
+          VALUES ($1, (SELECT id FROM divisions WHERE name = $2))',
+          [testimonyId, division]
+        );
+
+      for (const sentenceObject of data.transcription) {
+        console.log(sentenceObject);
+        const sentenceId = (await client.query(
+          `INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id`,
+          [sentenceObject.text, testimonyId]
+        )).rows[0].id;
+
+        for (const category of sentenceObject.categories)
+          await client.query(
+            `INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))`,
+            [sentenceId, category]
+          );
+      }
+    
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+    
+    return res.status(200).json({
+      data: {
+        testimonyId: testimonyId
+      }
+    });
   }
 );
 
-// GET /testimonies/:id
-app.get('/testimonies/:id', async (req, res) => {
-  const testimonyId = req.params.id;
+// GET /testimonies/:testimonyId
+app.get('/testimonies/:testimonyId', async (req, res) => {
+  const testimonyId = req.params.testimonyId;
+
   const client = await pool.connect();
 
-  const testimony = (await client.query(
+  let testimony = (await client.query(
     'SELECT * FROM testimonies WHERE id = $1',
     [testimonyId]
   )).rows[0];
-  
-  if (!testimony) {
-    return res.status(404).send('\'id\' value not found!');
-  }
+    
+  if (!testimony)
+    return res.status(404).send('Resource not found.');
+
+  testimony = {
+    testimonyId: testimony.id,
+    dateReceived: testimony.date_received,
+    lengthOfStay: testimony.length_of_stay,
+    gender: testimony.gender,
+  };
 
   testimony.divisions = (await client.query(
     'SELECT divisions.name FROM testimony_divisions \
@@ -210,20 +413,20 @@ app.get('/testimonies/:id', async (req, res) => {
   testimony.sentences = (await client.query(
     'SELECT id, sentence FROM testimony_sentences WHERE testimony_id = $1',
     [testimonyId]
-  )).rows.map(sentence => {
-
-    return {
-      ...sentence,
-      categories: sentencesCategories
-        .filter(sc => sentence.id === sc.sentence_id)
-        .map(sc => sc.category)
-    }
-  });
+  )).rows.map(sentence => ({
+    sentenceId: sentence.id,
+    text: sentence.sentence,
+    categories: sentencesCategories
+      .filter(sc => sentence.id === sc.sentence_id)
+      .map(sc => sc.category)
+  }));
 
   testimony.files = (await client.query(
     'SELECT file_name FROM testimony_files WHERE testimony_id = $1',
     [testimonyId]
   )).rows.map(row => row.file_name);
+
+  client.release();
 
   return res.send(testimony);
 });
@@ -233,7 +436,7 @@ app.put(
   '/testimonies/:id',
   authenticateToken,
   async (req, res) => {
-    const testimony = new Testimony(req.body);
+    return;
   }
 );
 
