@@ -16,15 +16,62 @@ const pool = new Pool({
     password: 'xGfKqmOznGVrzHc40WY-Y',
 });
 
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  let month = (date.getMonth() + 1).toString();
+  if (month.length < 2) {
+    month = '0' + month;
+  }
+  return `${date.getFullYear()}-${month}`;
+}
+
 function verifyRequestBodyData(req, res, next) {
   if (req.body.data === undefined)
     return res.status(400).json({
       error: {
-        message: 'Request body must be a JSON object with a .data property containing the data to be uploaded.'
+        message: 'Request body must be a JSON object with a .data property \
+        containing the data to be uploaded.'
+      }
+    });
+  next();
+}
+
+// verifyTestimonyId is middleware designed to return a 400 if the request 
+// doesn't include a testimonyId value in the path or if the testimonyId
+// value is ill-formed, or a 404 if there is no testimony corresponding to
+// that testimonyId value in the database. This should adorn any endpoint with
+// a :testimonyId path parameter.
+// For convenience, the data read from checking the database for that 
+// testimonyId is nicely formatted and placed in a property
+// .currentTestimonyObject in the req object.
+async function verifyTestimonyId(req, res, next) {
+  const testimonyId = req.params?.testimonyId;
+
+  if (
+    testimonyId === undefined ||
+    (!(/^\d+$/.test(testimonyId)))
+  )
+    return res.status(400).json({
+      error: {
+        message: 'Request path must include a valid string value for \
+        testimonyId.'
       }
     });
 
-  next();
+  let testimony = (await pool.query(
+    'SELECT * FROM testimonies WHERE id = $1',
+    [testimonyId]
+  )).rows[0];
+    
+  if (!testimony)
+    return res.status(404).send('Resource not found.');
+
+  req.currentTestimonyObject = {
+    testimonyId: testimony.id,
+    dateReceived: testimony.date_received,
+    lengthOfStay: testimony.length_of_stay,
+    gender: testimony.gender,
+  };
 }
 
 function authenticateToken(req, res, next) {
@@ -219,15 +266,6 @@ app.get('/testimonies', async (_, res) => {
     'SELECT testimony_id, file_name FROM testimony_files'
   );
 
-  const formatDate = dateString => {
-    const date = new Date(dateString);
-    let month = (date.getMonth() + 1).toString();
-    if (month.length < 2) {
-      month = '0' + month;
-    }
-    return `${date.getFullYear()}-${month}`;
-  }
-
   const testimonies = (await client.query('SELECT * FROM testimonies')).rows
     .map(testimony => ({
       testimonyId: testimony.id,
@@ -368,71 +406,75 @@ app.post(
 );
 
 // GET /testimonies/:testimonyId
-app.get('/testimonies/:testimonyId', async (req, res) => {
-  const testimonyId = req.params.testimonyId;
+app.get(
+  '/testimonies/:testimonyId',
+  verifyTestimonyId,
+  async (req, res) => {
+    const testimonyId = req.params.testimonyId;
+    const testimony = req.currentTestimonyObject;
 
-  const client = await pool.connect();
+    const client = await pool.connect();
 
-  let testimony = (await client.query(
-    'SELECT * FROM testimonies WHERE id = $1',
-    [testimonyId]
-  )).rows[0];
-    
-  if (!testimony)
-    return res.status(404).send('Resource not found.');
+    testimony.divisions = (await client.query(
+      'SELECT divisions.name FROM testimony_divisions \
+      INNER JOIN divisions ON testimony_divisions.division_id = divisions.id \
+      WHERE testimony_id = $1',
+      [testimonyId]
+    )).rows.map(row => row.name);
 
-  testimony = {
-    testimonyId: testimony.id,
-    dateReceived: testimony.date_received,
-    lengthOfStay: testimony.length_of_stay,
-    gender: testimony.gender,
-  };
+    const sentencesCategories = (await client.query(
+      'SELECT sentence_id, categories.name AS category \
+      FROM testimony_sentences_categories \
+      INNER JOIN testimony_sentences \
+      ON testimony_sentences_categories.sentence_id = testimony_sentences.id \
+      INNER JOIN categories \
+      ON testimony_sentences_categories.category_id = categories.id \
+      WHERE testimony_id = $1',
+      [testimonyId]
+    )).rows;
 
-  testimony.divisions = (await client.query(
-    'SELECT divisions.name FROM testimony_divisions \
-    INNER JOIN divisions ON testimony_divisions.division_id = divisions.id \
-    WHERE testimony_id = $1',
-    [testimonyId]
-  )).rows.map(row => row.name);
+    testimony.sentences = (await client.query(
+      'SELECT id, sentence FROM testimony_sentences WHERE testimony_id = $1',
+      [testimonyId]
+    )).rows.map(sentence => ({
+      sentenceId: sentence.id,
+      text: sentence.sentence,
+      categories: sentencesCategories
+        .filter(sc => sentence.id === sc.sentence_id)
+        .map(sc => sc.category)
+    }));
 
-  const sentencesCategories = (await client.query(
-    'SELECT sentence_id, categories.name AS category \
-    FROM testimony_sentences_categories \
-    INNER JOIN testimony_sentences \
-    ON testimony_sentences_categories.sentence_id = testimony_sentences.id \
-    INNER JOIN categories \
-    ON testimony_sentences_categories.category_id = categories.id \
-    WHERE testimony_id = $1',
-    [testimonyId]
-  )).rows;
+    testimony.files = (await client.query(
+      'SELECT file_name FROM testimony_files WHERE testimony_id = $1',
+      [testimonyId]
+    )).rows.map(row => row.file_name);
 
-  testimony.sentences = (await client.query(
-    'SELECT id, sentence FROM testimony_sentences WHERE testimony_id = $1',
-    [testimonyId]
-  )).rows.map(sentence => ({
-    sentenceId: sentence.id,
-    text: sentence.sentence,
-    categories: sentencesCategories
-      .filter(sc => sentence.id === sc.sentence_id)
-      .map(sc => sc.category)
-  }));
+    client.release();
 
-  testimony.files = (await client.query(
-    'SELECT file_name FROM testimony_files WHERE testimony_id = $1',
-    [testimonyId]
-  )).rows.map(row => row.file_name);
-
-  client.release();
-
-  return res.send(testimony);
-});
+    return res.send(testimony);
+  }
+);
 
 // PUT /testimonies/:testimonyId
 app.put(
   '/testimonies/:id',
+  verifyTestimonyId,
   authenticateToken,
   async (req, res) => {
-    return;
+    try {
+      await validateTestimonyWriteObject(data);
+    } catch (error) {
+      if (error instanceof TestimonyValidationError)
+        return res.status(400).json({
+          error: {
+            message: error.message
+          }
+        });
+      else
+        throw error;
+    }
+
+    return res.status(200);
   }
 );
 
