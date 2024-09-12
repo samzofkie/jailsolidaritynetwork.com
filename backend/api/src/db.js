@@ -2,6 +2,8 @@
 
 const { Pool } = require('pg');
 
+const { formatDate } = require('./utils.js');
+
 const pool = new Pool({
   user: 'postgres',
   host: 'db',
@@ -15,6 +17,54 @@ async function query(text, params) {
 
 async function connect() {
   return pool.connect();
+}
+
+async function selectAllTestimonies() {
+  const client = await pool.connect();
+  
+  const { rows: testimonyDivisions } = await client.query(
+    'SELECT testimony_divisions.testimony_id, divisions.name \
+    FROM testimony_divisions \
+    INNER JOIN divisions ON testimony_divisions.division_id = divisions.id'
+  );
+  const { rows: testimonySentences } = await client.query(
+    'SELECT * FROM testimony_sentences'
+  );
+  const { rows: testimonySentencesCategories } = await client.query(
+    'SELECT testimony_sentences_categories.sentence_id, categories.name \
+    FROM testimony_sentences_categories \
+    INNER JOIN categories \
+    ON testimony_sentences_categories.category_id = categories.id'
+  );
+  const { rows: testimonyFiles } = await client.query(
+    'SELECT testimony_id, file_name FROM testimony_files'
+  );
+
+  const testimonies = (await client.query('SELECT * FROM testimonies')).rows
+    .map(testimony => ({
+      testimonyId: testimony.id,
+      dateReceived: formatDate(testimony.date_received),
+      lengthOfStay: testimony.length_of_stay,
+      gender: testimony.gender,
+      divisions: testimonyDivisions
+        .filter(td => td.testimony_id === testimony.id)
+        .map(td => td.name),
+      transcription: testimonySentences
+        .filter(ts => ts.testimony_id === testimony.id)
+        .map(ts => ({
+          sentenceId: ts.id,
+          text: ts.sentence,
+          categories: testimonySentencesCategories
+            .filter(tsc => tsc.sentence_id === ts.id)
+            .map(tsc => tsc.name),
+        })),
+      files: testimonyFiles
+        .filter(tf => tf.testimony_id === testimony.id)
+        .map(tf => tf.file_name),
+    }));
+
+  client.release();
+  return testimonies;
 }
 
 async function insertTestimony(data) {
@@ -193,6 +243,7 @@ async function updateTestimony(testimonyId, data) {
 module.exports = {
   query,
   connect,
+  selectAllTestimonies,
   insertTestimony,
   updateTestimony,
 };
