@@ -13,6 +13,9 @@
 - `testimonies` `gender` column value should be text
 - test `data.transcription` upload functionality for `POST /testimonies`
 - `UploadForm.js` making `POST /testimonies/:id/files` request when you click add file and then cancel
+- Consider best place to store static files (currently in `document/` directory in `backend/`) and logs in production
+- `validateTestimonyWriteObject` is massive-- class?
+- Wouldn't the SQL `SELECT` commands in the handlers for `GET /testimonies` and `GET /testimonies/:id` feel more natural in `db.js`?
 
 ### big stuff:
   - Finish API
@@ -28,3 +31,12 @@
   - Implement SSR
   - Improve SEO
   - Implement front-end routing
+
+----
+testing thoughts:
+
+- Integration test `api` with `database` without Nginx
+- Integration test everything through Nginx HTTPS ignoring invalid certificate warnings
+- Integration test everything with special `nginx.conf` to allow HTTP
+- Figure out how i will seperate concerns in Express app and unit test domain logic 
+  - i would like the route's handler's logic to be in the `app.use(...` call, and would prefer to keep the route all in the `api.js` file with the database connection pool as a top-level variable
