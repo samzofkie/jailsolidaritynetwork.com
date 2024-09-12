@@ -11,7 +11,6 @@ const {
   authenticateToken,
   validateTestimonyWriteObject,
 } = require('./src/middleware.js');
-const { formatDate } = require('./src/utils.js');
 
 const app = express();
 app.use(express.json());
@@ -82,50 +81,7 @@ app.post(
 
 // GET /testimonies
 app.get('/testimonies', async (_, res) => {
-  const client = await db.connect();
-  
-  const { rows: testimonyDivisions } = await client.query(
-    'SELECT testimony_divisions.testimony_id, divisions.name \
-    FROM testimony_divisions \
-    INNER JOIN divisions ON testimony_divisions.division_id = divisions.id'
-  );
-  const { rows: testimonySentences } = await client.query(
-    'SELECT * FROM testimony_sentences'
-  );
-  const { rows: testimonySentencesCategories } = await client.query(
-    'SELECT testimony_sentences_categories.sentence_id, categories.name \
-    FROM testimony_sentences_categories \
-    INNER JOIN categories \
-    ON testimony_sentences_categories.category_id = categories.id'
-  );
-  const { rows: testimonyFiles } = await client.query(
-    'SELECT testimony_id, file_name FROM testimony_files'
-  );
-
-  const testimonies = (await client.query('SELECT * FROM testimonies')).rows
-    .map(testimony => ({
-      testimonyId: testimony.id,
-      dateReceived: formatDate(testimony.date_received),
-      lengthOfStay: testimony.length_of_stay,
-      gender: testimony.gender,
-      divisions: testimonyDivisions
-        .filter(td => td.testimony_id === testimony.id)
-        .map(td => td.name),
-      transcription: testimonySentences
-        .filter(ts => ts.testimony_id === testimony.id)
-        .map(ts => ({
-          sentenceId: ts.id,
-          text: ts.sentence,
-          categories: testimonySentencesCategories
-            .filter(tsc => tsc.sentence_id === ts.id)
-            .map(tsc => tsc.name),
-        })),
-      files: testimonyFiles
-        .filter(tf => tf.testimony_id === testimony.id)
-        .map(tf => tf.file_name),
-    }));
-
-  client.release();
+  const testimonies = await db.selectAllTestimonies();
 
   return res.send(testimonies);
 });
@@ -155,6 +111,15 @@ app.get(
   async (req, res) => {
     const testimonyId = req.params.testimonyId;
     const testimony = req.currentTestimonyObject;
+
+    // This handler doesn't use a specialized db function (like something along
+    // the lines of "selectTestimony(testimonyId)") because the 
+    // verifyTestimonyId middleware function, in verifying the ID, queries the
+    // testimonies table in the database, and caches the data from the returned
+    // row in an object stored in req.currentTestimonyObject. So rather than
+    // having a specialized function that just fetches the relevant divisions 
+    // and sentences from the database, we just implement the rest of the 
+    // querying here with a db.connect() client.
 
     const client = await db.connect();
 
