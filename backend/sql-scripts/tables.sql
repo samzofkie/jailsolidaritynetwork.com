@@ -76,10 +76,10 @@ INSERT INTO testimony_divisions (testimony_id, division_id) VALUES
   (3, 2), (3, 3), (3, 4), (3, 5), (3, 8), (3, 9);
 
 INSERT INTO testimony_sentences (sentence, testimony_id) VALUES
-  ('Sentence', 1), ('Sentence', 1), ('Sentence', 1), ('Sentence', 1), ('Sentence', 1),
-  ('Sentence', 1), ('Sentence', 1), ('Sentence', 1), ('Sentence', 1), ('Sentence', 1),
-  ('Sentence', 2), 
-  ('Sentence', 3), ('Sentence', 3), ('Sentence', 3), ('Sentence', 3), ('Sentence', 3), 
+  ('Sentence.', 1), ('Sentence.', 1), ('Sentence.', 1), ('Sentence.', 1), ('Sentence.', 1),
+  ('Sentence.', 1), ('Sentence.', 1), ('Sentence.', 1), ('Sentence.', 1), ('Sentence.', 1),
+  ('Sentence.', 2), 
+  ('Sentence.', 3), ('Sentence.', 3), ('Sentence.', 3), ('Sentence.', 3), ('Sentence.', 3), 
   ('Sentence', 3), ('Sentence', 3), ('Sentence', 3), ('Sentence', 3), ('Sentence', 3); -- 21 in total
 
 INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES
