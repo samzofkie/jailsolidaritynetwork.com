@@ -2,6 +2,7 @@
 // Verification: the evaluation of whether or not something complies with 
 //   specification or imposed condition.
 
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const db = require('./db.js');
 const { formatDate } = require('./utils.js');
@@ -14,6 +15,39 @@ function verifyRequestBodyData(req, res, next) {
         containing the data to be uploaded.'
       }
     });
+  next();
+}
+
+async function verifyLoginCredentials(req, res, next) {
+  const { username, password } = req.body.data;
+
+  if (/[^\S]+/.test(username) || !username || !password)
+    return res.status(400).json({
+      error: {
+        message: 'Bad request syntax.'
+      },
+    });
+
+  const { rows } = await db.query(
+    'SELECT * FROM users WHERE name = $1', 
+    [username]
+  );
+
+  const unauthorizedResponseBody = {
+    error: {
+      message: 'Username or password invalid.'
+    }
+  };
+
+  if (!rows.length) 
+    return res.status(401).json(unauthorizedResponseBody);
+
+  const salt = Buffer.from(rows[0].salt, 'hex'),
+        hash = Buffer.from(rows[0].hash, 'hex');
+
+  if (!(crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha3-512').equals(hash)))
+    return res.status(401).json(unauthorizedResponseBody);
+
   next();
 }
 
@@ -180,6 +214,7 @@ async function validateTestimonyWriteObject(req, res, next) {
 
 module.exports = {
   verifyRequestBodyData,
+  verifyLoginCredentials,
   verifyTestimonyId,
   authenticateToken,
   validateTestimonyWriteObject,
