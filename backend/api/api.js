@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const fs = require('fs');
 
 const express = require('express');
@@ -7,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const db = require('./src/db.js');
 const {
   verifyRequestBodyData,
+  verifyLoginCredentials,
   verifyTestimonyId,
   authenticateToken,
   validateTestimonyWriteObject,
@@ -18,71 +18,29 @@ app.use(express.json());
 // GET /categories
 app.get('/categories', async (_, res) => {
   const { rows } = await db.query('SELECT * FROM categories');
-  return res.json({
-    data: {
-      items: rows,
-    }
-  });
+  return res.json({data: {items: rows}});
 });
 
 // GET /divisions
 app.get('/divisions', async (_, res) => {
   const { rows } = await db.query('SELECT * FROM divisions');
-  return res.json({
-    data: {
-      items: rows
-    }
-  });
+  return res.json({data: {items: rows}});
 });
 
 // POST /auth
 app.post(
   '/auth',
   verifyRequestBodyData,
-  async (req, res) => {
-    const { username, password } = req.body.data;
-
-    if (/[^\S]+/.test(username) || !username || !password)
-      return res.status(400).json({
-        error: {
-          message: 'Bad request syntax.'
-        },
-      });
-
-    const { rows } = await db.query(
-      'SELECT * FROM users WHERE name = $1', 
-      [username]
-    );
-
-    const unauthorizedResponseBody = {
-      error: {
-        message: 'Username or password invalid.'
-      }
-    };
-
-    if (!rows.length) 
-      return res.status(401).json(unauthorizedResponseBody);
-
-    const salt = Buffer.from(rows[0].salt, 'hex'),
-          hash = Buffer.from(rows[0].hash, 'hex');
-
-    if (crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha3-512').equals(hash)) {
-      const token = jwt.sign({name: 'admin'}, process.env.ACCESS_TOKEN_SECRET);
-      return res.status(201).json({
-        data: {
-          token: token
-        }
-      });
-    } else {
-      return res.status(401).json(unauthorizedResponseBody);
-    }
+  verifyLoginCredentials,
+  async (_, res) => {
+    const token = jwt.sign({name: 'admin'}, process.env.ACCESS_TOKEN_SECRET);
+    return res.status(201).json({data: {token: token}});
   }
 );
 
 // GET /testimonies
 app.get('/testimonies', async (_, res) => {
   const testimonies = await db.selectAllTestimonies();
-
   return res.send(testimonies);
 });
 
@@ -96,11 +54,7 @@ app.post(
     const data = req.body.data;
     const testimonyId = await db.insertTestimony(data);
     
-    return res.status(200).json({
-      data: {
-        testimonyId: testimonyId
-      }
-    });
+    return res.status(200).json({data: {testimonyId: testimonyId}});
   }
 );
 
@@ -175,7 +129,7 @@ app.put(
   async (req, res) => {
     const testimonyId = req.params.testimonyId;
     const data = req.body.data;
-
+    
     await db.updateTestimony(testimonyId, data);
 
     return res.sendStatus(200);
