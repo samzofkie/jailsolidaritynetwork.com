@@ -9,11 +9,16 @@ const {
 
 jest.mock('../src/db.js');
 
-function mockRes() {
+async function callMiddleware(req, middleware) {
   const res = {};
   res.status = jest.fn(() => res);
   res.json = jest.fn();
-  return res;
+
+  const next = jest.fn();
+
+  await middleware(req, res, next);
+
+  return [res, next];
 }
 
 function expectMiddlewareToSendError(res, next) {
@@ -24,163 +29,133 @@ function expectMiddlewareToSendError(res, next) {
   expect(next.mock.calls).toHaveLength(0);
 }
 
-function expectMiddlewareSuccess(res, next) {
+function expectMiddlewareToCallNext(res, next) {
   expect(res.status.mock.calls).toHaveLength(0);
   expect(res.json.mock.calls).toHaveLength(0);
   expect(next.mock.calls).toHaveLength(1);
 }
 
-test('verifyRequestBodyData ill-formed', () => {
-  const req = {body: {}};
-  const res = mockRes();
-  const next = jest.fn();
-
-  verifyRequestBodyData(req, res, next);
-  expectMiddlewareToSendError(res, next);
-});
-
-test('verifyRequestBodyData well formed', () => {
-  const req = {body: {data: {}}};
-  const res = mockRes();
-  const next = jest.fn();
-
-  verifyRequestBodyData(req, res, next);
-  expectMiddlewareSuccess(res, next);
-});
-
-test('verifyLoginCredentials ill-formed', async () => {
-  const req = {body: {data: {username: 'user name', password: 'pw'}}};
-  const res = mockRes();
-  const next = jest.fn();
-
-  await verifyLoginCredentials(req, res, next);
-  expectMiddlewareToSendError(res, next);
-})
-
-test('verifyLoginCredentials no username', async () => {
-  const req = {body: {data: {password: 'password'}}};
-  const res = mockRes();
-  const next = jest.fn();
-
-  await verifyLoginCredentials(req, res, next);
-  expectMiddlewareToSendError(res, next);
-});
-
-test('verifyLoginCredentials no password', async () => {
-  const req = {body: {data: {username: 'username'}}};
-  const res = mockRes();
-  const next = jest.fn();
-
-  await verifyLoginCredentials(req, res, next);
-  expectMiddlewareToSendError(res, next);
-});
-
-test('verifyLoginCredentials invalid username', async () => {
-  const req = {body: {data: {username: 'username', password: 'password'}}};
-  const res = mockRes();
-  const next = jest.fn();
-  db.query.mockResolvedValue({rows: []});
-
-  await verifyLoginCredentials(req, res, next);
-  expectMiddlewareToSendError(res, next);
-});
-
-test('verifyLoginCredentials invalid password', async () => {
-  const req = {body: {data: {username: 'username', password: 'password'}}};
-  const res = mockRes();
-  const next = jest.fn();
+describe('verifyRequestBodyData', () => {
+  test('body lacking data property', async () => {
+    const req = {body: {}};
+    const [res, next] = await callMiddleware(req, verifyRequestBodyData);
+    expectMiddlewareToSendError(res, next);
+  });
   
-  const salt = crypto.randomBytes(20);
-  const hash = crypto.pbkdf2Sync('notpassword', salt, 10000, 64, 'sha3-512');
-  db.query.mockResolvedValue({
-    rows: [
-      {
-        salt: salt.toString('hex'), 
-        hash: hash.toString('hex'),
-      }
-    ]
+  test('body has data property', async () => {
+    const req = {body: {data: {}}};
+    const [res, next] = await callMiddleware(req, verifyRequestBodyData);
+    expectMiddlewareToCallNext(res, next);
   });
-
-  await verifyLoginCredentials(req, res, next);
-  expectMiddlewareToSendError(res, next);
 });
 
-test('verifyLoginCredentials success', async () => {
-  const req = {body: {data: {username: 'username', password: 'password'}}};
-  const res = mockRes();
-  const next = jest.fn();
+describe('verifyLoginCredentials', () => {
+  test('whitespace in username', async () => {
+    const req = {body: {data: {username: 'user name', password: 'pw'}}};
+    const [res, next] = await callMiddleware(req, verifyLoginCredentials);
+    expectMiddlewareToSendError(res, next);
+  })
   
-  const salt = crypto.randomBytes(20);
-  const hash = crypto.pbkdf2Sync('password', salt, 10000, 64, 'sha3-512');
-  db.query.mockResolvedValue({
-    rows: [
-      {
-        salt: salt.toString('hex'), 
-        hash: hash.toString('hex'),
-      }
-    ]
+  test('no username', async () => {
+    const req = {body: {data: {password: 'password'}}};
+    const [res, next] = await callMiddleware(req, verifyLoginCredentials);
+    expectMiddlewareToSendError(res, next);
   });
-
-  await verifyLoginCredentials(req, res, next);
-  expectMiddlewareSuccess(res, next);
-});
-
-test('verifyTestimonyId undefined', async () => {
-  const req = {params: {}};
-  const res = mockRes();
-  const next = jest.fn()
-
-  await verifyTestimonyId(req, res, next);
-  expectMiddlewareToSendError(res, next);
-});
-
-test('verifyTestimonyId ill-formed', async () => {
-  const req = {params: {testimonyId: '-1'}};
-  const res = mockRes();
-  const next = jest.fn()
-
-  await verifyTestimonyId(req, res, next);
-  expectMiddlewareToSendError(res, next);
-});
-
-test('verifyTestimonyId ill-formed 2', async () => {
-  const req = {params: {testimonyId: 's'}};
-  const res = mockRes();
-  const next = jest.fn()
-
-  await verifyTestimonyId(req, res, next);
-  expectMiddlewareToSendError(res, next);
-});
-
-test('verifyTestimonyId invalid id', async () => {
-  const req = {params: {testimonyId: '5'}};
-  const res = mockRes();
-  const next = jest.fn()
-  db.query.mockResolvedValue({rows: []});
-
-  await verifyTestimonyId(req, res, next);
-  expectMiddlewareToSendError(res, next);
-});
-
-test('verifyTestimonyId invalid id', async () => {
-  const req = {params: {testimonyId: '5'}};
-  const res = mockRes();
-  const next = jest.fn()
-  db.query.mockResolvedValue({
-    rows: [
-      {
-        id: 5,
-        date_received: '2024-01-01T00:00:00.000Z',
-        length_of_stay: 5,
-        gender: 'Female',
-      }
-    ]
+  
+  test('no password', async () => {
+    const req = {body: {data: {username: 'username'}}};
+    const [res, next] = await callMiddleware(req, verifyLoginCredentials);
+    expectMiddlewareToSendError(res, next);
   });
+  
+  test('invalid username', async () => {
+    const req = {body: {data: {username: 'username', password: 'password'}}};
+    db.query.mockResolvedValue({rows: []});
 
-  await verifyTestimonyId(req, res, next);
-  expectMiddlewareSuccess(res, next);
-  expect(req.currentTestimonyObject.testimonyId).toBe(5);
-  expect(req.currentTestimonyObject.dateReceived).toBe('2024-01');
-  expect(req.currentTestimonyObject.lengthOfStay).toBe(5);
-  expect(req.currentTestimonyObject.gender).toBe('Female');
+    const [res, next] = await callMiddleware(req, verifyLoginCredentials);
+    expectMiddlewareToSendError(res, next);
+  });
+  
+  test('invalid password', async () => {
+    const req = {body: {data: {username: 'username', password: 'password'}}};    
+    const salt = crypto.randomBytes(20);
+    const hash = crypto.pbkdf2Sync('notpassword', salt, 10000, 64, 'sha3-512');
+    db.query.mockResolvedValue({
+      rows: [
+        {
+          salt: salt.toString('hex'), 
+          hash: hash.toString('hex'),
+        }
+      ]
+    });
+  
+    const [res, next] = await callMiddleware(req, verifyLoginCredentials);
+    expectMiddlewareToSendError(res, next);
+  });
+  
+  test('valid username and password', async () => {
+    const req = {body: {data: {username: 'username', password: 'password'}}};
+    const salt = crypto.randomBytes(20);
+    const hash = crypto.pbkdf2Sync('password', salt, 10000, 64, 'sha3-512');
+    db.query.mockResolvedValue({
+      rows: [
+        {
+          salt: salt.toString('hex'), 
+          hash: hash.toString('hex'),
+        }
+      ]
+    });
+  
+    const [res, next] = await callMiddleware(req, verifyLoginCredentials);
+    expectMiddlewareToCallNext(res, next);
+  });
+});
+
+describe('verifyTestimonyId', () => {
+  test('parameter undefined', async () => {
+    const req = {params: {}};
+    const [res, next] = await callMiddleware(req, verifyTestimonyId);
+    expectMiddlewareToSendError(res, next);
+  });
+  
+  test('invalid parameter syntax', async () => {
+    const req = {params: {testimonyId: '-1'}};
+    const [res, next] = await callMiddleware(req, verifyTestimonyId);
+    expectMiddlewareToSendError(res, next);
+  });
+  
+  test('string parameter', async () => {
+    const req = {params: {testimonyId: 's'}};
+    const [res, next] = await callMiddleware(req, verifyTestimonyId);
+    expectMiddlewareToSendError(res, next);
+  });
+  
+  test('invalid id', async () => {
+    const req = {params: {testimonyId: '5'}};
+    db.query.mockResolvedValue({rows: []});
+  
+    const [res, next] = await callMiddleware(req, verifyTestimonyId);
+    expectMiddlewareToSendError(res, next);
+  });
+  
+  test('valid id', async () => {
+    const req = {params: {testimonyId: '5'}};
+    db.query.mockResolvedValue({
+      rows: [
+        {
+          id: 5,
+          date_received: '2024-01-01T00:00:00.000Z',
+          length_of_stay: 5,
+          gender: 'Female',
+        }
+      ]
+    });
+  
+    const [res, next] = await callMiddleware(req, verifyTestimonyId);
+    expectMiddlewareToCallNext(res, next);
+    expect(req.currentTestimonyObject.testimonyId).toBe(5);
+    expect(req.currentTestimonyObject.dateReceived).toBe('2024-01');
+    expect(req.currentTestimonyObject.lengthOfStay).toBe(5);
+    expect(req.currentTestimonyObject.gender).toBe('Female');
+  });
 });
