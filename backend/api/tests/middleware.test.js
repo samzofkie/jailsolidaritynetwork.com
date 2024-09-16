@@ -4,6 +4,7 @@ const db = require('../src/db.js');
 const {
   verifyRequestBodyData,
   verifyLoginCredentials,
+  verifyTestimonyId,
 } = require('../src/middleware.js');
 
 jest.mock('../src/db.js');
@@ -122,4 +123,64 @@ test('verifyLoginCredentials success', async () => {
 
   await verifyLoginCredentials(req, res, next);
   expectMiddlewareSuccess(res, next);
+});
+
+test('verifyTestimonyId undefined', async () => {
+  const req = {params: {}};
+  const res = mockRes();
+  const next = jest.fn()
+
+  await verifyTestimonyId(req, res, next);
+  expectMiddlewareToSendError(res, next);
+});
+
+test('verifyTestimonyId ill-formed', async () => {
+  const req = {params: {testimonyId: '-1'}};
+  const res = mockRes();
+  const next = jest.fn()
+
+  await verifyTestimonyId(req, res, next);
+  expectMiddlewareToSendError(res, next);
+});
+
+test('verifyTestimonyId ill-formed 2', async () => {
+  const req = {params: {testimonyId: 's'}};
+  const res = mockRes();
+  const next = jest.fn()
+
+  await verifyTestimonyId(req, res, next);
+  expectMiddlewareToSendError(res, next);
+});
+
+test('verifyTestimonyId invalid id', async () => {
+  const req = {params: {testimonyId: '5'}};
+  const res = mockRes();
+  const next = jest.fn()
+  db.query.mockResolvedValue({rows: []});
+
+  await verifyTestimonyId(req, res, next);
+  expectMiddlewareToSendError(res, next);
+});
+
+test('verifyTestimonyId invalid id', async () => {
+  const req = {params: {testimonyId: '5'}};
+  const res = mockRes();
+  const next = jest.fn()
+  db.query.mockResolvedValue({
+    rows: [
+      {
+        id: 5,
+        date_received: '2024-01-01T00:00:00.000Z',
+        length_of_stay: 5,
+        gender: 'Female',
+      }
+    ]
+  });
+
+  await verifyTestimonyId(req, res, next);
+  expectMiddlewareSuccess(res, next);
+  expect(req.currentTestimonyObject.testimonyId).toBe(5);
+  expect(req.currentTestimonyObject.dateReceived).toBe('2024-01');
+  expect(req.currentTestimonyObject.lengthOfStay).toBe(5);
+  expect(req.currentTestimonyObject.gender).toBe('Female');
 });

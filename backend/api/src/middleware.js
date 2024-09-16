@@ -61,6 +61,7 @@ async function verifyLoginCredentials(req, res, next) {
 // .currentTestimonyObject in the req object.
 async function verifyTestimonyId(req, res, next) {
   const testimonyId = req.params?.testimonyId;
+
   if (
     testimonyId === undefined ||
     (!(/^\d+$/.test(testimonyId)))
@@ -77,8 +78,12 @@ async function verifyTestimonyId(req, res, next) {
     [testimonyId]
   )).rows[0];
     
-  if (!testimony)
-    return res.status(404).send('Resource not found.');
+  if (testimony === undefined)
+    return res.status(404).json({
+      error: {
+        message: 'Resource not found.'
+      }
+    });
 
   req.currentTestimonyObject = {
     testimonyId: testimony.id,
