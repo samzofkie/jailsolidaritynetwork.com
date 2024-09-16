@@ -8,7 +8,7 @@ const db = require('./db.js');
 const { formatDate } = require('./utils.js');
 
 function verifyRequestBodyData(req, res, next) {
-  if (req.body.data === undefined)
+  if (!(req.body.data instanceof Object))
     return res.status(400).json({
       error: {
         message: 'Request body must be a JSON object with a .data property \
@@ -39,7 +39,7 @@ async function verifyLoginCredentials(req, res, next) {
     }
   };
 
-  if (!rows.length) 
+  if (!rows.length)
     return res.status(401).json(unauthorizedResponseBody);
 
   const salt = Buffer.from(rows[0].salt, 'hex'),
