@@ -1,8 +1,10 @@
-exports.formatDate = function(dateString) {
+function formatDate(dateString) {
   const date = new Date(dateString);
-  let month = (date.getMonth() + 1).toString();
-  if (month.length < 2) {
-    month = '0' + month;
-  }
-  return `${date.getFullYear()}-${month}`;
+  if (isNaN(date.getSeconds()))
+    throw new Error('formatDate\'s argument must be a string accepted as valid by Date() constructor');
+  return date.toISOString().slice(0,7);
+};
+
+module.exports = {
+  formatDate,
 };
