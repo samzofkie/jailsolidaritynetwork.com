@@ -1,13 +1,15 @@
 const crypto = require('crypto');
-
+const jwt = require('jsonwebtoken');
 const db = require('../src/db.js');
 const {
   verifyRequestBodyData,
   verifyLoginCredentials,
   verifyTestimonyId,
+  authenticateToken,
 } = require('../src/middleware.js');
 
 jest.mock('../src/db.js');
+jest.mock('jsonwebtoken');
 
 async function callMiddleware(req, middleware) {
   const res = {};
@@ -157,5 +159,36 @@ describe('verifyTestimonyId', () => {
     expect(req.currentTestimonyObject.dateReceived).toBe('2024-01');
     expect(req.currentTestimonyObject.lengthOfStay).toBe(5);
     expect(req.currentTestimonyObject.gender).toBe('Female');
+  });
+});
+
+describe('authenticateToken', () => {
+  test('no authorization header', async () => {
+    const req = {headers: {}};
+    const [res, next] = await callMiddleware(req, authenticateToken);
+    expectMiddlewareToSendError(res, next);
+  });
+
+  test('authorization header ill-formed', async () => {
+    const req = {headers: {authorization: 'Bearer'}};
+    const [res, next] = await callMiddleware(req, authenticateToken);
+    expectMiddlewareToSendError(res, next);
+  })
+
+  test('invalid token', async () => {
+    const req = {headers: {authorization: 'Bearer token'}};
+    jwt.verify = jest.fn(() => {throw new Error;});
+
+    const [res, next] = await callMiddleware(req, authenticateToken);
+    expectMiddlewareToSendError(res, next);
+  });
+
+  test('invalid token', async () => {
+    const req = {headers: {authorization: 'Bearer token'}};
+    jwt.verify = jest.fn(() => 'payload');
+
+    const [res, next] = await callMiddleware(req, authenticateToken);
+    expectMiddlewareToCallNext(res, next);
+    expect(req.jwtPayload).toBe('payload');
   });
 });
