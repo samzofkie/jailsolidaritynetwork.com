@@ -23,18 +23,18 @@ async function selectAllTestimonies() {
   const client = await pool.connect();
   
   const { rows: testimonyDivisions } = await client.query(
-    'SELECT testimony_divisions.testimony_id, divisions.name \
-    FROM testimony_divisions \
-    INNER JOIN divisions ON testimony_divisions.division_id = divisions.id'
+    'SELECT testimony_divisions.testimony_id, divisions.name ' +
+    'FROM testimony_divisions ' +
+    'INNER JOIN divisions ON testimony_divisions.division_id = divisions.id'
   );
   const { rows: testimonySentences } = await client.query(
     'SELECT * FROM testimony_sentences'
   );
   const { rows: testimonySentencesCategories } = await client.query(
-    'SELECT testimony_sentences_categories.sentence_id, categories.name \
-    FROM testimony_sentences_categories \
-    INNER JOIN categories \
-    ON testimony_sentences_categories.category_id = categories.id'
+    'SELECT testimony_sentences_categories.sentence_id, categories.name ' + 
+    'FROM testimony_sentences_categories ' +
+    'INNER JOIN categories ' +
+    'ON testimony_sentences_categories.category_id = categories.id'
   );
   const { rows: testimonyFiles } = await client.query(
     'SELECT testimony_id, file_name FROM testimony_files'
@@ -241,6 +241,7 @@ async function updateTestimony(testimonyId, data) {
 }
 
 module.exports = {
+  pool, // only for testing
   query,
   connect,
   selectAllTestimonies,
