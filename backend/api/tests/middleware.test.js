@@ -6,6 +6,7 @@ const {
   verifyLoginCredentials,
   verifyTestimonyId,
   authenticateToken,
+  validateTestimonyWriteObject,
 } = require('../src/middleware.js');
 
 jest.mock('../src/db.js');
@@ -190,5 +191,74 @@ describe('authenticateToken', () => {
     const [res, next] = await callMiddleware(req, authenticateToken);
     expectMiddlewareToCallNext(res, next);
     expect(req.jwtPayload).toBe('payload');
+  });
+});
+
+describe('validateTestimonyWriteObject', () => {
+  function testNameAndDataToError(testName, data) {
+    test(
+      testName,
+      async () => {
+        req = {body: {data: data}};
+        const [res, next] = await callMiddleware(req, validateTestimonyWriteObject);
+        expectMiddlewareToSendError(res, next);
+      }
+    )
+  }
+
+  [
+    ['all fields empty', {}],
+    ['dateReceived ill-formed', {dateReceived: '2024-01-10'}],
+    ['lengthOfStay ill-formed', {lengthOfStay: ' 10'}],
+    ['gender invalid', {gender: 'Male '}],
+    ['transcription empty', {transcription: []}],
+  ].map(pair => testNameAndDataToError(...pair));
+
+  test('invalid division', async () => {
+    const req = {body: {data: {divisions: ['1', '2', '3']}}};
+    db.query.mockResolvedValue({rows: [{name: '1'}, {name: '2'}]});
+    const [res, next] = await callMiddleware(req, validateTestimonyWriteObject);
+    expectMiddlewareToSendError(res, next);
+  });
+
+  test('transcription sentence lacking text property', async () => {
+    const req = {body: {data: {transcription: [{}]}}};
+    db.query.mockResolvedValue({rows: [
+      {name: 'category1'}, 
+      {name: 'category2'}
+    ]});
+    const [res, next] = await callMiddleware(req, validateTestimonyWriteObject);
+    expectMiddlewareToSendError(res, next);
+  });
+
+  test('transcription sentence has invalid property', async () => {
+    const req = {body: {data: {transcription: [{
+      text: 'text', 
+      categories: ['category1'],
+    }]}}};
+    db.query.mockResolvedValue({rows: [
+      {name: 'category2'}, 
+      {name: 'category3'}
+    ]});
+    const [res, next] = await callMiddleware(req, validateTestimonyWriteObject);
+    expectMiddlewareToSendError(res, next);
+  });
+
+  test('success', async () => {
+    const req = {body: {data: {
+      dateReceived: '2024-01',
+      transcription: [
+        {
+          text: 'text', 
+          categories: ['category1'],
+        }
+      ],
+    }}};
+    db.query.mockResolvedValue({rows: [
+      {name: 'category1'}, 
+      {name: 'category2'}
+    ]});
+    const [res, next] = await callMiddleware(req, validateTestimonyWriteObject);
+    expectMiddlewareToCallNext(res, next);
   });
 });
