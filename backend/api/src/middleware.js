@@ -97,15 +97,30 @@ async function verifyTestimonyId(req, res, next) {
 
 function authenticateToken(req, res, next) {
   const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) 
-    return res.sendStatus(401);
+  if (authHeader === undefined)
+    return res.status(401).json({
+      error: {
+        message: 'This endpoint requires an authorization token in the "Authorization" header.'
+      }
+    }); 
 
+  const token = authHeader.split(' ')[1];
+  if (token === undefined) 
+    return res.status(401).json({
+      error: {
+        message: '"Authorization" header must be a string of the form "Bearer " followed by the authorization token.'
+      }
+    });
+  
   let payload;
   try {
     payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
   } catch (error) {
-    return res.sendStatus(401);
+    return res.status(401).json({
+      error: {
+        message: 'Verification of authorization token failed.'
+      }
+    });
   }
 
   req.jwtPayload = payload;
@@ -113,7 +128,6 @@ function authenticateToken(req, res, next) {
 }
 
 class TestimonyValidationError extends Error {}
-
 
 async function validateTestimonyWriteObject(req, res, next) {
   const data = req.body.data;
