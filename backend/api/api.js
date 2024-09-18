@@ -137,6 +137,18 @@ app.put(
 );
 
 // DELETE /testimonies/:testimonyId
+app.delete(
+  '/testimonies/:testimonyId',
+  authenticateToken,
+  verifyTestimonyId,
+  async (req, res) => {
+    const testimonyId = req.params.testimonyId;
+
+    await deleteTestimony(testimonyId);
+
+    return res.sendStatus(200);
+  }
+);
 
 // POST /testimonies/:id/files
 app.post(

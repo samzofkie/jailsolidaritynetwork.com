@@ -260,11 +260,17 @@ async function deleteTestimony(testimonyId) {
   try {
     await client.query('BEGIN');
 
-    // delete testimony
+    await client.query(
+      'DELETE FROM testimonies WHERE id = $1',
+      [testimonyId]
+    );
 
-    // delete all rows from testimony_divisions
+    await client.query(
+      'DELETE FROM testimony_divisions WHERE testimony_id = $1',
+      [testimonyId]
+    );
 
-    // delete all sentences
+    deleteTestimonySentences(client, testimonyId);
 
     await client.query('COMMIT');
   } catch (error) {
