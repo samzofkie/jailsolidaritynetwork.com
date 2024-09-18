@@ -150,6 +150,9 @@ async function insertTestimony(data) {
 }
 
 async function updateTestimony(testimonyId, data) {
+  if (!(Object.keys(data).length))
+    return;
+
   const client = await pool.connect();
 
   try {
@@ -194,8 +197,8 @@ async function updateTestimony(testimonyId, data) {
 
       for (const division of data.divisions)
         await client.query(
-          'INSERT INTO testimony_divisions (testimony_id, division_id) \
-          VALUES ($1, (SELECT id FROM divisions WHERE name = $2))',
+          'INSERT INTO testimony_divisions (testimony_id, division_id) ' +
+          'VALUES ($1, (SELECT id FROM divisions WHERE name = $2))',
           [testimonyId, division]
         );
     }
@@ -203,29 +206,23 @@ async function updateTestimony(testimonyId, data) {
     if (data.transcription) {
       
       // Delete existing sentences and testimony_sentences_categories
-
-      const existingSentenceIds = (await client.query(
-        'SELECT id FROM testimony_sentences WHERE testimony_id = $1',
-        [testimonyId]
-      )).rows;
-      console.log(existingSentenceIds);
-
       await client.query(
         'DELETE FROM testimony_sentences WHERE testimony_id = $1',
         [testimonyId]
       );
 
       // Insert new testimony_sentences
-
       for (const sentenceObject of data.transcription) {
         const sentenceId = (await client.query(
-          `INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id`,
+          'INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ' +
+          '($1, $2) RETURNING id',
           [sentenceObject.text, testimonyId]
         )).rows[0].id;
 
         for (const category of sentenceObject.categories)
           await client.query(
-            `INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))`,
+            'INSERT INTO testimony_sentences_categories (sentence_id, ' +
+            'category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))',
             [sentenceId, category]
           );
       }
