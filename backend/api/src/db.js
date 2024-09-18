@@ -73,7 +73,7 @@ async function insertTestimony(data) {
 
   try {
     await client.query('BEGIN');
-
+  
     const testimoniesFields = [
       data.dateReceived,
       data.lengthOfStay,
@@ -119,8 +119,8 @@ async function insertTestimony(data) {
     if (data.divisions)
       for (const division of data.divisions)
         await client.query(
-          'INSERT INTO testimony_divisions (testimony_id, division_id) \
-          VALUES ($1, (SELECT id FROM divisions WHERE name = $2))',
+          'INSERT INTO testimony_divisions (testimony_id, division_id) ' +
+          'VALUES ($1, (SELECT id FROM divisions WHERE name = $2))',
           [testimonyId, division]
         );
 

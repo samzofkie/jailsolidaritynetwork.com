@@ -4,6 +4,7 @@ const {
   query,
   connect,
   selectAllTestimonies,
+  insertTestimony,
 } = require('../src/db.js');
 
 jest.mock('pg');
@@ -144,4 +145,131 @@ describe('selectAllTestimonies', () => {
     expect(files[1]).toHaveLength(0);
   });
 
+});
+
+describe('insertTestimony', () => {
+  let client;
+
+  describe('no divisions or transcriptions queries', () => {
+    beforeEach(async () => {
+      client = {
+        query: jest.fn()
+          .mockReturnValueOnce(null)
+          .mockReturnValueOnce({rows: [{id: 1}]})
+          .mockReturnValueOnce(null),
+        release: jest.fn(),
+      };
+      pool.connect.mockResolvedValue(client);
+    });
+    
+    describe('empty data', () => {
+      beforeEach(async () => {
+        await insertTestimony({});
+      });
+    
+      test('calls connect', async () => {
+        expect(pool.connect.mock.calls).toHaveLength(1);
+      });
+  
+      test('releases client', async () => {
+        expect(client.release.mock.calls).toHaveLength(1);
+      });
+    
+      test('uses postgres transactions', async () => {
+        const queries = client.query.mock.calls.map(params => params[0]);
+        expect(queries).toContain('BEGIN');
+        expect(queries).toContain('COMMIT');
+      });
+    });
+  
+    // TODO test('calls rollback in case of exception', async () => {
+  
+    describe('builds insertion query correctly', () => {
+      test('no values', async () => {
+        await insertTestimony({});
+        expect(client.query.mock.calls[1][0]).toBe('INSERT INTO testimonies DEFAULT VALUES');
+      });
+  
+      test('dateReceived only', async () => {
+        await insertTestimony({dateReceived: '2024-01'});
+        const insertionArgs = client.query.mock.calls[1];
+        expect(insertionArgs[0]).toBe('INSERT INTO testimonies (date_received) VALUES ($1) RETURNING id');
+        expect(insertionArgs[1][0]).toBe('2024-01-01');
+      });
+  
+      test('dateReceived and gender', async () => {
+        await insertTestimony({dateReceived: '2024-02', gender: 'Male'});
+        const insertionArgs = client.query.mock.calls[1];
+        expect(insertionArgs[0]).toBe('INSERT INTO testimonies (date_received, gender) VALUES ($1, $2) RETURNING id');
+        expect(insertionArgs[1][0]).toBe('2024-02-01');
+        expect(insertionArgs[1][1]).toBe('Male');
+      });
+  
+      test('all three', async () => {
+        await insertTestimony({dateReceived: '2024-02', lengthOfStay: 5, gender: 'Male'});
+        const insertionArgs = client.query.mock.calls[1];
+        expect(insertionArgs[0]).toBe('INSERT INTO testimonies (date_received, length_of_stay, gender) VALUES ($1, $2, $3) RETURNING id');
+        expect(insertionArgs[1][0]).toBe('2024-02-01');
+        expect(insertionArgs[1][1]).toBe(5);
+        expect(insertionArgs[1][2]).toBe('Male');
+      });
+    });
+  });
+
+  test('inserts divisions correctly', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null) // BEGIN
+        .mockReturnValueOnce({rows: [{id: 1}]})
+        .mockReturnValueOnce(null) // '1'
+        .mockReturnValueOnce(null) // '2'
+        .mockReturnValueOnce(null) // '3'
+        .mockReturnValueOnce(null), // COMMIT
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await insertTestimony({divisions: ['1', '2', '3']});
+
+    const [query, args] = client.query.mock.calls[2];
+    expect(query).toBe('INSERT INTO testimony_divisions (testimony_id, division_id) VALUES ($1, (SELECT id FROM divisions WHERE name = $2))');
+    expect(args[0]).toBe(1);
+    expect(args[1]).toBe('1');
+  });
+
+  test('inserts transcription correctly', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null) // BEGIN
+        .mockReturnValueOnce({rows: [{id: 1}]})
+        .mockReturnValueOnce({rows: [{id: 1}]}) 
+        .mockReturnValueOnce(null) // 'A'
+        .mockReturnValueOnce(null) // 'B'
+        .mockReturnValueOnce({rows: [{id: 2}]}) 
+        .mockReturnValueOnce(null), // COMMIT
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await insertTestimony({transcription: [
+      {text: 'First sentence.', categories: ['A', 'B']},
+      {text: 'Another sentence.', categories: []},
+    ]});
+
+    const calls = client.query.mock.calls;
+
+    expect(calls[2][0]).toBe('INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id');
+    expect(calls[5][0]).toBe('INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id');
+    expect(calls[2][1][0]).toBe('First sentence.');
+    expect(calls[2][1][1]).toBe(1);
+
+    expect(calls[3][0]).toBe('INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))');
+    expect(calls[4][0]).toBe('INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))');
+
+    expect(calls[3][1][0]).toBe(1);
+    expect(calls[3][1][1]).toBe('A');
+    expect(calls[4][1][0]).toBe(1);
+    expect(calls[4][1][1]).toBe('B');
+
+  });
 });
