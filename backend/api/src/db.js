@@ -149,6 +149,28 @@ async function insertTestimony(data) {
   return testimonyId;
 }
 
+async function deleteTestimonySentences(client, testimonyId) {
+  const existingSentenceIds = (await client.query(
+    'SELECT id FROM testimony_sentences WHERE testimony_id = $1',
+    [testimonyId]
+  )).rows.map(row => row.id);
+  
+  // Delete all those sentences
+  await client.query(
+    'DELETE FROM testimony_sentences WHERE testimony_id = $1',
+    [testimonyId]
+  );
+
+  // Delete each row in testimony_sentences_categories where sentence_id 
+  // is in existingSentenceIds
+  for (const sentenceId of existingSentenceIds) {
+    await client.query(
+      'DELETE FROM testimony_sentences_categories WHERE sentence_id = $1',
+      [sentenceId]
+    );
+  }
+}
+
 async function updateTestimony(testimonyId, data) {
   if (!(Object.keys(data).length))
     return;
@@ -183,7 +205,7 @@ async function updateTestimony(testimonyId, data) {
         updateValues.push(data.gender);
         i++;
       }
-      updateCommand = updateCommand.slice(0, -2) + ` WHERE testimony_id = $${i}`;
+      updateCommand = updateCommand.slice(0, -2) + ` WHERE id = $${i}`;
       updateValues.push(testimonyId);
 
       await client.query(updateCommand, updateValues);
@@ -204,21 +226,17 @@ async function updateTestimony(testimonyId, data) {
     }
 
     if (data.transcription) {
-      
-      // Delete existing sentences and testimony_sentences_categories
-      await client.query(
-        'DELETE FROM testimony_sentences WHERE testimony_id = $1',
-        [testimonyId]
-      );
-
-      // Insert new testimony_sentences
+      await deleteTestimonySentences(client, testimonyId);
+    
       for (const sentenceObject of data.transcription) {
+        // Insert new sentence
         const sentenceId = (await client.query(
           'INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ' +
           '($1, $2) RETURNING id',
           [sentenceObject.text, testimonyId]
         )).rows[0].id;
 
+        // Insert a new row for each category
         for (const category of sentenceObject.categories)
           await client.query(
             'INSERT INTO testimony_sentences_categories (sentence_id, ' +
@@ -237,11 +255,33 @@ async function updateTestimony(testimonyId, data) {
   }
 }
 
+async function deleteTestimony(testimonyId) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // delete testimony
+
+    // delete all rows from testimony_divisions
+
+    // delete all sentences
+
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    await client.release();
+  }
+}
+
 module.exports = {
   pool, // only for testing
   query,
   connect,
   selectAllTestimonies,
   insertTestimony,
+  deleteTestimonySentences,
   updateTestimony,
+  deleteTestimony,
 };
