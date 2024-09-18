@@ -7,6 +7,7 @@ const {
   insertTestimony,
   deleteTestimonySentences,
   updateTestimony,
+  deleteTestimony,
 } = require('../src/db.js');
 
 jest.mock('pg');
@@ -647,5 +648,110 @@ describe('updateTestimony', () => {
     expect(args[0]).toBe('INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))');
     expect(args[1][0]).toBe(2);
     expect(args[1][1]).toBe('D');
+  });
+});
+
+describe('deleteTestimony', () => {
+  let client;
+
+  test('calls connect', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null) // BEGIN
+        .mockReturnValueOnce(null) // DELETE testimonies
+        .mockReturnValueOnce(null) // DELETE testimony_divisions
+        .mockReturnValueOnce({rows: [{id: 1}]}) // SELECT
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce(null) // DELETE tsc1
+        .mockReturnValueOnce(null), // COMMIT
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await deleteTestimony(1);
+
+    expect(pool.connect.mock.calls).toHaveLength(1);
+  });
+
+  test('releases client', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null) // BEGIN
+        .mockReturnValueOnce(null) // DELETE testimonies
+        .mockReturnValueOnce(null) // DELETE testimony_divisions
+        .mockReturnValueOnce({rows: [{id: 1}]}) // SELECT
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce(null) // DELETE tsc1
+        .mockReturnValueOnce(null), // COMMIT
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await deleteTestimony(1);
+
+    expect(client.release.mock.calls).toHaveLength(1);
+  });
+
+  test('uses postgres transaction', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null) // BEGIN
+        .mockReturnValueOnce(null) // DELETE testimonies
+        .mockReturnValueOnce(null) // DELETE testimony_divisions
+        .mockReturnValueOnce({rows: [{id: 1}]}) // SELECT
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce(null) // DELETE tsc1
+        .mockReturnValueOnce(null), // COMMIT
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await deleteTestimony(1);
+
+    const calls = client.query.mock.calls;
+    expect(calls[0][0]).toBe('BEGIN');
+    expect(calls[6][0]).toBe('COMMIT');
+  });
+
+  test('delete testimonies', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null) // BEGIN
+        .mockReturnValueOnce(null) // DELETE testimonies
+        .mockReturnValueOnce(null) // DELETE testimony_divisions
+        .mockReturnValueOnce({rows: [{id: 1}]}) // SELECT
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce(null) // DELETE tsc1
+        .mockReturnValueOnce(null), // COMMIT
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await deleteTestimony(1);
+
+    const calls = client.query.mock.calls;
+    expect(calls[1][0]).toBe('DELETE FROM testimonies WHERE id = $1');
+    expect(calls[1][1][0]).toBe(1);
+  });
+
+  test('delete testimony_divisions', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null) // BEGIN
+        .mockReturnValueOnce(null) // DELETE testimonies
+        .mockReturnValueOnce(null) // DELETE testimony_divisions
+        .mockReturnValueOnce({rows: [{id: 1}]}) // SELECT
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce(null) // DELETE tsc1
+        .mockReturnValueOnce(null), // COMMIT
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await deleteTestimony(1);
+
+    const calls = client.query.mock.calls;
+    expect(calls[2][0]).toBe('DELETE FROM testimony_divisions WHERE testimony_id = $1');
+    expect(calls[2][1][0]).toBe(1);
   });
 });

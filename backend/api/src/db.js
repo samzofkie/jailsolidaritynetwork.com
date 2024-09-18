@@ -270,7 +270,7 @@ async function deleteTestimony(testimonyId) {
       [testimonyId]
     );
 
-    deleteTestimonySentences(client, testimonyId);
+    await deleteTestimonySentences(client, testimonyId);
 
     await client.query('COMMIT');
   } catch (error) {
