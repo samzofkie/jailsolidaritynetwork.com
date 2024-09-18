@@ -5,6 +5,7 @@ const {
   connect,
   selectAllTestimonies,
   insertTestimony,
+  updateTestimony,
 } = require('../src/db.js');
 
 jest.mock('pg');
@@ -175,7 +176,7 @@ describe('insertTestimony', () => {
         expect(client.release.mock.calls).toHaveLength(1);
       });
     
-      test('uses postgres transactions', async () => {
+      test('uses postgres transaction', async () => {
         const queries = client.query.mock.calls.map(params => params[0]);
         expect(queries).toContain('BEGIN');
         expect(queries).toContain('COMMIT');
@@ -271,5 +272,314 @@ describe('insertTestimony', () => {
     expect(calls[4][1][0]).toBe(1);
     expect(calls[4][1][1]).toBe('B');
 
+  });
+});
+
+describe('updateTestimony', () => {
+  let client;
+
+  test('empty object', async ()=> {
+    client = {
+      query: jest.fn(),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(1, {});
+
+    expect(pool.connect.mock.calls).toHaveLength(0);
+    expect(client.query.mock.calls).toHaveLength(0);
+    expect(client.release.mock.calls).toHaveLength(0);
+  });
+
+  test('calls connect', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(1, {dateReceieved: '2024-01'});
+
+    expect(pool.connect.mock.calls).toHaveLength(1);
+  });
+
+  test('releases client', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(1, {dateReceived: '2024-01'});
+
+    expect(client.release.mock.calls).toHaveLength(1);
+  });
+
+  test('uses postgres transaction', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(1, {dateReceived: '2024-01'});
+
+    expect(client.query.mock.calls[0][0]).toBe('BEGIN');
+    expect(client.query.mock.calls[2][0]).toBe('COMMIT');
+  });
+
+  test('dateReceived only', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null) // UPDATE
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(1, {dateReceived: '2024-01'});
+
+    const args = client.query.mock.calls[1];
+    expect(args[0]).toBe('UPDATE testimonies SET date_received = $1 WHERE testimony_id = $2');
+    expect(args[1][0]).toBe('2024-01');
+    expect(args[1][1]).toBe(1);
+  });
+
+  test('dateReceived and gender', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null) // UPDATE
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(1, {dateReceived: '2024-01', gender: 'Male'});
+
+    const args = client.query.mock.calls[1];
+    expect(args[0]).toBe('UPDATE testimonies SET date_received = $1, gender = $2 WHERE testimony_id = $3');
+    expect(args[1][0]).toBe('2024-01');
+    expect(args[1][1]).toBe('Male');
+    expect(args[1][2]).toBe(1);
+  });
+
+  test('dateReceived, lengthOfStay and gender', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null) // UPDATE
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(10, {dateReceived: '2024-01', lengthOfStay: 5, gender: 'Male'});
+
+    const args = client.query.mock.calls[1];
+    expect(args[0]).toBe('UPDATE testimonies SET date_received = $1, length_of_stay = $2, gender = $3 WHERE testimony_id = $4');
+    expect(args[1][0]).toBe('2024-01');
+    expect(args[1][1]).toBe(5);
+    expect(args[1][2]).toBe('Male');
+    expect(args[1][3]).toBe(10);
+  });
+
+  test('delete divisions', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce(null) // INSERT
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(9, {divisions: ['A']});
+    
+    const args = client.query.mock.calls[1];
+    expect(args[0]).toBe('DELETE FROM testimony_divisions WHERE testimony_id = $1');
+    expect(args[1][0]).toBe(9);
+  });
+
+  test('insert single new division', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce(null) // INSERT
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(9, {divisions: ['A']});
+    
+    const args = client.query.mock.calls[2];
+    expect(args[0]).toBe('INSERT INTO testimony_divisions (testimony_id, division_id) VALUES ($1, (SELECT id FROM divisions WHERE name = $2))');
+    expect(args[1][0]).toBe(9);
+    expect(args[1][1]).toBe('A');
+  });
+
+  test('insert three new division', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce(null) // INSERT
+        .mockReturnValueOnce(null) // INSERT
+        .mockReturnValueOnce(null) // INSERT
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(9, {divisions: ['B', 'C', 'D']});
+    
+    let args = client.query.mock.calls[2];
+    expect(args[0]).toBe('INSERT INTO testimony_divisions (testimony_id, division_id) VALUES ($1, (SELECT id FROM divisions WHERE name = $2))');
+    expect(args[1][0]).toBe(9);
+    expect(args[1][1]).toBe('B');
+
+    args = client.query.mock.calls[3];
+    expect(args[0]).toBe('INSERT INTO testimony_divisions (testimony_id, division_id) VALUES ($1, (SELECT id FROM divisions WHERE name = $2))');
+    expect(args[1][0]).toBe(9);
+    expect(args[1][1]).toBe('C');
+
+    args = client.query.mock.calls[4];
+    expect(args[0]).toBe('INSERT INTO testimony_divisions (testimony_id, division_id) VALUES ($1, (SELECT id FROM divisions WHERE name = $2))');
+    expect(args[1][0]).toBe(9);
+    expect(args[1][1]).toBe('D');
+  });
+
+  test('delete all old sentences', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce({rows: [{id: 1}]}) // INSERT sentence
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(9, {transcription: [
+      {text: 'This is a sentence.', categories: []}
+    ]});
+
+    const args = client.query.mock.calls[1];
+    expect(args[0]).toBe('DELETE FROM testimony_sentences WHERE testimony_id = $1');
+    expect(args[1][0]).toBe(9);
+  });
+
+  test('insert new sentence with no categories', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce({rows: [{id: 1}]}) // INSERT sentence
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(9, {transcription: [
+      {text: 'This is a sentence.', categories: []}
+    ]});
+
+    const args = client.query.mock.calls[2];
+    expect(args[0]).toBe('INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id');
+    expect(args[1][0]).toBe('This is a sentence.');
+    expect(args[1][1]).toBe(9);
+  });
+
+  test('insert new sentence with two categories', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce({rows: [{id: 1}]}) // INSERT sentence
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(9, {transcription: [
+      {text: 'This is a sentence.', categories: ['A', 'B']}
+    ]});
+
+    let args = client.query.mock.calls[2];
+    expect(args[0]).toBe('INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id');
+    expect(args[1][0]).toBe('This is a sentence.');
+    expect(args[1][1]).toBe(9);
+
+    args = client.query.mock.calls[3];
+    expect(args[0]).toBe('INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))');
+    expect(args[1][0]).toBe(1);
+    expect(args[1][1]).toBe('A');
+
+    args = client.query.mock.calls[4];
+    expect(args[0]).toBe('INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))');
+    expect(args[1][0]).toBe(1);
+    expect(args[1][1]).toBe('B');
+  });
+
+  test('insert multiple sentences with multiple categories', async () => {
+    client = {
+      query: jest.fn()
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null) // DELETE
+        .mockReturnValueOnce({rows: [{id: 1}]}) // INSERT sentence
+        .mockReturnValueOnce({rows: [{id: 2}]}) // INSERT sentence
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null)
+        .mockReturnValueOnce(null),
+      release: jest.fn(),
+    };
+    pool.connect.mockResolvedValue(client);
+
+    await updateTestimony(9, {transcription: [
+      {text: 'This is a sentence.', categories: []},
+      {text: 'This is another sentence bilbo.', categories: ['A', 'B', 'D']}
+    ]});
+
+    let args = client.query.mock.calls[2];
+    expect(args[0]).toBe('INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id');
+    expect(args[1][0]).toBe('This is a sentence.');
+    expect(args[1][1]).toBe(9);
+
+    args = client.query.mock.calls[3];
+    expect(args[0]).toBe('INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id');
+    expect(args[1][0]).toBe('This is another sentence bilbo.');
+    expect(args[1][1]).toBe(9);
+
+    args = client.query.mock.calls[4];
+    expect(args[0]).toBe('INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))');
+    expect(args[1][0]).toBe(2);
+    expect(args[1][1]).toBe('A');
+
+    args = client.query.mock.calls[5];
+    expect(args[0]).toBe('INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))');
+    expect(args[1][0]).toBe(2);
+    expect(args[1][1]).toBe('B');
+
+    args = client.query.mock.calls[6];
+    expect(args[0]).toBe('INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))');
+    expect(args[1][0]).toBe(2);
+    expect(args[1][1]).toBe('D');
   });
 });
