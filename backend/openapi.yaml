@@ -312,6 +312,12 @@ paths:
       responses:
         "200":
           description: File successfully uploaded.
+        "400":
+          description: File format not supported.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorMessage"
         "401":
           $ref: "#/components/responses/unauthorized"
         "404":

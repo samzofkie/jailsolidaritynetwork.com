@@ -12,6 +12,7 @@ services:
     image: node
     volumes:
       - ./api:/api
+      - ./documents:/documents
     working_dir: /api
     env_file: ./api/.env
     command: node api.js

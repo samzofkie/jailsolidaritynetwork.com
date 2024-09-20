@@ -231,10 +231,41 @@ async function validateTestimonyWriteObject(req, res, next) {
   next();
 }
 
+async function verifyFileUploadContentType(req, res, next) {
+  const acceptedMIMETypes = [
+    'image/jpeg',
+    'image/png',
+    'application/pdf'
+  ];
+
+  if (!(acceptedMIMETypes.includes(req.headers['content-type'])))
+    return res.status(400).json({
+      error: {
+        message: 'File format not supported: only .jpg/jpeg, .png or .pdf ' +
+          'files are accepted'
+      }
+    });
+
+  const fileType = await import('file-type');
+
+  if (
+    !(req.body instanceof Buffer) || 
+    (await fileType.fileTypeFromBuffer(req.body)).mime !== req.headers['content-type']
+  )
+    return res.status(400).json({
+      error: {
+        message: 'Unable to verify uploaded file.'
+      }
+    });
+    
+  next();
+}
+
 module.exports = {
   verifyRequestBodyData,
   verifyLoginCredentials,
   verifyTestimonyId,
   authenticateToken,
   validateTestimonyWriteObject,
+  verifyFileUploadContentType,
 };

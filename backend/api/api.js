@@ -2,6 +2,7 @@ const fs = require('fs');
 
 const express = require('express');
 const jwt = require('jsonwebtoken');
+//const nanoid = require('nanoid');
 
 const db = require('./src/db.js');
 const {
@@ -10,6 +11,7 @@ const {
   verifyTestimonyId,
   authenticateToken,
   validateTestimonyWriteObject,
+  verifyFileUploadContentType,
 } = require('./src/middleware.js');
 
 const app = express();
@@ -154,33 +156,29 @@ app.delete(
 app.post(
   '/testimonies/:testimonyId/files',
   authenticateToken,
-  //upload.single('file'),
+  verifyTestimonyId,
   express.raw({
     type: [
+      'image/jpeg',
       'image/png',
+      'application/pdf'
     ]
   }),
+  verifyFileUploadContentType,
   async (req, res) => {
-    return;
-
-    //console.log('here', req);
-    //console.log(req.get('Content-Type'));
-
-    /*console.log(typeof req.body);
-    fs.writeFileSync('./test.png', req.body);
-
-    const testimonyId = req.params.id;
-    const file = req.file;
+    const { nanoid } = await import('nanoid');
     
-    if (!file)
-      return res.status(400).send('File in body of request is undefined!')
+    const testimonyId = req.params.testimonyId;
+    const contentType = req.headers['content-type'];
+    const fileFormat = contentType === 'image/jpeg' ? 'jpg' :
+      contentType === 'image/png' ? 'png' : 'pdf';
+    const fileName = nanoid() + '.' + fileFormat;
+    const filePath = '/documents/' + fileName;
 
-    const newFileName = await testimonyFileManager.insertNewFile(testimonyId, file);
+    fs.writeFileSync(filePath, req.body);
+    await db.insertTestimonyFile(testimonyId, fileName);
 
-    if (!newFileName)
-      return res.status(400).send(testimonyFileManager.errorMessage);
-    else 
-      return res.status(200).json({fileName: newFileName});*/
+    return res.sendStatus(200);
   }
 );
 

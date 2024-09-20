@@ -281,6 +281,13 @@ async function deleteTestimony(testimonyId) {
   }
 }
 
+async function insertTestimonyFile(testimonyId, fileName) {
+  pool.query('INSERT INTO testimony_files (testimony_id, file_name) VALUES ' +
+    '($1, $2)',
+    [testimonyId, fileName]
+  )
+}
+
 module.exports = {
   pool, // only for testing
   query,
@@ -290,4 +297,5 @@ module.exports = {
   deleteTestimonySentences,
   updateTestimony,
   deleteTestimony,
+  insertTestimonyFile,
 };
