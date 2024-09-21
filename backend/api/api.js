@@ -12,6 +12,7 @@ const {
   authenticateToken,
   validateTestimonyWriteObject,
   verifyFileUploadContentType,
+  verifyFileId,
 } = require('./src/middleware.js');
 const { generateThumbnail } = require('./src/utils.js');
 
@@ -193,6 +194,16 @@ app.post(
 );
 
 // DELETE /testimonies/:testimonyId/file/:fileId
+app.delete(
+  'testimonies/:testimonyId/files/:fileId',
+  authenticateToken,
+  verifyTestimonyId,
+  verifyFileId,
+  async (req, res) => {
+
+    return res.sendStatus(200);
+  }
+);
 
 const port = 8080;
 app.listen(port, () => console.log(`API listening on port ${port}`));
