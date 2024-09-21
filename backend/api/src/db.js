@@ -288,6 +288,13 @@ async function insertTestimonyFile(testimonyId, fileName) {
   )
 }
 
+async function deleteTestimonyFile(fileId) {
+  await pool.query(
+    'DELETE FROM testimony_files WHERE id = $1',
+    [fileId]
+  );
+}
+
 module.exports = {
   pool, // only for testing
   query,
@@ -298,4 +305,5 @@ module.exports = {
   updateTestimony,
   deleteTestimony,
   insertTestimonyFile,
+  deleteTestimonyFile,
 };

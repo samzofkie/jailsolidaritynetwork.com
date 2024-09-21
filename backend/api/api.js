@@ -201,6 +201,9 @@ app.delete(
   verifyFileId,
   async (req, res) => {
 
+    await db.deleteTestimonyFile(req.currentFileObject.id);
+    fs.rmSync('/documents/' + req.currentFileObject.name);
+
     return res.sendStatus(200);
   }
 );
