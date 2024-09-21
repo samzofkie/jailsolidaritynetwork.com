@@ -13,6 +13,7 @@ const {
   validateTestimonyWriteObject,
   verifyFileUploadContentType,
 } = require('./src/middleware.js');
+const { generateThumbnail } = require('./src/utils.js');
 
 const app = express();
 app.use(express.json());
@@ -162,21 +163,30 @@ app.post(
       'image/jpeg',
       'image/png',
       'application/pdf'
-    ]
+    ],
+    limit: '200mb',
   }),
   verifyFileUploadContentType,
   async (req, res) => {
     const { nanoid } = await import('nanoid');
-    
-    const testimonyId = req.params.testimonyId;
-    const contentType = req.headers['content-type'];
-    const fileFormat = contentType === 'image/jpeg' ? 'jpg' :
-      contentType === 'image/png' ? 'png' : 'pdf';
-    const fileName = nanoid() + '.' + fileFormat;
-    const filePath = '/documents/' + fileName;
 
-    fs.writeFileSync(filePath, req.body);
-    await db.insertTestimonyFile(testimonyId, fileName);
+    // TODO make this pretty / it's own function
+    const fileData = {
+      testimonyId: req.params.testimonyId,
+      contentType: req.headers['content-type'],
+      format: this.contentType === 'image/jpeg' ? 'jpg' :
+        this.contentType === 'image/png' ? 'png' : 'pdf',
+      //name: nanoid() + '.' + this.format,
+      //path: '/documents/' + this.name,
+    };
+    fileData.name = nanoid() + '.' + fileData.format;
+    fileData.path = '/documents/' + fileData.name
+    fileData.thumbnailName = fileData.testimonyId + '.jpg';
+    fileData.thumbnailPath = '/documents/' + fileData.thumbnailName;
+
+    fs.writeFileSync(fileData.path, req.body);
+    await db.insertTestimonyFile(fileData.testimonyId, fileData.name);
+    await generateThumbnail(fileData, req.body);
 
     return res.sendStatus(200);
   }
