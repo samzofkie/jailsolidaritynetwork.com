@@ -16,6 +16,9 @@
 - Consider best place to store static files (currently in `document/` directory in `backend/`) and logs in production
 - `validateTestimonyWriteObject` is massive-- class?
 - Wouldn't the SQL `SELECT` commands in the handlers for `GET /testimonies` and `GET /testimonies/:id` feel more natural in `db.js`?
+- MIME type column in testimony_files
+- `uploaded_by` and `last_updated` columns in most tables
+- refactor helper function out of `verifyTestimonyId` and `verifyFileId`
 
 ### big stuff:
   - Finish API

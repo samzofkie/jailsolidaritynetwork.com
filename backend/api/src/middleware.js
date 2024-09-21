@@ -261,6 +261,41 @@ async function verifyFileUploadContentType(req, res, next) {
   next();
 }
 
+async function verifyFileId(req, res, next) {
+  const fileId = req.params?.fileId;
+
+  if (
+    fileId === undefined ||
+    (!(/^\d+$/.test(fileId)))
+  )
+    return res.status(400).json({
+      error: {
+        message: 'Request path must include a valid string value for \
+        fileId.'
+      }
+    });
+
+  let file = (await db.query(
+    'SELECT * FROM testimony_files WHERE id = $1',
+    [fileId]
+  )).rows[0];
+    
+  if (file === undefined)
+    return res.status(404).json({
+      error: {
+        message: 'Resource not found.'
+      }
+    });
+
+  req.currentFileObject = {
+    id: fileId,
+    testimonyId: file.testimonyId,
+    name: file.file_name,
+  };
+
+  next();
+}
+
 module.exports = {
   verifyRequestBodyData,
   verifyLoginCredentials,
@@ -268,4 +303,5 @@ module.exports = {
   authenticateToken,
   validateTestimonyWriteObject,
   verifyFileUploadContentType,
+  verifyFileId,
 };
