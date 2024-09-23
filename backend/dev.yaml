@@ -3,6 +3,7 @@ services:
     image: node
     volumes:
       - ../frontend:/frontend
+      - ./documents:/frontend/public/documents
     working_dir: /frontend
     command: npm run dev
     ports:
