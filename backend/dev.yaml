@@ -25,4 +25,4 @@ services:
       POSTGRES_PASSWORD: xGfKqmOznGVrzHc40WY-Y
       POSTGRES_DB: jailsolidaritynetwork
     volumes:
-      - ./sql-scripts/tables.sql:/docker-entrypoint-initdb.d/tables.sql
+      - ./db:/docker-entrypoint-initdb.d
