@@ -34,7 +34,26 @@ async function generateThumbnail(fileData, fileBuffer) {
   }
 }
 
+async function getFileUploadData(testimonyId, contentType) {
+  const { nanoid } = await import('nanoid');
+
+  const data = {};
+  data.testimonyId = testimonyId;
+  data.contentType = contentType;
+  data.format = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'application/pdf': 'pdf'
+  }[data.contentType];
+  data.name = nanoid() + '.' + data.format;
+  data.path = '/documents/' + data.name
+  data.thumbnailName = data.testimonyId + '.jpg';
+  data.thumbnailPath = '/documents/' + data.thumbnailName;
+  return data;
+}
+
 module.exports = {
   formatDate,
   generateThumbnail,
+  getFileUploadData,
 };
