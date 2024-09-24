@@ -10,14 +10,13 @@ services:
       - ../frontend/dist:/data/www
       - ../frontend/public/static:/data/static
       - ./documents:/data/documents
-      - ./logs:/logs
 
   api:
     image: node
     restart: always
     volumes:
       - ./api:/api
-      - ./documents:/api/documents
+      - ./documents:/documents
     working_dir: /api
     env_file: ./api/.env
     command: node api.js
@@ -30,4 +29,4 @@ services:
       POSTGRES_PASSWORD: xGfKqmOznGVrzHc40WY-Y
       POSTGRES_DB: jailsolidaritynetwork
     volumes:
-      - ./tables.sql:/docker-entrypoint-initdb.d/tables.sql
+      - ./db/00-define-tables.sql:/docker-entrypoint-initdb.d/00-define-tables.sql
