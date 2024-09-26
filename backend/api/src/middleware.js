@@ -131,7 +131,6 @@ class TestimonyValidationError extends Error {}
 
 async function validateTestimonyWriteObject(req, res, next) {
   const data = req.body.data;
-
   try {
     if (
       [
@@ -143,8 +142,8 @@ async function validateTestimonyWriteObject(req, res, next) {
       ].every(property => property === undefined) 
     )
       throw new TestimonyValidationError(
-        'At least one of these properties must be defined: \
-        dateReceived, lengthOfStay, gender, divisions, transcription'
+        'At least one of these properties must be defined: ' +
+        'dateReceived, lengthOfStay, gender, divisions, transcription'
       );
   
     if (
@@ -165,11 +164,10 @@ async function validateTestimonyWriteObject(req, res, next) {
   
     if ( 
       data.gender &&
-      !['Male', 'Female', 'Non-binary', 'Other'].includes(data.gender)
+      !(/^[a-zA-Z \-]+$/.test(data.gender))
     )
       throw new TestimonyValidationError(
-        '\'gender\' property should be one of \'Male\', \'Female\', \
-        \'Non-binary\', or \'Other\''
+        '\'gender\' property should be a string consisting only of upper and lower case letters, spaces, and dashes'
       );
   
     if (data.divisions) {
@@ -180,8 +178,8 @@ async function validateTestimonyWriteObject(req, res, next) {
   
       if (invalidDivisions.length) 
         throw new TestimonyValidationError(
-          '\'divisions\' property included one or more unrecognized \
-          divisions:\n' + invalidDivisions.join('\n')
+          '\'divisions\' property included one or more unrecognized ' +
+          'divisions:\n' + invalidDivisions.join('\n')
         );
     }
   
@@ -191,14 +189,14 @@ async function validateTestimonyWriteObject(req, res, next) {
           '\'transcription\' property must have at least one element.'
         );
   
-      const validCategories = (await db.query('SELECT name FROM categories')).rows
-        .map(row => row.name);
+      const validCategories = (await db.query('SELECT shorthand FROM categories')).rows
+        .map(row => row.shorthand);
       
       for (const sentenceObject of data.transcription) {
         if (sentenceObject.text === undefined)
           throw new TestimonyValidationError(
-            'All \'sentence\' objects in transcription must include a \
-            \'.text\' property.'
+            'All \'sentence\' objects in transcription must include a ' +
+            '\'.text\' property.'
           );
         
         if (
@@ -210,8 +208,8 @@ async function validateTestimonyWriteObject(req, res, next) {
   
           if (invalidCategories.length)
             throw new TestimonyValidationError(
-              '\'categories\' property for one sentence included the \
-              following unrecognized categories:\n' + 
+              '\'categories\' property for one sentence included the ' +
+              'following unrecognized categories:\n' + 
               invalidCategories.join('\n')
             );
         }

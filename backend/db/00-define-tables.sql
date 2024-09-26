@@ -58,7 +58,7 @@ INSERT INTO categories (name, shorthand) VALUES
   ('Mental and Physical Health and Care', 'MPH'),
   ('Staff Treatment', 'ST'),
   ('Violence', 'V'),
-  ('Administration, Corruption, and Budget', 'ACB');
+  ('Administration, Corruption and Budget', 'ACB');
 
 INSERT INTO divisions (name) VALUES
   ('2'), ('3'), ('4'), ('6'), ('9'), ('10'), ('11'), ('14'), ('Cermak'), ('Solitary');

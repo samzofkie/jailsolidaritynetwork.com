@@ -180,7 +180,7 @@ app.post(
     );
     
     fs.writeFileSync(data.path, req.body);
-    await db.insertTestimonyFiles(data.testimonyId, data.name);
+    await db.insertTestimonyFile(data.testimonyId, data.name);
     await generateThumbnail(data, req.body);
 
     return res.sendStatus(200);

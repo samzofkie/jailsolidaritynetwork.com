@@ -82,7 +82,7 @@ async function insertTestimony(data) {
 
     if (testimoniesFields.every(property => property === undefined)) {
       testimonyId = (await client.query(
-        'INSERT INTO testimonies DEFAULT VALUES'
+        'INSERT INTO testimonies DEFAULT VALUES RETURNING id'
       )).rows[0].id;
     } else {
       let insertionCommand = 'INSERT INTO testimonies (';
@@ -133,7 +133,7 @@ async function insertTestimony(data) {
 
         for (const category of sentenceObject.categories)
           await client.query(
-            `INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = name))`,
+            `INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, (SELECT id FROM categories WHERE $2 = shorthand))`,
             [sentenceId, category]
           );
       }
