@@ -105,6 +105,5 @@ export class FileUpload extends Component {
       this.fileCardsDiv.append(fileCard);
       xButton.adjustWidth();
     });
-
   }
 }

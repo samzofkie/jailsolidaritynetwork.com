@@ -1,4 +1,4 @@
-import { Component, Store } from '@samzofkie/component';
+import { Component } from '@samzofkie/component';
 
 export class Spinner extends Component {
   constructor({

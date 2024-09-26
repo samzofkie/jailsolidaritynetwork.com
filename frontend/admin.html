@@ -3,6 +3,7 @@
   import { Component } from '@samzofkie/component';
   import { JSNPage } from './src/JSNPage.js';
   import { Header } from './src/Header.js';
+  import { Footer } from './src/Footer.js';
   import { AdminEditDisplay } from './src/AdminEditDisplay.js';
   
   const page = new JSNPage('Add or edit testimonies');
@@ -11,6 +12,7 @@
     page.append(
       new Header,
       new AdminEditDisplay,
+      new Footer,
     );
   }
 </script>

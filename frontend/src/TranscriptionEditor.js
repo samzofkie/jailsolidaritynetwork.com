@@ -8,11 +8,15 @@ class TranscriptionInput extends Component {
     super(
       'textarea',
       {
-        width: '98%',
-        height: 750,
+        width: '100%',
+        height: 400,
         name: 'transcriptionText',
         id: 'testimonyEditor',
         required: true,
+        boxSizing: 'border-box',
+        padding: 10,
+        margin: 0,
+        borderWidth: 0,
       }
     );
   }
@@ -26,6 +30,7 @@ class CategorySelector extends Component {
         display: 'flex',
         flexDirection: 'column',
         gap: 2,
+        lineHeight: 'normal',
       },
       ...Store.categories
         .map(category => new Field({
@@ -163,7 +168,7 @@ class TranscriptionHighlighter extends Component {
               Store.taggedText.removeTag();
             },
           },
-          'Remove tag',
+          'Remove tags',
         ),
       ),
       new Component('hr'),
@@ -188,13 +193,15 @@ export class TranscriptionEditor extends Component {
       new Component(
         'label', 
         {
-          fontWeight: 'bold', 
           htmlFor: 'testimonyEditor'
         }, 
-        'Testimony transcription: '),
+        'Transcription: '),
     );
 
     this.input = new TranscriptionInput;
+
+    this.input.root.value = 'Crap! He thought to himself. Whatever dude. I know better.\n\nThere must be a better way.'
+
     this.categoriesSpinner = new Spinner;
     this.append(
       this.input,
@@ -203,6 +210,7 @@ export class TranscriptionEditor extends Component {
 
     fetch('/categories')
       .then(res => res.json())
+      .then(res => res.data.items)
       .then(this.assignColorsToCategories)
       .then(categories => {
         Store.categories = categories;

@@ -1,4 +1,4 @@
-import { Component } from '@samzofkie/component';
+import { Component, Store } from '@samzofkie/component';
 import { TranscriptionEditor } from './TranscriptionEditor.js';
 import { Field, Section, FetchedSection } from './Inputs.js';
 import { Spinner } from './Spinner.js';
@@ -6,15 +6,150 @@ import { FileUpload } from './FileUpload.js';
 
 export class UploadForm extends Component {
   constructor() {
-    super('form', {
-      display: 'flex',
-      flexFlow: 'column wrap',
-      gap: 10,
-      alignItems: 'flex-start',
-      enctype: 'multipart/form-data',
-    });
+    super(
+      'form', 
+      {
+        //display: 'flex',
+        //flexFlow: 'column wrap',
+        //gap: 10,
+        //alignItems: 'flex-start',
+        enctype: 'multipart/form-data',
+        lineHeight: 30,
+      },
+    );
 
-    this.date = new Field({
+    this.dateLabel = new Component(
+      'label',
+      {
+        htmlFor: 'dateReceived'
+      },
+      'Date received: '
+    );
+
+    this.dateInput = new Component(
+      'input',
+      {
+        type: 'date',
+        id: 'dateReceived',
+        name: 'dateReceived',
+      }
+    );
+
+    this.append(
+      this.dateLabel, 
+      this.dateInput, 
+      new Component('br'),
+    );
+    
+    this.lengthOfStayLabel = new Component(
+      'label',
+      {
+        htmlFor: 'lengthOfStay',
+      },
+      'Length of stay: '
+    );
+
+    this.lengthOfStayInput = new Component(
+      'input',
+      {
+        type: 'text',
+        id: 'lengthOfStay',
+        name: 'lengthOfStay',
+        width: 30,
+      }
+    );
+
+    this.append(
+      this.lengthOfStayLabel,
+      this.lengthOfStayInput,
+      ' months',
+      new Component('br'),
+    );
+
+    this.genderLabel = new Component(
+      'label',
+      {
+        htmlFor: 'gender'
+      },
+      'Gender: '
+    );
+
+    this.genderInput = new Component(
+      'input',
+      {
+        type: 'text',
+      }
+    );
+
+    this.append(
+      this.genderLabel, 
+      this.genderInput,
+      new Component('br'),
+    );
+
+    this.divisionsContainer = new Component('div');
+
+    this.append(
+      'Divisions: ',
+      this.divisionsContainer
+    );
+
+    fetch('/divisions')
+      .then(async res => {
+        const divisionObjects = (await res.json()).data.items;
+        for (const divisionObject of divisionObjects) {
+          this.divisionsContainer.append(
+            new Component(
+              'input', 
+              {
+                type: 'checkbox',
+                id: divisionObject.id.toString(),
+                name: divisionObject.name,
+              }
+            ),
+            new Component(
+              'label',
+              {
+                htmlFor: divisionObject.id.toString(),
+              },
+              divisionObject.name,
+            )
+          );
+        }
+      });
+
+    this.transcriptionEditor = new TranscriptionEditor;
+
+    this.append(this.transcriptionEditor);
+
+    this.fileUploader = new FileUpload;
+
+    this.append(
+      'Files: ',
+      this.fileUploader
+    );
+
+    this.complaintDiv = new Component(
+      'div',
+      {
+        color: 'red',
+      }
+    );
+
+    this.append(this.complaintDiv);
+
+    this.submitButton = new Component(
+      'input',
+      {
+        type: 'submit',
+        value: 'Submit',
+        onclick: event => this.submit(event),
+      },
+    );
+
+    this.append(this.submitButton);
+
+    /*this.date = new Field({
       type: 'date',
       label: 'Date received: ',
       name: 'dateReceived',
@@ -79,7 +214,7 @@ export class UploadForm extends Component {
     this.spinner = new Spinner;
     this.spinner.hide();
 
-    if (!localStorage.getItem('accessToken'))
+    if (!localStorage.getItem('authToken'))
       this.append(
         new Component(
           'span', 
@@ -103,11 +238,11 @@ export class UploadForm extends Component {
       this.complaint,
       this.submit,
       this.spinner,
-    );
+    );*/
 
     // Set dummy values for testing
-    this.date.input.root.value = '2024-01-01';
-    setTimeout(() => 
+    //this.date.input.root.value = '2024-01-01';
+    /*setTimeout(() => 
       this.divisions.children.map((c, i) => {
         if (i < 2)
           return;
@@ -116,12 +251,102 @@ export class UploadForm extends Component {
         }
       }),
       500
-    );
-    this.lengthOfStay.input.root.value = '12'
-    this.editor.input.root.value = 'Sentence. Sentence.<LS,FW> This right here is another sentence bruv.<V,LS,FW> Idek what ur thinking bruv.<FW> Its a sure ting bruv. ';
+    );*/
+    //this.lengthOfStay.input.root.value = '12'
+    //this.editor.input.root.value = 'Sentence. Sentence.<LS,FW> This right here is another sentence bruv.<V,LS,FW> Idek what ur thinking bruv.<FW> Its a sure ting bruv. ';
   }
 
-  getInputs() {
+  buildTestimonyWriteObject() {
+    const data = {};
+    
+    if (this.dateInput.root.value) {
+      data.dateReceived = this.dateInput.root.value.slice(0, -3);
+    }
+
+    if (this.lengthOfStayInput.root.value) {
+      const numMonths = parseInt(this.lengthOfStayInput.root.value);
+      if (numMonths)
+        data.lengthOfStay = numMonths;
+    }
+
+    if (this.genderInput.root.value) {
+      data.gender = this.genderInput.root.value.trim();
+    }
+
+    const checkedDivisions = this.divisionsContainer.children
+      .filter(child => child.root.tagName === 'INPUT')
+      .filter(input => input.root.checked)
+      .map(input => input.root.name);
+    
+    if (checkedDivisions.length)
+      data.divisions = checkedDivisions;
+
+    const sentences = Store.taggedText.ir
+      .map(paragraph => paragraph.sentences)
+      .flat()
+      .map(sentence => ({
+        text: sentence.text,
+        categories: [...sentence.tags],
+      }));
+
+    if (sentences.length)
+      data.transcription = sentences;
+  
+    return data;
+  }
+
+  async submit(event) {
+    event.preventDefault();
+    const testimonyWriteObject = this.buildTestimonyWriteObject();
+
+    let res = await fetch(
+      '/testimonies', 
+      {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' +  localStorage.getItem('authToken'),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: testimonyWriteObject
+        }),
+      }
+    );
+    let resBody = await res.json();
+
+    if (res.status !== 200) {
+      this.complaintDiv.append(
+        new Component('span', resBody.error.message)
+      );
+      return;
+    }
+
+    const testimonyId = resBody.data.testimonyId;
+
+    for (const input of this.fileUploader.inputs) {
+      const file = input.root.files[0];
+
+      res = await fetch(
+        `/testimonies/${testimonyId}/files`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: 'Bearer ' +  localStorage.getItem('authToken'),
+          },
+          body: file,
+        }
+      );
+
+      if (res.status !== 200) {
+        this.complaintDiv.append(
+          new Component('span', resBody.error.message)
+        );        
+        return;
+      }
+    }
+  }
+
+  /*getInputs() {
     return [
       this.date.input,
       ...this.divisions.getInputs(),
@@ -161,9 +386,19 @@ export class UploadForm extends Component {
     formData.append('divisions', divisions);
   }
 
+  formatDate(dateString) {
+    const date = new Date(dateString);
+    let month = (date.getMonth() + 1).toString();
+    if (month.length < 2) {
+      month = '0' + month;
+    }
+    return `${date.getFullYear()}-${month}`;
+  }
+
   buildPostFormData() {
     const formData = new FormData;
-    formData.set('date', this.date.input.root.value);
+
+    formData.set('dateReceived', formatDate(this.date.input.root.value));
     formData.set('divisions', this.divisions.children.slice(2)
       .filter(d => d.input.root.checked)
       .map(d => d.label.root.innerText));
@@ -186,7 +421,22 @@ export class UploadForm extends Component {
       return;
     }
 
-    const testimonyData = Object.fromEntries(this.buildPostFormData().entries())
+    // TODO: parse transcription
+
+    const testimonyData = {
+      dateReceived: this.formatDate(this.date.input.root.value),
+      lengthOfStay: this.lengthOfStay.input.root.value,
+      gender: this.gender.children.slice(1)
+        .find(field => field.input.root.checked)
+        .label.root.innerText,
+      divisions: this.divisions.children.slice(2)
+        .filter(d => d.input.root.checked)
+        .map(d => d.label.root.innerText),
+    };
+
+    const requestBody = {
+      data: testimonyData,
+    };
 
     this.spinner.show();
     this.submit.hide();
@@ -196,47 +446,51 @@ export class UploadForm extends Component {
       {
         method: 'POST',
         headers: {
-          Authorization: 'Bearer ' +  localStorage.getItem('accessToken'),
+          Authorization: 'Bearer ' +  localStorage.getItem('authToken'),
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(testimonyData),
+        body: JSON.stringify(requestBody),
       }
     );
+    const resJson = await res.json();
 
     if (res.status !== 200) {
-      if (res.status === 401)
-        this.complain('Your upload attempt lacked an authorization token! That seems like a problem with the frontend.');
-      else if (res.status === 403)
-        this.complain('The authorization token your browser sent is invalid!');
+      this.complain(resJson.error.message);
       this.spinner.hide();
       this.submit.show();
       return;
     }
 
-    const id = (await res.json()).id;
+    const testimonyId = resJson.data.testimonyId;
 
     for (const input of this.fileUpload.inputs) {
       const file = input.root.files[0];
-      const fileFormData = new FormData;
-      fileFormData.append('file', file);
 
       const fileRes = await fetch(
-        `/testimonies/${id}/files`,
+        `/testimonies/${testimonyId}/files`,
         {
           method: 'POST',
           headers: {
-            Authorization: 'Bearer ' +  localStorage.getItem('accessToken'),
+            Authorization: 'Bearer ' +  localStorage.getItem('authToken'),
           },
-          body: fileFormData,
+          body: file,
         }
       );
 
+      console.log('here', fileRes);
+
+      const fileResJson = await fileRes.json();
+
       if (fileRes.status !== 200) {
-        this.complain(await fileRes.text());
+        this.complain(fileResJson.error.message);
         this.spinner.hide();
         this.submit.show();
         break;
       }
     }
-  }
+
+    this.spinner.hide();
+    this.submit.show();
+
+  }*/
 }

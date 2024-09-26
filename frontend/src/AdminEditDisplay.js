@@ -13,7 +13,7 @@ class AddTestimonyButton extends Component {
         display: 'flex',
         gap: 10,
         alignItems: 'center',
-        alignSelf: 'flex-end',
+        alignSelf: 'flex-start',
         border: '2px solid black',
       },
       new Component('span', {fontSize: 36}, '+'),
@@ -55,7 +55,7 @@ class TestimonyEditCard extends Component {
         gap: 10,
       },
       data.files.length ? 
-        new Component('img', {src: `documents/${data.id}-thumbnail.jpg`, width: 200, overflow: 'hidden'})
+        new Component('img', {src: `documents/${data.testimonyId}.jpg`, width: 200, overflow: 'hidden'})
         : new Component('div', {width: 200}, ' '),
       new Component(
         'div',
@@ -65,9 +65,9 @@ class TestimonyEditCard extends Component {
           gridTemplateRows: 'repeat(6, min-content)',
           columnGap: 10,
         },
-        ...divPair('ID: ', data.id.toString()),
-       ...divPair('Date: ', data.date_received),
-       ...divPair('Length of incarceration: ', data.length_of_stay.toString() + ' months'),
+        ...divPair('ID: ', data.testimonyId.toString()),
+       ...divPair('Date: ', data.dateReceived),
+       ...divPair('Length of incarceration: ', data.lengthOfStay.toString() + ' months'),
        ...divPair('Gender: ', data.gender),
         ...(data.divisions.length ?
           [
@@ -76,16 +76,25 @@ class TestimonyEditCard extends Component {
           ] 
           : [])
       ),
-      new Component(
+      /*new Component(
         'div', 
         {
-          padding: 5, 
+          padding: 10, 
           borderRadius: 20, 
           backgroundColor: 'white', 
-          alignSelf: 'end'
+          alignSelf: 'end',
+          justifySelf: 'end',
+          textAlign: 'center',
         },
-        new Component('a', {href: '/upload.html'}, 'edit')
-      ),
+        new Component(
+          'a', 
+          {
+            href: `/edit.html?testimonyId=${data.testimonyId}`,
+            padding: 0,
+          }, 
+          'edit (coming soon!)'
+        ),
+      ),*/
     );
   }
 }
@@ -104,17 +113,17 @@ export class AdminEditDisplay extends Component {
         gap: 10,
         alignItems: 'stretch',
       },
-
     );
 
     fetch('/testimonies')
       .then(res => res.json())
-      .then(testimonies => {
+      .then(res => {
+        const testimonies = res.data.items;
         this.append(
+          new AddTestimonyButton,
           ...(testimonies.length ?
             testimonies.map(t => new TestimonyEditCard(t))
             : ['No testimonies in database!']),
-          new AddTestimonyButton,
         );
       });
   }

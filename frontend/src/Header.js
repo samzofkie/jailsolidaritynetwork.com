@@ -147,8 +147,8 @@ export class Header extends Component {
     const isMobile = window.innerWidth < 800;
     const linkButtons = Object.entries({
       Archive: '/archive.html',
-      'Sheriff Dart vs. Reality': 'static/dart.html',
-      'Cook County Jail Timeline': 'static/timeline.html',
+      //'Sheriff Dart vs. Reality': 'static/dart.html',
+      //'Cook County Jail Timeline': 'static/timeline.html',
       About: '/about.html',
       Action: '/action.html',
     }).map(pair => new LinkButton(...pair));

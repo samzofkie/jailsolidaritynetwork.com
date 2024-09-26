@@ -112,24 +112,30 @@ export class LoginPortal extends Component {
     hide(this.submitButton);
     show(this.spinner);
 
-    const credentials = Object.fromEntries(new FormData(this.root).entries());
-    console.log(credentials);
+    const credentials = {
+      username: this.inputs[0].root.value,
+      password: this.inputs[1].root.value,
+    };
+
+    const requestBody = {
+      data: credentials
+    };
 
     fetch('/auth', {
       method: 'POST',
-      body: JSON.stringify(credentials),
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
+      body: JSON.stringify(requestBody),
     }).then(async res => {
-      if (res.status !== 200) {
-        this.complain(await res.text());
+      if (res.status !== 201) {
+        this.complain((await res.json()).error.message);
         hide(this.spinner);
         show(this.submitButton);
         this.clearInputs();
       } else {
-        const { accessToken } = await res.json();
-        localStorage.setItem('accessToken', accessToken);
+        const { data: { token: authToken } } = await res.json();
+        localStorage.setItem('authToken', authToken);
         window.location.href = '/admin.html';
       }
     });

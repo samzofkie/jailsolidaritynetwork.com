@@ -19,6 +19,7 @@
 - MIME type column in testimony_files
 - `uploaded_by` and `last_updated` columns in most tables
 - refactor helper function out of `verifyTestimonyId` and `verifyFileId`
+- File upload should return 201 not 200
 
 ### big stuff:
   - Finish API

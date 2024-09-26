@@ -3,13 +3,16 @@
   import { Component } from '@samzofkie/component';
   import { JSNPage } from './src/JSNPage.js';
   import { Header } from './src/Header.js';
+  import { Footer } from './src/Footer.js';
+  import { DocumentGallery } from './src/DocumentGallery.js'
   
   const page = new JSNPage('Jail Solidarity Network');
 
   document.body.onload = _ => {
     page.append(
       new Header,
-      'landing page'
+      new DocumentGallery,
+      new Footer,
     );
   }
 </script>

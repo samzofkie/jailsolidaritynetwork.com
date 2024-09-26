@@ -110,6 +110,7 @@ export class FetchedSection extends Section {
     let spinner = new Spinner;
     fetch(endpoint)
       .then(res => res.json())
+      .then(res => res.data.items)
       .then(items => {
         spinner.remove();
         this.append(

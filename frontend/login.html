@@ -3,6 +3,7 @@
   import { Component } from '@samzofkie/component';
   import { JSNPage } from './src/JSNPage.js';
   import { Header } from './src/Header.js';
+  import { Footer } from './src/Footer.js';
   import { LoginPortal } from './src/LoginPortal.js';
   
   const page = new JSNPage('Login');
@@ -13,6 +14,7 @@
       new Component('div', {textAlign: 'center', paddingTop: 10},
         new LoginPortal,
       ),
+      new Footer,
     );
   }
 </script>
