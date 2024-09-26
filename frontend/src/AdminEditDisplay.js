@@ -43,6 +43,8 @@ class TestimonyEditCard extends Component {
       ];
     }
 
+    data.lengthOfStay = null;
+
     super(
       'div',
       {
@@ -66,36 +68,28 @@ class TestimonyEditCard extends Component {
           columnGap: 10,
         },
         ...divPair('ID: ', data.testimonyId.toString()),
-       ...divPair('Date: ', data.dateReceived),
-       ...divPair('Length of incarceration: ', data.lengthOfStay.toString() + ' months'),
-       ...divPair('Gender: ', data.gender),
-        ...(data.divisions.length ?
-          [
-            new Component('div', {textAlign: 'right'}, 'Divisions'),
-            new Component('div', {fontWeight: 'bold'}, data.divisions.toString())
-          ] 
-          : [])
-      ),
-      /*new Component(
-        'div', 
-        {
-          padding: 10, 
-          borderRadius: 20, 
-          backgroundColor: 'white', 
-          alignSelf: 'end',
-          justifySelf: 'end',
-          textAlign: 'center',
-        },
-        new Component(
-          'a', 
-          {
-            href: `/edit.html?testimonyId=${data.testimonyId}`,
-            padding: 0,
-          }, 
-          'edit (coming soon!)'
-        ),
-      ),*/
+      )
     );
+
+    this.container = this.children[1];
+
+    if (data.dateReceived)
+      this.container.append(...divPair('Date: ', data.dateReceived));
+
+    if (data.lengthOfStay?.toString())
+      this.container.append(
+        ...divPair('Length of incarceration: ', data.lengthOfStay.toString() + ' months')
+      );
+
+    if (data.gender) 
+      this.container.append(...divPair('Gender: ', data.gender));
+
+    if (data.divisions?.length)
+      this.container.append(
+        new Component('div', {textAlign: 'right'}, 'Divisions'),
+        new Component('div', {fontWeight: 'bold'}, data.divisions.toString()),
+      );
+
   }
 }
 
