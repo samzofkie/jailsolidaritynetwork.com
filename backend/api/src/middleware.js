@@ -68,8 +68,8 @@ async function verifyTestimonyId(req, res, next) {
   )
     return res.status(400).json({
       error: {
-        message: 'Request path must include a valid string value for \
-        testimonyId.'
+        message: 'Request path must include a valid string value for ' +
+        'testimonyId.'
       }
     });
 

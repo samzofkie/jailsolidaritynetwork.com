@@ -200,8 +200,6 @@ export class TranscriptionEditor extends Component {
 
     this.input = new TranscriptionInput;
 
-    this.input.root.value = 'Crap! He thought to himself. Whatever dude. I know better.\n\nThere must be a better way.'
-
     this.categoriesSpinner = new Spinner;
     this.append(
       this.input,
