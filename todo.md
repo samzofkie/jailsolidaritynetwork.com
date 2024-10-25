@@ -20,6 +20,8 @@
 - `uploaded_by` and `last_updated` columns in most tables
 - refactor helper function out of `verifyTestimonyId` and `verifyFileId`
 - File upload should return 201 not 200
+- `GET`s should never return empty arrays or `null`s.
+- Transcription paragraphs?
 
 ### big stuff:
   - Finish API
@@ -35,6 +37,7 @@
   - Implement SSR
   - Improve SEO
   - Implement front-end routing
+  - Search
 
 ----
 testing thoughts:

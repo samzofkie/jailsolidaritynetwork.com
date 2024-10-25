@@ -252,7 +252,7 @@ async function verifyFileUploadContentType(req, res, next) {
   )
     return res.status(400).json({
       error: {
-        message: 'Unable to verify uploaded file.'
+        message: 'Unable to verify uploaded file-- is it possible your file is corrupted or malformed?'
       }
     });
     
