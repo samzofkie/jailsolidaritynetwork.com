@@ -1,186 +1,206 @@
-const express = require('express');
-const crypto = require('crypto');
 const fs = require('fs');
-const { Client } = require('pg');
 
-const multer = require('multer');
-const upload = multer({dest: 'uploads/'});
+const express = require('express');
+const jwt = require('jsonwebtoken');
+//const nanoid = require('nanoid');
+
+const db = require('./src/db.js');
+const {
+  verifyRequestBodyData,
+  verifyLoginCredentials,
+  verifyTestimonyId,
+  authenticateToken,
+  validateTestimonyWriteObject,
+  verifyFileUploadContentType,
+  verifyFileId,
+} = require('./src/middleware.js');
+const { generateThumbnail, getFileUploadData } = require('./src/utils.js');
 
 const app = express();
-const port = 8080;
+app.use(express.json());
 
-const adminHash = JSON.parse(fs.readFileSync('./.adminPassword'));
-adminHash.salt = Buffer.from(adminHash.salt);
-adminHash.hash = Buffer.from(adminHash.hash);
+// GET /categories
+app.get('/categories', async (_, res) => {
+  const { rows } = await db.query('SELECT * FROM categories');
+  return res.json({data: {items: rows}});
+});
 
+// GET /divisions
+app.get('/divisions', async (_, res) => {
+  const { rows } = await db.query('SELECT * FROM divisions');
+  return res.json({data: {items: rows}});
+});
 
-function authenticate(password) {
-  const challengerHash = crypto.pbkdf2Sync(password, adminHash.salt, adminHash.iterations, adminHash.hash.length, adminHash.digest);
-  return challengerHash.equals(adminHash.hash);
-}
-
-async function newConnectedClient() {
-  const client = new Client({
-    user: 'postgres',
-    host: 'db',
-    database: 'jailsolidaritynetwork',
-    password: 'xGfKqmOznGVrzHc40WY-Y',
-  });
-  await client.connect();
-  return client;
-}
-
-app.post('/testimony', upload.array('files'), async (req, res) => {
-  if (!req.body.password) {
-    res.sendStatus(401);
-    return;
-  } else if (!authenticate(req.body.password)) {
-    res.sendStatus(403);
-    return;
+// POST /auth
+app.post(
+  '/auth',
+  verifyRequestBodyData,
+  verifyLoginCredentials,
+  async (_, res) => {
+    const token = jwt.sign({name: 'admin'}, process.env.ACCESS_TOKEN_SECRET);
+    return res.status(201).json({data: {token: token}});
   }
+);
 
-  let {dateRecieved, lengthOfStay, gender, transcriptionText, divisions} = req.body;
-  divisions = divisions.split(',').filter(d => d);
-  const sentences = transcriptionText
-    .match(/[^.?!]*[.?!]\S*/g)
-    ?.map((sentenceText) => sentenceText.trim())
-    .map(sentence => {
-      let [_text, punct, tags] = sentence.split(/([.!?])/);
-      return {
-        fullText: sentence,
-        text: _text + punct,
-        tags: tags.replace('<','').replace('>','').split(',').filter(tag => tag),
-      };
-    });
-  let files = req.files;
-
-  const client = await newConnectedClient();
-
-  const validCategories = (await client.query('SELECT * FROM categories')).rows;
-  const validDivisions = (await client.query('SELECT * FROM divisions')).rows;
-
-  // Input validation
-  for (let param of [
-    {
-      name: 'dateRecieved',
-      value: dateRecieved,
-      valid: () => /^\d{4}-\d{2}-\d{2}$/.test(dateRecieved),
-    },
-    {
-      name: 'lengthOfStay',
-      value: lengthOfStay,
-      valid: () => /^\d+$/.test(lengthOfStay),
-    },
-    {
-      name: 'divisions',
-      value: divisions,
-      valid: async () => {
-        const validDivisionNames = validDivisions.map(row => row.name);
-        return divisions.reduce(
-          (acc, curr) => acc && validDivisionNames.includes(curr),
-          true
-        );
-      }
-    },
-    {
-      name: 'gender',
-      value: gender,
-      valid: async () => {
-        const validGenders = (await client.query('SELECT * FROM genders'))
-          .rows.map(row => row.name);
-        return validGenders.includes(gender);
-      }
-    },
-    {
-      name: 'transcriptionText',
-      value: transcriptionText.slice(0, 100) + 
-        (transcriptionText.length > 100 ? '...' : ''),
-      valid: async () => {
-        const validShorthands = validCategories.map(row => row.shorthand);
-
-        return sentences.reduce(
-          (acc, sentence) => {
-            const formValid = /^[^<]+(?:<[A-Z,]+>)?$/.test(sentence.fullText);
-            const tagsValid = sentence.tags.reduce(
-              (acc, shorthand) => acc && validShorthands.includes(shorthand),
-              true
-            );
-            return acc && formValid && tagsValid;
-          },
-          true
-        );
-      },
+// GET /testimonies
+app.get('/testimonies', async (_, res) => {
+  const testimonies = await db.selectAllTestimonies();
+  return res.status(200).json({
+    data: {
+      items: testimonies,
     }
-  ]) {
-    if (!(await param.valid())) {
-      console.error(`${param.name} invalid: ${param.value}`);
-      res.sendStatus(400);
-      return;
-    }
-  };
+  })
+});
 
-  console.log('Uploading new testimony...');
-  
-  let response = await client.query(
-    'INSERT INTO testimonies (date_received, length_of_stay, gender) VALUES ($1, $2, $3) RETURNING id', 
-    [dateRecieved, lengthOfStay, gender]
-  );
-  const testimonyId = response.rows[0].id;
-
-  for (let division of divisions) {
-    const divisionId = validDivisions.find(vd => vd.name === division).id;
-    await client.query(
-      'INSERT INTO testimony_divisions (testimony_id, division_id) VALUES ($1, $2)',
-      [testimonyId, divisionId]
-    );
-  }
-
-  for (let sentence of sentences) {
-    response = await client.query(
-      'INSERT INTO testimony_sentences (sentence, testimony_id) VALUES ($1, $2) RETURNING id',
-      [sentence.text, testimonyId]
-    );
-    const sentenceId = response.rows[0].id;
-
-    for (let tag of sentence.tags) {
-      const categoryId = validCategories.find(vc => vc.shorthand === tag).id;
-      await client.query(
-        'INSERT INTO testimony_sentences_categories (sentence_id, category_id) VALUES ($1, $2)',
-        [sentenceId, categoryId]
-      );
-    }
-  }
-
-  let i = 0;
-  for (let file of files) {
-    const suffix = file.originalname.split('.')[1] ? '.' + file.originalname.split('.')[1] : '';
-    const newFileName = `${testimonyId}-${i}` + suffix;
-    fs.renameSync(file.destination + file.filename, file.destination + newFileName);
-
-    await client.query(
-      'INSERT INTO testimony_Files (testimony_id, file_name) VALUES ($1, $2)',
-      [testimonyId, newFileName]
-    );
-    i++;
-  }
+// POST /testimonies
+app.post(
+  '/testimonies',
+  authenticateToken,
+  verifyRequestBodyData,
+  validateTestimonyWriteObject,
+  async (req, res) => {
+    const data = req.body.data;
+    const testimonyId = await db.insertTestimony(data);
     
-  await client.end();
+    return res.status(200).json({data: {testimonyId: testimonyId}});
+  }
+);
 
-  res.send('Success');
-});
+// GET /testimonies/:testimonyId
+app.get(
+  '/testimonies/:testimonyId',
+  verifyTestimonyId,
+  async (req, res) => {
+    const testimonyId = req.params.testimonyId;
+    const testimony = req.currentTestimonyObject;
 
-async function sendRowsFomDb(table, res) {
-  const client = await newConnectedClient();
-  const response = (await client.query(`SELECT * FROM ${table}`)).rows;
-  res.json(response);
-  await client.end();
-}
+    // This handler doesn't use a specialized db function (like something along
+    // the lines of "selectTestimony(testimonyId)") because the 
+    // verifyTestimonyId middleware function, in verifying the ID, queries the
+    // testimonies table in the database, and caches the data from the returned
+    // row in an object stored in req.currentTestimonyObject. So rather than
+    // having a specialized function that just fetches the relevant divisions 
+    // and sentences from the database, we just implement the rest of the 
+    // querying here with a db.connect() client.
 
-app.get('/divisions', (_, res) => sendRowsFomDb('divisions', res))
-app.get('/genders', (_, res) => sendRowsFomDb('genders', res))
-app.get('/categories', (_, res) => sendRowsFomDb('categories', res))
+    const client = await db.connect();
 
+    testimony.divisions = (await client.query(
+      'SELECT divisions.name FROM testimony_divisions \
+      INNER JOIN divisions ON testimony_divisions.division_id = divisions.id \
+      WHERE testimony_id = $1',
+      [testimonyId]
+    )).rows.map(row => row.name);
 
-app.listen(port, () => {
-  console.log(`API listening on port ${port}`);
-});
+    const sentencesCategories = (await client.query(
+      'SELECT sentence_id, categories.name AS category \
+      FROM testimony_sentences_categories \
+      INNER JOIN testimony_sentences \
+      ON testimony_sentences_categories.sentence_id = testimony_sentences.id \
+      INNER JOIN categories \
+      ON testimony_sentences_categories.category_id = categories.id \
+      WHERE testimony_id = $1',
+      [testimonyId]
+    )).rows;
+
+    testimony.transcription = (await client.query(
+      'SELECT id, sentence FROM testimony_sentences WHERE testimony_id = $1',
+      [testimonyId]
+    )).rows.map(sentence => ({
+      sentenceId: sentence.id,
+      text: sentence.sentence,
+      categories: sentencesCategories
+        .filter(sc => sentence.id === sc.sentence_id)
+        .map(sc => sc.category)
+    }));
+
+    testimony.files = (await client.query(
+      'SELECT file_name FROM testimony_files WHERE testimony_id = $1',
+      [testimonyId]
+    )).rows.map(row => row.file_name);
+
+    client.release();
+
+    return res.status(200).json({
+      data: testimony
+    });
+  }
+);
+
+// PUT /testimonies/:testimonyId
+app.put(
+  '/testimonies/:testimonyId',
+  authenticateToken,
+  verifyTestimonyId,
+  verifyRequestBodyData,
+  validateTestimonyWriteObject,
+  async (req, res) => {
+    const testimonyId = req.params.testimonyId;
+    const data = req.body.data;
+    
+    await db.updateTestimony(testimonyId, data);
+
+    return res.sendStatus(200);
+  }
+);
+
+// DELETE /testimonies/:testimonyId
+app.delete(
+  '/testimonies/:testimonyId',
+  authenticateToken,
+  verifyTestimonyId,
+  async (req, res) => {
+    const testimonyId = req.params.testimonyId;
+
+    await deleteTestimony(testimonyId);
+
+    return res.sendStatus(200);
+  }
+);
+
+// POST /testimonies/:id/files
+app.post(
+  '/testimonies/:testimonyId/files',
+  authenticateToken,
+  verifyTestimonyId,
+  express.raw({
+    type: [
+      'image/jpeg',
+      'image/png',
+      'application/pdf'
+    ],
+    limit: '200mb',
+  }),
+  verifyFileUploadContentType,
+  async (req, res) => {
+    
+    const data = await getFileUploadData(
+      req.params.testimonyId, 
+      req.headers['content-type']
+    );
+    
+    fs.writeFileSync(data.path, req.body);
+    await db.insertTestimonyFiles(data.testimonyId, data.name);
+    await generateThumbnail(data, req.body);
+
+    return res.sendStatus(200);
+  }
+);
+
+// DELETE /testimonies/:testimonyId/file/:fileId
+app.delete(
+  'testimonies/:testimonyId/files/:fileId',
+  authenticateToken,
+  verifyTestimonyId,
+  verifyFileId,
+  async (req, res) => {
+
+    await db.deleteTestimonyFile(req.currentFileObject.id);
+    fs.rmSync('/documents/' + req.currentFileObject.name);
+
+    return res.sendStatus(200);
+  }
+);
+
+const port = 8080;
+app.listen(port, () => console.log(`API listening on port ${port}`));

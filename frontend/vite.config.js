@@ -10,16 +10,18 @@ export default defineConfig({
         archive: resolve(__dirname, 'archive.html'),
         about: resolve(__dirname, 'about.html'),
         action: resolve(__dirname, 'action.html'),
+				admin: resolve(__dirname, 'admin.html'),
         upload: resolve(__dirname, 'upload.html'),
+        login: resolve(__dirname, 'login.html')
       },
     },
   },
   server: {
     proxy: {
-      '/genders': 'http://api:8080',
-      '/divisions': 'http://api:8080',
+      '/auth': 'http://api:8080',
+      '/testimonies': 'http://api:8080',
       '/categories': 'http://api:8080',
-      '/testimony': 'http://api:8080',
-    },
+      '/divisions': 'http://api:8080',
+		}, 
   },
 });

@@ -5,7 +5,7 @@ export class JSNPage extends Page {
     super(
       title,
       {
-        backgroundColor: '#fff3d4',
+        backgroundColor: localStorage.getItem('accessToken') ? '#505050' : '#fff3d4',
         fontFamily: 'Arial, Helvetica, sans-serif',
         boxSizing: 'border-box',
       },
@@ -25,6 +25,14 @@ export class JSNPage extends Page {
         {
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0',
+        }
+      ),
+      new Component(
+        'link',
+        {
+          rel: 'icon',
+          type: 'image/x-icon',
+          href: 'static/favicon.ico'
         }
       ),
     );

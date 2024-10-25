@@ -1,10 +1,9 @@
 services:
   dev-server:
     image: node
-    depends_on:
-      - api
     volumes:
       - ../frontend:/frontend
+      - ./documents:/frontend/public/documents
     working_dir: /frontend
     command: npm run dev
     ports:
@@ -12,20 +11,18 @@ services:
 
   api:
     image: node
-    depends_on:
-      - db
-    restart: on-failure:10
     volumes:
       - ./api:/api
+      - ./documents:/documents
     working_dir: /api
+    env_file: ./api/.env
     command: node api.js
 
   db:
     image: postgres
-    restart: always
     shm_size: 128mb
     environment:
       POSTGRES_PASSWORD: xGfKqmOznGVrzHc40WY-Y
       POSTGRES_DB: jailsolidaritynetwork
     volumes:
-      - ./tables.sql:/docker-entrypoint-initdb.d/tables.sql
+      - ./db:/docker-entrypoint-initdb.d

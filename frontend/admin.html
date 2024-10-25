@@ -3,13 +3,14 @@
   import { Component } from '@samzofkie/component';
   import { JSNPage } from './src/JSNPage.js';
   import { Header } from './src/Header.js';
+  import { AdminEditDisplay } from './src/AdminEditDisplay.js';
   
-  const page = new JSNPage('Jail Solidarity Network');
+  const page = new JSNPage('Add or edit testimonies');
 
   document.body.onload = _ => {
     page.append(
       new Header,
-      'landing page'
+      new AdminEditDisplay,
     );
   }
 </script>

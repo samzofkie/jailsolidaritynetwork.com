@@ -6,9 +6,7 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview",
-    "test": "jest",
-    "lint": "eslint index.js src/*"
+    "preview": "vite preview"
   },
   "devDependencies": {
     "eslint": "^8.56.0",

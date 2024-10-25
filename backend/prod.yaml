@@ -1,21 +1,24 @@
 services:
   proxy:
-    image: nginx-log-rotate
+    image: nginx
+    restart: always
     ports:
       - 80:80
       - 443:443
     volumes:
+      - ./nginx:/etc/nginx
       - ../frontend/dist:/data/www
-      - ./logs/:/logs
-    depends_on:
-      - db
+      - ../frontend/public/static:/data/static
+      - ./documents:/data/documents
 
   api:
     image: node
+    restart: always
     volumes:
       - ./api:/api
-    restart: on-failure:10
+      - ./documents:/documents
     working_dir: /api
+    env_file: ./api/.env
     command: node api.js
 
   db:
@@ -26,4 +29,4 @@ services:
       POSTGRES_PASSWORD: xGfKqmOznGVrzHc40WY-Y
       POSTGRES_DB: jailsolidaritynetwork
     volumes:
-      - ./tables.sql:/docker-entrypoint-initdb.d/tables.sql
+      - ./db/00-define-tables.sql:/docker-entrypoint-initdb.d/00-define-tables.sql
