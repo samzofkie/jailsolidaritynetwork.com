@@ -131,6 +131,7 @@ class TestimonyValidationError extends Error {}
 
 async function validateTestimonyWriteObject(req, res, next) {
   const data = req.body.data;
+  
   try {
     if (
       [

@@ -89,7 +89,6 @@ class TestimonyEditCard extends Component {
         new Component('div', {textAlign: 'right'}, 'Divisions'),
         new Component('div', {fontWeight: 'bold'}, data.divisions.toString()),
       );
-
   }
 }
 

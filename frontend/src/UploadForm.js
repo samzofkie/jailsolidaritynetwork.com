@@ -267,7 +267,5 @@ export class UploadForm extends Component {
     }
 
     this.messageDiv.green('Successfully uploaded!')
-
-
   }
 }
