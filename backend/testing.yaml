@@ -1,0 +1,39 @@
+services:
+  test-runner:
+    image: jsn-test-runner
+    volumes:
+      - ./integration-testing:/integration-testing
+    working_dir: /integration-testing
+    tty: true
+
+
+  proxy:
+    image: nginx
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx:/etc/nginx
+      - ./integration-testing/cert:/etc/nginx/cert3
+      - ../frontend/dist:/data/www
+      - ../frontend/public/static:/data/static
+      - ./documents:/data/documents
+
+  api:
+    image: node
+    volumes:
+      - ./api:/api
+      - ./documents:/documents
+    working_dir: /api
+    env_file: ./api/.env
+    command: node api.js
+
+  db:
+    image: postgres
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: xGfKqmOznGVrzHc40WY-Y
+      POSTGRES_DB: jailsolidaritynetwork
+    volumes:
+      - ./db/00-define-tables.sql:/docker-entrypoint-initdb.d/00-define-tables.sql
+      #- ./db/50-test-data.sql:/docker-entrypoint-initdb.d/00-test-data.sql
